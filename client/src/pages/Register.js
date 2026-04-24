@@ -12,6 +12,48 @@ const BG_IMAGES = [
   "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
 ];
 
+const WORD1 = ["C","o","n","f","e","s","s","i","o","n"];
+const WORD2 = ["W","a","l","l"];
+
+const REDS1 = ["#7a1515","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515"];
+const REDS2 = ["#9c2020","#8b1a1a","#7a1515","#6b1111"];
+
+const WAVE1 = [4, 4, 0, -4, -8, -10, -8, -4, 0, 4];
+const WAVE2 = [8, 4, 0, 4];
+
+const cardBase = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "32px",
+  height: "32px",
+  borderRadius: "7px",
+  fontFamily: "Georgia, serif",
+  fontSize: "17px",
+  fontWeight: "700",
+  color: "#f5c0c0",
+  boxShadow: "0 3px 10px rgba(0,0,0,0.4)",
+  flexShrink: 0,
+  transition: "transform 0.2s ease",
+};
+
+function LetterCard({ letter, bg, waveY }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...cardBase,
+        background: bg,
+        transform: `translateY(${hovered ? waveY - 6 : waveY}px) scale(${hovered ? 1.12 : 1})`,
+      }}
+    >
+      {letter}
+    </span>
+  );
+}
+
 export default function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -78,56 +120,150 @@ export default function Register() {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    }}>
+      {/* Background slideshow */}
       <div style={{
-        position: "absolute", inset: 0,
+        position: "absolute",
+        inset: 0,
         backgroundImage: `url(${BG_IMAGES[currentBg]})`,
-        backgroundSize: "cover", backgroundPosition: "center",
-        transition: "opacity 0.8s ease", opacity: fade ? 1 : 0,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        transition: "opacity 0.8s ease",
+        opacity: fade ? 1 : 0,
+        zIndex: 0,
       }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1 }} />
 
-      <div style={{ position: "absolute", bottom: "24px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px", zIndex: 3 }}>
+      {/* Dark overlay */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "rgba(0, 0, 0, 0.45)",
+        zIndex: 1,
+      }} />
+
+      {/* Dot indicators */}
+      <div style={{
+        position: "absolute",
+        bottom: "24px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        gap: "8px",
+        zIndex: 3,
+      }}>
         {BG_IMAGES.map((_, i) => (
           <div key={i} onClick={() => setCurrentBg(i)} style={{
-            width: i === currentBg ? "24px" : "8px", height: "8px", borderRadius: "4px",
+            width: i === currentBg ? "24px" : "8px",
+            height: "8px",
+            borderRadius: "4px",
             background: i === currentBg ? "white" : "rgba(255,255,255,0.4)",
-            cursor: "pointer", transition: "all 0.3s ease",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
           }} />
         ))}
       </div>
 
+      {/* Glassmorphism card */}
       <div style={{
-        position: "relative", zIndex: 2,
-        background: "rgba(255,255,255,0.12)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.25)",
-        borderRadius: "24px", padding: "2.5rem",
-        width: "100%", maxWidth: "400px", margin: "0 1rem",
+        position: "relative",
+        zIndex: 2,
+        background: "rgba(255, 255, 255, 0.12)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255, 255, 255, 0.25)",
+        borderRadius: "24px",
+        padding: "2.5rem",
+        width: "100%",
+        maxWidth: "400px",
+        margin: "0 1rem",
         boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
-        maxHeight: "90vh", overflowY: "auto",
+        maxHeight: "90vh",
+        overflowY: "auto",
       }}>
+
+        {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          <div style={{ fontSize: "28px", fontWeight: "700", color: "white", letterSpacing: "-0.5px", textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
-            Confession Wall
+
+          {/* Row 1: Confession */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: "4px",
+            flexWrap: "nowrap",
+            paddingBottom: "6px",
+          }}>
+            {WORD1.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
+            ))}
           </div>
-          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginTop: "6px" }}>Create your account</p>
+
+          {/* Row 2: Wall */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: "4px",
+            flexWrap: "nowrap",
+            paddingBottom: "14px",
+          }}>
+            {WORD2.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
+            ))}
+          </div>
+
+          <p style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: "14px",
+            marginTop: "2px",
+          }}>
+            Create your account
+          </p>
         </div>
 
         {error && (
-          <div style={{ background: "rgba(220,53,69,0.2)", border: "1px solid rgba(220,53,69,0.4)", borderRadius: "10px", padding: "10px 14px", color: "#ffaaaa", fontSize: "14px", marginBottom: "1rem" }}>
+          <div style={{
+            background: "rgba(220,53,69,0.2)",
+            border: "1px solid rgba(220,53,69,0.4)",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            color: "#ffaaaa",
+            fontSize: "14px",
+            marginBottom: "1rem",
+          }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
+          {/* Profile picture upload */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "1.2rem" }}>
             {preview ? (
-              <img src={preview} alt="preview" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", marginBottom: "10px", border: "2px solid rgba(255,255,255,0.4)" }} />
+              <img src={preview} alt="preview" style={{
+                width: "80px", height: "80px", borderRadius: "50%",
+                objectFit: "cover", marginBottom: "10px",
+                border: "2px solid rgba(255,255,255,0.4)",
+              }} />
             ) : (
-              <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "rgba(255,255,255,0.15)", marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", border: "2px dashed rgba(255,255,255,0.3)" }}>👤</div>
+              <div style={{
+                width: "80px", height: "80px", borderRadius: "50%",
+                background: "rgba(255,255,255,0.15)", marginBottom: "10px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "2rem", border: "2px dashed rgba(255,255,255,0.3)",
+              }}>👤</div>
             )}
-            <label style={{ cursor: "pointer", padding: "6px 16px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.8)", fontSize: "13px", background: "rgba(255,255,255,0.1)" }}>
+            <label style={{
+              cursor: "pointer", padding: "6px 16px", borderRadius: "20px",
+              border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.8)",
+              fontSize: "13px", background: "rgba(255,255,255,0.1)",
+            }}>
               Upload Photo
               <input type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
             </label>
@@ -137,21 +273,33 @@ export default function Register() {
           <input type="email" name="email" placeholder="Email address" value={form.email} onChange={handleChange} required style={inputStyle} />
           <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ ...inputStyle, marginBottom: "20px" }} />
 
-          <button type="submit" disabled={loading} style={{
-            width: "100%", padding: "13px", borderRadius: "12px",
-            border: "1px solid rgba(255,255,255,0.3)",
-            background: "rgba(255,255,255,0.22)", color: "white",
-            fontSize: "15px", fontWeight: "600",
-            cursor: loading ? "not-allowed" : "pointer",
-            backdropFilter: "blur(8px)", transition: "all 0.2s ease",
-          }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "13px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.3)",
+              background: "rgba(255,255,255,0.22)",
+              color: "white",
+              fontSize: "15px",
+              fontWeight: "600",
+              cursor: loading ? "not-allowed" : "pointer",
+              backdropFilter: "blur(8px)",
+              transition: "all 0.2s ease",
+              letterSpacing: "0.3px",
+            }}
+          >
             {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
         <p style={{ textAlign: "center", marginTop: "1.2rem", color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
           Already have an account?{" "}
-          <Link to="/login" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>Login</Link>
+          <Link to="/login" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>
+            Login
+          </Link>
         </p>
       </div>
     </div>
