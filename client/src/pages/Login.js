@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../AppStyle.css";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
 
 export default function Login() {
   const { login } = useAuth();
