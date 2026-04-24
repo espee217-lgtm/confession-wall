@@ -12,14 +12,14 @@ const BG_IMAGES = [
   "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
 ];
 
-const WORD1 = ["o","n","f","e","s","s","i","o","n"];
+const WORD1 = ["C","o","n","f","e","s","s","i","o","n"];
 const WORD2 = ["W","a","l","l"];
 
-const REDS1 = ["#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515"];
+const REDS1 = ["#7a1515","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515"];
 const REDS2 = ["#9c2020","#8b1a1a","#7a1515","#6b1111"];
 
-const WAVE1 = [4, 0, -4, -8, -10, -8, -4, 0, 4];
-const WAVE2 = [-8, -4, 0, 4];
+const WAVE1 = [4, 4, 0, -4, -8, -10, -8, -4, 0, 4];
+const WAVE2 = [8, 4, 0, -4];
 
 const cardBase = {
   display: "inline-flex",
@@ -167,7 +167,7 @@ export default function Login() {
         {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
 
-          {/* Row 1: C logo + onfession */}
+          {/* Row 1: Confession */}
           <div style={{
             display: "flex",
             alignItems: "flex-end",
@@ -176,23 +176,6 @@ export default function Login() {
             flexWrap: "nowrap",
             paddingBottom: "6px",
           }}>
-            <span style={{
-              ...cardBase,
-              background: "transparent",
-              boxShadow: "none",
-              padding: "2px",
-              overflow: "hidden",
-            }}>
-              <img
-                src="/logo.png"
-                alt="C"
-                style={{
-                  height: "28px",
-                  width: "28px",
-                  objectFit: "contain",
-                }}
-              />
-            </span>
             {WORD1.map((letter, i) => (
               <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
             ))}
