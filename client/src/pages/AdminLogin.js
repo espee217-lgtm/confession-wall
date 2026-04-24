@@ -15,7 +15,7 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("hhttps://confession-wall-hn63.onrender.com/api/admin/login", {
+      const res = await fetch("https://confession-wall-hn63.onrender.com/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
