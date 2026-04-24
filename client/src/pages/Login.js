@@ -6,8 +6,8 @@ import "../AppStyle.css";
 const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
 
 const BG_IMAGES = [
+  "https://i.pinimg.com/736x/3b/de/be/3bdebe37f3e3e6109bf3ee87ed79abcc.jpg",
   "https://i.pinimg.com/1200x/46/a8/c6/46a8c6b7486d303c54b3adfaf73bc09f.jpg",
-  "https://i.pinimg.com/1200x/73/7f/a9/737fa9dd823b643ae15989d3a94dd271.jpg",
   "https://variety.com/wp-content/uploads/2022/05/One-Indian-Girl-res.jpg?w=1000&h=563&crop=1",
   "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
 ];
