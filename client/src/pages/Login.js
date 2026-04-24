@@ -12,6 +12,48 @@ const BG_IMAGES = [
   "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
 ];
 
+const WORD1 = ["o","n","f","e","s","s","i","o","n"];
+const WORD2 = ["W","a","l","l"];
+
+const REDS1 = ["#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515"];
+const REDS2 = ["#9c2020","#8b1a1a","#7a1515","#6b1111"];
+
+const WAVE1 = [4, 0, -4, -8, -10, -8, -4, 0, 4];
+const WAVE2 = [-8, -4, 0, 4];
+
+const cardBase = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "32px",
+  height: "32px",
+  borderRadius: "7px",
+  fontFamily: "Georgia, serif",
+  fontSize: "17px",
+  fontWeight: "700",
+  color: "#f5c0c0",
+  boxShadow: "0 3px 10px rgba(0,0,0,0.4)",
+  flexShrink: 0,
+  transition: "transform 0.2s ease",
+};
+
+function LetterCard({ letter, bg, waveY }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...cardBase,
+        background: bg,
+        transform: `translateY(${hovered ? waveY - 6 : waveY}px) scale(${hovered ? 1.12 : 1})`,
+      }}
+    >
+      {letter}
+    </span>
+  );
+}
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -122,35 +164,55 @@ export default function Login() {
         boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
       }}>
 
-        {/* Logo/Title */}
+        {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+
+          {/* Krishna with blue background card */}
+          <div style={{ marginBottom: "14px" }}>
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#1a3a6b",
+              borderRadius: "16px",
+              padding: "8px 10px 4px 10px",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.45)",
+            }}>
+              <img
+                src="/logo.png"
+                alt="Confession Wall Logo"
+                style={{
+                  height: "72px",
+                  width: "auto",
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Pattern A letter cards */}
           <div style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             justifyContent: "center",
-            gap: "2px",
-            fontSize: "28px",
-            fontWeight: "700",
-            color: "white",
-            letterSpacing: "-0.5px",
-            textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            gap: "4px",
+            flexWrap: "nowrap",
+            paddingBottom: "14px",
           }}>
-            <img
-              src="/logo.png"
-              alt="C"
-              style={{
-                height: "52px",
-                width: "auto",
-                objectFit: "contain",
-                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))",
-              }}
-            />
-            onfession Wall
+            {WORD1.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
+            ))}
+            <span style={{ width: "10px", flexShrink: 0 }} />
+            {WORD2.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
+            ))}
           </div>
+
           <p style={{
             color: "rgba(255,255,255,0.7)",
             fontSize: "14px",
-            marginTop: "6px",
+            marginTop: "2px",
           }}>
             Welcome back
           </p>
