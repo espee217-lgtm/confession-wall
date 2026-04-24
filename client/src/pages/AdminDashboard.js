@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
-const API_URL = "http://localhost:5000/api/admin";
+const API_URL = "https://confession-wall-hn63.onrender.com/api/admin";
 
 export default function AdminDashboard() {
   const { adminToken, adminLogout } = useAdminAuth();

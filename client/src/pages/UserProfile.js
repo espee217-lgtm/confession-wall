@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://confession-wall-hn63.onrender.com";
 
 export default function UserProfile() {
   const { id } = useParams();
