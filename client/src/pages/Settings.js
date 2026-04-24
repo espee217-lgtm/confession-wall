@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../AppStyle.css";
 
-const API_URL = "http://localhost:5000/api/auth";
+const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
 
 // ── small helper ──────────────────────────────────────────────────────────────
 function Section({ title, children, defaultOpen = false }) {
