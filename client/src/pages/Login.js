@@ -121,16 +121,31 @@ export default function Login() {
         margin: "0 1rem",
         boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
       }}>
+
         {/* Logo/Title */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "2px",
             fontSize: "28px",
             fontWeight: "700",
             color: "white",
             letterSpacing: "-0.5px",
             textShadow: "0 2px 8px rgba(0,0,0,0.3)",
           }}>
-            Confession Wall
+            <img
+              src="/logo.png"
+              alt="C"
+              style={{
+                height: "52px",
+                width: "auto",
+                objectFit: "contain",
+                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))",
+              }}
+            />
+            onfession Wall
           </div>
           <p style={{
             color: "rgba(255,255,255,0.7)",
