@@ -19,7 +19,7 @@ const REDS1 = ["#7a1515","#7a1515","#8b1a1a","#6b1111","#9c2020","#7a1515","#8b1
 const REDS2 = ["#9c2020","#8b1a1a","#7a1515","#6b1111"];
 
 const WAVE1 = [4, 4, 0, -4, -8, -10, -8, -4, 0, 4];
-const WAVE2 = [8, 4, 0, -4];
+const WAVE2 = [8, 4, 0, 4];
 
 const cardBase = {
   display: "inline-flex",
