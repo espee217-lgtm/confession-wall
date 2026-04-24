@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../AppStyle.css";
 
 const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
+
+const BG_IMAGES = [
+  "https://res.cloudinary.com/dudgqif7u/image/upload/e_gen_recolor:prompt_(cap);to-color_333B4C;multiple_true/a_hflip/c_crop,w_1920,h_1080,g_auto/v1777024160/Screenshot_2026-04-24_150840_zyvafb.png",
+  "https://i.pinimg.com/1200x/73/7f/a9/737fa9dd823b643ae15989d3a94dd271.jpg",
+  "https://variety.com/wp-content/uploads/2022/05/One-Indian-Girl-res.jpg?w=1000&h=563&crop=1",
+  "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
+];
 
 export default function Login() {
   const { login } = useAuth();
@@ -11,6 +18,19 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentBg, setCurrentBg] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setCurrentBg((prev) => (prev + 1) % BG_IMAGES.length);
+        setFade(true);
+      }, 800);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -37,38 +57,124 @@ export default function Login() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      position: "fixed",
+      inset: 0,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "linear-gradient(135deg, #007bff, #00bfff, #0056b3)",
-      marginTop: "-80px",
-      paddingTop: "80px",
+      overflow: "hidden",
     }}>
+      {/* Background slideshow */}
       <div style={{
-        background: "rgba(255, 255, 255, 0.1)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255, 255, 255, 0.2)",
-        borderRadius: "20px",
+        position: "absolute",
+        inset: 0,
+        backgroundImage: `url(${BG_IMAGES[currentBg]})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        transition: "opacity 0.8s ease",
+        opacity: fade ? 1 : 0,
+        zIndex: 0,
+      }} />
+
+      {/* Dark overlay */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "rgba(0, 0, 0, 0.45)",
+        zIndex: 1,
+      }} />
+
+      {/* Dot indicators */}
+      <div style={{
+        position: "absolute",
+        bottom: "24px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        display: "flex",
+        gap: "8px",
+        zIndex: 3,
+      }}>
+        {BG_IMAGES.map((_, i) => (
+          <div key={i} onClick={() => setCurrentBg(i)} style={{
+            width: i === currentBg ? "24px" : "8px",
+            height: "8px",
+            borderRadius: "4px",
+            background: i === currentBg ? "white" : "rgba(255,255,255,0.4)",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+          }} />
+        ))}
+      </div>
+
+      {/* Glassmorphism card */}
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        background: "rgba(255, 255, 255, 0.12)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255, 255, 255, 0.25)",
+        borderRadius: "24px",
         padding: "2.5rem",
         width: "100%",
-        maxWidth: "420px",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
+        maxWidth: "400px",
+        margin: "0 1rem",
+        boxShadow: "0 8px 40px rgba(0,0,0,0.3)",
       }}>
-        <h2 style={{ margin: "0 0 1.5rem", textAlign: "center", color: "white" }}>Welcome Back</h2>
+        {/* Logo/Title */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <div style={{
+            fontSize: "28px",
+            fontWeight: "700",
+            color: "white",
+            letterSpacing: "-0.5px",
+            textShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          }}>
+            Confession Wall
+          </div>
+          <p style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: "14px",
+            marginTop: "6px",
+          }}>
+            Welcome back
+          </p>
+        </div>
 
-        {error && <p style={{ color: "#ffcccc", marginBottom: "1rem" }}>{error}</p>}
+        {error && (
+          <div style={{
+            background: "rgba(220,53,69,0.2)",
+            border: "1px solid rgba(220,53,69,0.4)",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            color: "#ffaaaa",
+            fontSize: "14px",
+            marginBottom: "1rem",
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Email address"
             value={form.email}
             onChange={handleChange}
             required
-            style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", marginBottom: "12px", background: "rgba(255,255,255,0.15)", color: "white", boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.25)",
+              marginBottom: "12px",
+              background: "rgba(255,255,255,0.12)",
+              color: "white",
+              fontSize: "15px",
+              boxSizing: "border-box",
+              outline: "none",
+            }}
           />
           <input
             type="password"
@@ -77,24 +183,58 @@ export default function Login() {
             value={form.password}
             onChange={handleChange}
             required
-            style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.3)", marginBottom: "16px", background: "rgba(255,255,255,0.15)", color: "white", boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.25)",
+              marginBottom: "20px",
+              background: "rgba(255,255,255,0.12)",
+              color: "white",
+              fontSize: "15px",
+              boxSizing: "border-box",
+              outline: "none",
+            }}
           />
 
-          <button className="btn" type="submit" style={{ width: "100%", background: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.4)", backdropFilter: "blur(4px)" }} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "13px",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.3)",
+              background: "rgba(255,255,255,0.22)",
+              color: "white",
+              fontSize: "15px",
+              fontWeight: "600",
+              cursor: loading ? "not-allowed" : "pointer",
+              backdropFilter: "blur(8px)",
+              transition: "all 0.2s ease",
+              letterSpacing: "0.3px",
+            }}
+          >
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1rem", color: "rgba(255,255,255,0.8)" }}>
-          Don't have an account? <Link to="/register" style={{ color: "white", fontWeight: 600 }}>Register</Link>
+        <p style={{ textAlign: "center", marginTop: "1.2rem", color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
+          Don't have an account?{" "}
+          <Link to="/register" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>
+            Register
+          </Link>
         </p>
 
-        {/* 👇 Only this line was added */}
-        <p style={{ textAlign: "center", marginTop: "0.5rem", color: "rgba(255,255,255,0.5)", fontSize: "0.85rem" }}>
-          Admin? <Link to="/admin" style={{ color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>Login here</Link>
+        <p style={{ textAlign: "center", marginTop: "0.5rem", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
+          Admin?{" "}
+          <Link to="/admin" style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none" }}>
+            Login here
+          </Link>
         </p>
-
       </div>
     </div>
   );
 }
+
+
