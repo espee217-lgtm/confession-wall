@@ -9,7 +9,9 @@ console.log("Mongo URI:", process.env.MONGO_URI);
 const app = express();
 
 // middleware
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ 
+  origin: ["http://localhost:3000", "https://confession-wall-three.vercel.app"]
+}));
 app.use(express.json());
 // routes
 const confessionRoutes = require("./routes/confessionRoutes");
