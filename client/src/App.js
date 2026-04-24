@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import ConfessionPage from "./pages/ConfessionPage";
 import Register from "./pages/Register";
@@ -12,9 +12,14 @@ import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin"];
+
 function Navbar() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (HIDE_NAVBAR_ROUTES.includes(location.pathname)) return null;
 
   return (
     <header className="navbar">
@@ -72,7 +77,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/user/:id" element={<UserProfile />} /> {/* 👈 new */}
+          <Route path="/user/:id" element={<UserProfile />} />
         </Routes>
       </Router>
     </AdminAuthProvider>
@@ -80,3 +85,4 @@ function App() {
 }
 
 export default App;
+
