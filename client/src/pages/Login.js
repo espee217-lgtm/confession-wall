@@ -167,47 +167,42 @@ export default function Login() {
         {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
 
-          {/* Krishna with blue background card */}
-          <div style={{ marginBottom: "14px" }}>
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "#1a3a6b",
-              borderRadius: "16px",
-              padding: "8px 10px 4px 10px",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.45)",
-            }}>
-              <img
-                src="/logo.png"
-                alt="Confession Wall Logo"
-                style={{
-                  height: "72px",
-                  width: "auto",
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.4))",
-                }}
-              />
-            </div>
-          </div>
+          {/* Logo + Letter cards */}
+<div style={{
+  display: "flex",
+  alignItems: "flex-end",
+  justifyContent: "center",
+  gap: "4px",
+  flexWrap: "nowrap",
+  paddingBottom: "14px",
+}}>
+  {/* C logo card — inline, no blue bg */}
+  <span style={{
+    ...cardBase,
+    background: "#7a1515",
+    transform: `translateY(4px)`,
+    padding: "2px",
+    overflow: "hidden",
+  }}>
+    <img
+      src="/logo.png"
+      alt="C"
+      style={{
+        height: "22px",
+        width: "22px",
+        objectFit: "contain",
+      }}
+    />
+  </span>
 
-          {/* Pattern A letter cards */}
-          <div style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            gap: "4px",
-            flexWrap: "nowrap",
-            paddingBottom: "14px",
-          }}>
-            {WORD1.map((letter, i) => (
-              <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
-            ))}
-            <span style={{ width: "10px", flexShrink: 0 }} />
-            {WORD2.map((letter, i) => (
-              <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
-            ))}
-          </div>
+  {WORD1.map((letter, i) => (
+    <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
+  ))}
+  <span style={{ width: "10px", flexShrink: 0 }} />
+  {WORD2.map((letter, i) => (
+    <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
+  ))}
+</div>
 
           <p style={{
             color: "rgba(255,255,255,0.7)",
