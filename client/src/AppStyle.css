@@ -1,0 +1,167 @@
+
+:root {
+  --primary: #007bff;
+  --danger: #ff4d4f;
+  --text: #222;
+  --bg: #f9fafb;
+  --card: #ffffff;
+  --muted: #777;
+}
+/* 🌑 Dark Mode controlled by JS */
+html.dark {
+  --primary: #4da3ff;
+  --danger: #ff6b6b;
+  --text: #f1f1f1;
+  --bg: #121212;
+  --card: #1e1e1e;
+  --muted: #aaa;
+}
+/* ===== GLOBAL ===== */
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+  background: linear-gradient(90deg, var(--primary), #00bfff);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== CONTAINER ===== */
+.container {
+  max-width: 720px;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+}
+
+/* ===== FORM ===== */
+form textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  background-color: var(--card);
+  color: var(--text);
+}
+
+form textarea:focus {
+  border-color: var(--primary);
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  margin-top: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+  transform: scale(1.04);
+}
+
+/* ===== CONFESSION CARDS ===== */
+.confession-card {
+  background: var(--card);
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.confession-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.confession-text {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+/* ===== DELETE BUTTON ===== */
+.delete-btn {
+  background-color: var(--danger);
+}
+
+.delete-btn:hover {
+  background-color: #d9363e;
+}
+
+/* ===== TIMESTAMP ===== */
+.timestamp {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 8px;
+}
+/* ===== ATTACH IMAGE BUTTON ===== */
+.attach-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  margin-top: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.attach-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.04);
+}
+/* ===== BACK BUTTON ===== */
+.back-btn {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  background-color: #0056b3;
+  transform: scale(1.04);
+}
+/* ===== NAVBAR LINKS ===== */
+.navbar a.chip {
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+/* ===== CHIP LINKS ===== */
+a.chip {
+  color: white !important;
+  text-decoration: none !important;
+  font-size: 14px;
+}
