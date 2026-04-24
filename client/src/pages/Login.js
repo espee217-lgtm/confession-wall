@@ -167,42 +167,50 @@ export default function Login() {
         {/* Logo / Title */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
 
-          {/* Logo + Letter cards */}
-<div style={{
-  display: "flex",
-  alignItems: "flex-end",
-  justifyContent: "center",
-  gap: "4px",
-  flexWrap: "nowrap",
-  paddingBottom: "14px",
-}}>
-  {/* C logo card — inline, no blue bg */}
-  <span style={{
-    ...cardBase,
-    background: "#7a1515",
-    transform: `translateY(4px)`,
-    padding: "2px",
-    overflow: "hidden",
-  }}>
-    <img
-      src="/logo.png"
-      alt="C"
-      style={{
-        height: "22px",
-        width: "22px",
-        objectFit: "contain",
-      }}
-    />
-  </span>
+          {/* Row 1: C logo + onfession */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: "4px",
+            flexWrap: "nowrap",
+            paddingBottom: "6px",
+          }}>
+            <span style={{
+              ...cardBase,
+              background: "transparent",
+              boxShadow: "none",
+              padding: "2px",
+              overflow: "hidden",
+            }}>
+              <img
+                src="/logo.png"
+                alt="C"
+                style={{
+                  height: "28px",
+                  width: "28px",
+                  objectFit: "contain",
+                }}
+              />
+            </span>
+            {WORD1.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
+            ))}
+          </div>
 
-  {WORD1.map((letter, i) => (
-    <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
-  ))}
-  <span style={{ width: "10px", flexShrink: 0 }} />
-  {WORD2.map((letter, i) => (
-    <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
-  ))}
-</div>
+          {/* Row 2: Wall */}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: "4px",
+            flexWrap: "nowrap",
+            paddingBottom: "14px",
+          }}>
+            {WORD2.map((letter, i) => (
+              <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
+            ))}
+          </div>
 
           <p style={{
             color: "rgba(255,255,255,0.7)",
@@ -211,6 +219,7 @@ export default function Login() {
           }}>
             Welcome back
           </p>
+
         </div>
 
         {error && (
