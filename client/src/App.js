@@ -12,7 +12,7 @@ import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
-const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin"];
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin", "/"];
 
 function Navbar() {
   const { user } = useAuth();

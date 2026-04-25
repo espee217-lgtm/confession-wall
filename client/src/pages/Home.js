@@ -1,37 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../AppStyle.css";
+import DaisyScene from "../DaisyScene";
 
 const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
 
 export default function Home() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const [confessions, setConfessions] = useState([]);
+  const [showCompose, setShowCompose] = useState(false);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [confessions, setConfessions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
 
-  // eslint-disable-next-line
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
     fetch(API_URL)
-      .then((res) => res.json())
-      .then((data) => setConfessions(Array.isArray(data) ? data : []))
-      .catch((err) => console.error("Error fetching confessions:", err));
-  }, [user]);
+      .then(r => r.json())
+      .then(d => setConfessions(Array.isArray(d) ? d : []))
+      .catch(err => console.error(err));
+  }, [user, navigate]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    if (file) setPreview(URL.createObjectURL(file));
-    else setPreview(null);
+    if (file) setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!message.trim()) return;
+    setLoading(true);
     try {
       const formData = new FormData();
       formData.append("message", message);
@@ -49,108 +49,136 @@ export default function Home() {
       setConfessions([confessionWithUser, ...confessions]);
       setMessage("");
       setImage(null);
-      setPreview(null);
+      setImagePreview(null);
+      setShowCompose(false);
     } catch (err) {
-      console.error("Failed to post:", err);
+      console.error(err);
       alert("Could not post — is the backend running?");
     }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setConfessions(confessions.filter((c) => c._id !== id));
-    } catch (err) {
-      console.error("Delete failed", err);
-      alert("Unable to delete. Check console.");
-    }
-  };
-
-  const timeAgo = (date) => {
-    if (!date) return "";
-    const diff = Math.floor((Date.now() - new Date(date)) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    setLoading(false);
   };
 
   return (
-    <div className="container">
-      <form onSubmit={handleSubmit}>
-        <textarea
-          placeholder="Write your confession..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
 
-        {preview && (
-          <div style={{ margin: "8px 0" }}>
-            <img src={preview} alt="preview" style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px" }} />
-          </div>
-        )}
+      {/* 3D Daisy Scene */}
+      <DaisyScene
+        confessions={confessions}
+        user={user}
+        onPostClick={(id) => navigate(`/confession/${id}`)}
+        onCompose={() => setShowCompose(true)}
+        onProfile={() => navigate("/settings")}
+      />
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <label className="attach-btn">
-            📎 Attach image
-            <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
-          </label>
-          <button className="btn" type="submit">Post</button>
-        </div>
-      </form>
+      {/* Compose Modal */}
+      {showCompose && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowCompose(false); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 500,
+            background: "rgba(3,10,2,0.80)",
+            backdropFilter: "blur(12px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <div style={{
+            background: "rgba(8,22,6,0.97)",
+            border: "1px solid rgba(255,238,136,0.2)",
+            borderRadius: "24px",
+            padding: "32px 28px",
+            width: "min(440px, 92vw)",
+            position: "relative",
+            boxShadow: "0 0 60px rgba(255,238,136,0.08), 0 24px 80px rgba(0,0,0,0.8)",
+            fontFamily: "Georgia, serif",
+          }}>
+            {/* Close */}
+            <button
+              onClick={() => setShowCompose(false)}
+              style={{
+                position: "absolute", top: "16px", right: "18px",
+                background: "none", border: "none",
+                color: "rgba(255,255,220,0.4)", fontSize: "20px",
+                cursor: "pointer", lineHeight: 1,
+              }}
+            >✕</button>
 
-      <div className="confession-list">
-        {confessions.length === 0 ? (
-          <p className="center link-muted">No confessions yet ■</p>
-        ) : (
-          confessions.map((conf) => (
-            <div className="confession-card" key={conf._id}>
-
-              {/* User info row */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                {conf.userId?.profilePicture ? (
-                  <img
-                    src={conf.userId.profilePicture}
-                    alt="avatar"
-                    style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "var(--muted)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>
-                    👤
-                  </div>
-                )}
-                <span style={{ fontWeight: 600, fontSize: "14px" }}>
-                  {conf.userId?.username || "Anonymous"}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <Link to={`/confession/${conf._id}`} className="confession-text">
-                  {conf.message}
-                </Link>
-                {/* 👇 Only show delete button on your own posts */}
-                {user && conf.userId?._id === user._id && (
-                  <button className="delete-btn" style={{ marginLeft: "12px", flexShrink: 0 }} onClick={() => handleDelete(conf._id)}>
-                    Delete
-                  </button>
-                )}
-              </div>
-
-              {conf.image && (
-                <div style={{ display: "flex", justifyContent: "center", margin: "12px 0" }}>
-                  <img src={conf.image} alt="confession" style={{ maxHeight: "200px", borderRadius: "8px", objectFit: "cover" }} />
-                </div>
-              )}
-
-              <div className="timestamp">Posted {timeAgo(conf.createdAt)}</div>
+            {/* Header */}
+            <div style={{ marginBottom: "20px" }}>
+              <p style={{ color: "rgba(255,238,136,0.9)", fontSize: "13px", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
+                ✦ plant a confession
+              </p>
+              <p style={{ color: "rgba(255,255,220,0.35)", fontSize: "11px", margin: "6px 0 0", letterSpacing: "0.05em" }}>
+                anonymous · it blooms with the others
+              </p>
             </div>
-          ))
-        )}
-      </div>
+
+            {/* Textarea */}
+            <textarea
+              placeholder="what do you need to confess?"
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              autoFocus
+              style={{
+                width: "100%", height: "120px",
+                background: "rgba(255,255,220,0.04)",
+                border: "1px solid rgba(255,255,220,0.15)",
+                borderRadius: "14px", padding: "14px",
+                color: "rgba(255,255,220,0.92)", fontSize: "14px",
+                resize: "none", outline: "none",
+                fontFamily: "Georgia, serif",
+                lineHeight: 1.7,
+                boxSizing: "border-box",
+              }}
+            />
+
+            {/* Image preview */}
+            {imagePreview && (
+              <div style={{ marginTop: "10px", position: "relative", display: "inline-block" }}>
+                <img src={imagePreview} alt="preview" style={{ maxHeight: "80px", borderRadius: "10px", opacity: 0.8 }} />
+                <button
+                  onClick={() => { setImage(null); setImagePreview(null); }}
+                  style={{
+                    position: "absolute", top: "-6px", right: "-6px",
+                    background: "rgba(255,80,80,0.8)", border: "none",
+                    borderRadius: "50%", width: "18px", height: "18px",
+                    color: "#fff", cursor: "pointer", fontSize: "10px", lineHeight: 1,
+                  }}
+                >✕</button>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px" }}>
+              <label style={{
+                color: "rgba(255,255,220,0.5)", fontSize: "12px",
+                cursor: "pointer", letterSpacing: "0.08em",
+                border: "1px solid rgba(255,255,220,0.15)",
+                borderRadius: "20px", padding: "7px 16px",
+                transition: "all 0.2s",
+              }}>
+                ⌘ attach image
+                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+              </label>
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !message.trim()}
+                style={{
+                  background: message.trim() ? "rgba(255,238,136,0.12)" : "rgba(255,255,220,0.04)",
+                  border: `1px solid ${message.trim() ? "rgba(255,238,136,0.5)" : "rgba(255,255,220,0.1)"}`,
+                  borderRadius: "20px", padding: "8px 24px",
+                  color: message.trim() ? "rgba(255,238,136,0.9)" : "rgba(255,255,220,0.3)",
+                  fontSize: "13px", cursor: message.trim() ? "pointer" : "default",
+                  fontFamily: "Georgia, serif", letterSpacing: "0.08em",
+                  transition: "all 0.2s",
+                }}
+              >
+                {loading ? "planting…" : "bloom →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
