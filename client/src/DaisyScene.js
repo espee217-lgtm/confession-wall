@@ -277,6 +277,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
       hand.position.set(0, CFG.FIST_TOP_Y - b1.max.y, 0.15);
       scene.add(hand);
       s.hand = hand; // store for fist pop animation
+      s.handBaseY = hand.position.y;
       const fistHit = new THREE.Mesh(
         new THREE.SphereGeometry(0.60, 8, 8),
         new THREE.MeshBasicMaterial({ visible: false })
@@ -623,7 +624,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
         if (sinceClick < 0.6) {
           // decaying sine: pops up then settles
           const popY = Math.sin(sinceClick * Math.PI / 0.6) * Math.exp(-sinceClick * 5) * 0.28;
-          s.hand.position.y += popY;
+          s.hand.position.y = s.handBaseY + popY;
           if (s.fistHit) s.fistHit.position.y = CFG.FIST_TOP_Y - 0.90 + popY;
         } else if (s.fistHit) {
           s.fistHit.position.y = CFG.FIST_TOP_Y - 0.90;
