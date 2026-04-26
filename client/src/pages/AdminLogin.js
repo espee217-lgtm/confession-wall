@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
 const BG_IMAGES = [
-  "https://i.pinimg.com/1200x/26/5d/f7/265df7093bca45fbfb80d98e5246770e.jpg",
-  "https://i.pinimg.com/control1/1200x/1d/82/32/1d823251fe4866d8be9b028ba2724394.jpg",
-  "https://i.pinimg.com/736x/97/e7/2e/97e72e237777964b6011637450f3c384.jpg",
-  "https://i.pinimg.com/1200x/3b/ab/03/3bab03b789dc7a05b6c1490d8bd95f00.jpg",
+  "https://i.postimg.cc/RVLGkGGH/Lord-Krishna.jpg",  
+  "https://i.pinimg.com/736x/3b/de/be/3bdebe37f3e3e6109bf3ee87ed79abcc.jpg",
+  "https://i.pinimg.com/1200x/46/a8/c6/46a8c6b7486d303c54b3adfaf73bc09f.jpg",
+  "https://variety.com/wp-content/uploads/2022/05/One-Indian-Girl-res.jpg?w=1000&h=563&crop=1",
+  "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
 ];
 
 export default function AdminLogin() {
