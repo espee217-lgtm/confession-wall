@@ -1,10 +1,171 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
 
 const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
 
+// ── Slanted confession feed panel ────────────────────────────────────────────
+function ConfessionFeed({ confessions, onCardClick }) {
+  const [offset, setOffset] = useState(0);
+  const VISIBLE = 4;
+  const total = confessions.length;
+  const canUp = offset > 0;
+  const canDown = offset + VISIBLE < total;
+  const visible = confessions.slice(offset, offset + VISIBLE);
+
+  const ArrowBtn = ({ direction, active, onClick }) => (
+    <div style={{
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      padding: "6px 0",
+    }}>
+      <button
+        onClick={onClick}
+        style={{
+          background: active ? "rgba(10,35,12,0.85)" : "rgba(8,22,9,0.45)",
+          border: `1px solid ${active ? "rgba(120,200,90,0.45)" : "rgba(80,130,70,0.18)"}`,
+          backdropFilter: "blur(10px)",
+          borderRadius: "4px",
+          width: "52px",
+          height: "28px",
+          cursor: active ? "pointer" : "default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.25s",
+          color: active ? "rgba(160,240,130,0.9)" : "rgba(100,150,90,0.25)",
+          fontSize: "14px",
+          lineHeight: 1,
+        }}
+      >
+        {direction === "up" ? "▲" : "▼"}
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: "absolute",
+      left: 0,
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 50,
+      width: "320px",
+      pointerEvents: "auto",
+    }}>
+      {/* Up arrow — aligned to right edge of top card */}
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginBottom: "30px" }}>
+        <ArrowBtn direction="up" active={canUp} onClick={() => canUp && setOffset(o => Math.max(0, o - 1))} />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+        {visible.map((conf, i) => (
+          <ConfessionCard
+            key={conf._id || i}
+            conf={conf}
+            index={i}
+            onClick={() => onCardClick(conf._id)}
+          />
+        ))}
+        {Array.from({ length: VISIBLE - visible.length }).map((_, i) => (
+          <div key={`empty-${i}`} style={{ height: "66px" }} />
+        ))}
+      </div>
+
+      {/* Down arrow — aligned to right edge of bottom card */}
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginTop: "1px" }}>
+        <ArrowBtn direction="down" active={canDown} onClick={() => canDown && setOffset(o => Math.min(total - VISIBLE, o + 1))} />
+      </div>
+    </div>
+  );
+}
+
+function ConfessionCard({ conf, index, onClick }) {
+  const [hovered, setHovered] = useState(false);
+
+  // Each card: left bleeds off screen, right edge steps inward
+  const skewDeg = -5;
+  // How much of the card peeks out from the left edge
+  const peekOut = 200 + index * 22; // first card shows most, last shows least
+  const cardWidth = 280 - index * 10;
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: `${cardWidth}px`,
+        marginLeft: `-${cardWidth - peekOut}px`,  // bleed left off screen
+        transform: `skewY(${skewDeg}deg)`,
+        transformOrigin: "left center",
+        background: hovered ? "rgba(12,40,14,0.92)" : "rgba(7,22,8,0.82)",
+        border: `1px solid ${hovered ? "rgba(130,220,100,0.45)" : "rgba(80,150,70,0.22)"}`,
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        borderRadius: "3px",
+        padding: "11px 15px",
+        cursor: "pointer",
+        transition: "all 0.22s ease",
+        boxShadow: hovered
+          ? "0 6px 28px rgba(50,150,50,0.18), inset 0 1px 0 rgba(160,255,130,0.10)"
+          : "0 3px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(160,255,130,0.04)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* shimmer top edge */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(90deg, transparent, rgba(130,220,90,0.5), transparent)",
+        opacity: hovered ? 1 : 0.35,
+        transition: "opacity 0.22s",
+      }} />
+
+      <p style={{
+        margin: "0 0 4px",
+        fontSize: "8px",
+        letterSpacing: "0.20em",
+        textTransform: "uppercase",
+        color: "rgba(130,215,100,0.65)",
+        fontFamily: "Georgia, serif",
+        textAlign: "right",
+      }}>
+        @{conf.userId?.username || "anon"}
+      </p>
+
+      <p style={{
+        margin: 0,
+        fontSize: "11.5px",
+        color: "rgba(215,255,205,0.85)",
+        fontFamily: "Georgia, serif",
+        lineHeight: 1.5,
+        textAlign: "right",
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}>
+        {conf.message}
+      </p>
+
+      <span style={{
+        position: "absolute", bottom: "7px", right: "11px",
+        fontSize: "8px",
+        color: "rgba(130,215,90,0.40)",
+        fontFamily: "Georgia, serif",
+        letterSpacing: "0.12em",
+        opacity: hovered ? 1 : 0,
+        transition: "opacity 0.2s",
+      }}>read →</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function Home() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -14,6 +175,7 @@ export default function Home() {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showFeed, setShowFeed] = useState(true);
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
@@ -47,10 +209,7 @@ export default function Home() {
         userId: { _id: user._id, username: user.username, profilePicture: user.profilePicture },
       };
       setConfessions([confessionWithUser, ...confessions]);
-      setMessage("");
-      setImage(null);
-      setImagePreview(null);
-      setShowCompose(false);
+      setMessage(""); setImage(null); setImagePreview(null); setShowCompose(false);
     } catch (err) {
       console.error(err);
       alert("Could not post — is the backend running?");
@@ -69,6 +228,14 @@ export default function Home() {
         onCompose={() => setShowCompose(true)}
         onProfile={() => navigate("/settings")}
       />
+
+      {/* Slanted confession feed — left side */}
+      {confessions.length > 0 && (
+        <ConfessionFeed
+          confessions={confessions}
+          onCardClick={(id) => navigate(`/confession/${id}`)}
+        />
+      )}
 
       {/* Compose Modal */}
       {showCompose && (
@@ -91,18 +258,11 @@ export default function Home() {
             boxShadow: "0 0 60px rgba(255,238,136,0.08), 0 24px 80px rgba(0,0,0,0.8)",
             fontFamily: "Georgia, serif",
           }}>
-            {/* Close */}
             <button
               onClick={() => setShowCompose(false)}
-              style={{
-                position: "absolute", top: "16px", right: "18px",
-                background: "none", border: "none",
-                color: "rgba(255,255,220,0.4)", fontSize: "20px",
-                cursor: "pointer", lineHeight: 1,
-              }}
+              style={{ position: "absolute", top: "16px", right: "18px", background: "none", border: "none", color: "rgba(255,255,220,0.4)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}
             >✕</button>
 
-            {/* Header */}
             <div style={{ marginBottom: "20px" }}>
               <p style={{ color: "rgba(255,238,136,0.9)", fontSize: "13px", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
                 ✦ plant a confession
@@ -112,7 +272,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Textarea */}
             <textarea
               placeholder="what do you need to confess?"
               value={message}
@@ -125,41 +284,26 @@ export default function Home() {
                 borderRadius: "14px", padding: "14px",
                 color: "rgba(255,255,220,0.92)", fontSize: "14px",
                 resize: "none", outline: "none",
-                fontFamily: "Georgia, serif",
-                lineHeight: 1.7,
+                fontFamily: "Georgia, serif", lineHeight: 1.7,
                 boxSizing: "border-box",
               }}
             />
 
-            {/* Image preview */}
             {imagePreview && (
               <div style={{ marginTop: "10px", position: "relative", display: "inline-block" }}>
                 <img src={imagePreview} alt="preview" style={{ maxHeight: "80px", borderRadius: "10px", opacity: 0.8 }} />
                 <button
                   onClick={() => { setImage(null); setImagePreview(null); }}
-                  style={{
-                    position: "absolute", top: "-6px", right: "-6px",
-                    background: "rgba(255,80,80,0.8)", border: "none",
-                    borderRadius: "50%", width: "18px", height: "18px",
-                    color: "#fff", cursor: "pointer", fontSize: "10px", lineHeight: 1,
-                  }}
+                  style={{ position: "absolute", top: "-6px", right: "-6px", background: "rgba(255,80,80,0.8)", border: "none", borderRadius: "50%", width: "18px", height: "18px", color: "#fff", cursor: "pointer", fontSize: "10px", lineHeight: 1 }}
                 >✕</button>
               </div>
             )}
 
-            {/* Actions */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px" }}>
-              <label style={{
-                color: "rgba(255,255,220,0.5)", fontSize: "12px",
-                cursor: "pointer", letterSpacing: "0.08em",
-                border: "1px solid rgba(255,255,220,0.15)",
-                borderRadius: "20px", padding: "7px 16px",
-                transition: "all 0.2s",
-              }}>
+              <label style={{ color: "rgba(255,255,220,0.5)", fontSize: "12px", cursor: "pointer", letterSpacing: "0.08em", border: "1px solid rgba(255,255,220,0.15)", borderRadius: "20px", padding: "7px 16px", transition: "all 0.2s" }}>
                 ⌘ attach image
                 <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
               </label>
-
               <button
                 onClick={handleSubmit}
                 disabled={loading || !message.trim()}
@@ -169,8 +313,7 @@ export default function Home() {
                   borderRadius: "20px", padding: "8px 24px",
                   color: message.trim() ? "rgba(255,238,136,0.9)" : "rgba(255,255,220,0.3)",
                   fontSize: "13px", cursor: message.trim() ? "pointer" : "default",
-                  fontFamily: "Georgia, serif", letterSpacing: "0.08em",
-                  transition: "all 0.2s",
+                  fontFamily: "Georgia, serif", letterSpacing: "0.08em", transition: "all 0.2s",
                 }}
               >
                 {loading ? "planting…" : "bloom →"}
