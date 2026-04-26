@@ -164,7 +164,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
 
     // ── Scene ────────────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x040a09);
+    scene.background = null;
     scene.fog = new THREE.FogExp2(0x040a09, 0.019);
     s.scene = scene;
 
@@ -174,7 +174,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
     s.camera = camera;
 
     // Antialias off on mobile, pixel ratio capped lower
-    const renderer = new THREE.WebGLRenderer({ antialias: !isMobile });
+    const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;

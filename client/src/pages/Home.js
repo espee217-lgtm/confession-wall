@@ -75,7 +75,7 @@ function ConfessionFeed({ confessions, onCardClick }) {
       </div>
 
       {/* Down arrow — aligned to right edge of bottom card */}
-      <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginTop: "1px" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginTop: "8px" }}>
         <ArrowBtn direction="down" active={canDown} onClick={() => canDown && setOffset(o => Math.min(total - VISIBLE, o + 1))} />
       </div>
     </div>
@@ -219,6 +219,25 @@ export default function Home() {
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
+      {/* Background video */}
+<video
+  autoPlay
+  loop
+  muted
+  playsInline
+  style={{
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    opacity: 0.6,        // keep it subtle so bouquet stays focal point
+    zIndex: 0,
+    pointerEvents: "none",
+  }}
+>
+  <source src="/red.mp4" type="video/mp4" />
+</video>
 
       {/* 3D Daisy Scene */}
       <DaisyScene
