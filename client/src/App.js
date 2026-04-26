@@ -12,7 +12,7 @@ import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
-const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin", "/"];
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin"];
 
 function Navbar() {
   const { user } = useAuth();
@@ -22,7 +22,11 @@ function Navbar() {
   if (HIDE_NAVBAR_ROUTES.includes(location.pathname)) return null;
 
   return (
-    <header className="navbar">
+   <header className="navbar" style={{
+  backgroundImage: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('/forest.png')",
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+}}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
         <Link to="/" style={{ fontWeight: 800, letterSpacing: 1, color: "white", textDecoration: "none" }}>Confession Wall</Link>
 
