@@ -239,7 +239,7 @@ export default function Home() {
     pointerEvents: "none",
   }}
 >
-  <source src="/red.mp4" type="video/mp4" />
+  <source src="/green.mp4" type="video/mp4" />
 </video>
 <button
   onClick={() => setMuted(m => !m)}
