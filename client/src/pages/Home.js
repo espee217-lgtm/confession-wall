@@ -176,6 +176,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showFeed, setShowFeed] = useState(true);
+  const [muted, setMuted] = useState(true);  
+  const videoRef = useRef(null);              
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
@@ -221,9 +223,10 @@ export default function Home() {
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
       {/* Background video */}
 <video
+  ref={videoRef}
   autoPlay
   loop
-  muted
+  muted={muted}
   playsInline
   style={{
     position: "absolute",
@@ -231,13 +234,39 @@ export default function Home() {
     width: "100%",
     height: "100%",
     objectFit: "cover",
-    opacity: 0.6,        // keep it subtle so bouquet stays focal point
+    opacity: 0.6,
     zIndex: 0,
     pointerEvents: "none",
   }}
 >
   <source src="/red.mp4" type="video/mp4" />
 </video>
+<button
+  onClick={() => setMuted(m => !m)}
+  style={{
+    position: "absolute",
+    bottom: "20px",
+    right: "20px",
+    zIndex: 100,
+    background: "rgba(10,30,12,0.7)",
+    border: "1px solid rgba(120,200,90,0.3)",
+    borderRadius: "50%",
+    width: "40px",
+    height: "40px",
+    cursor: "pointer",
+    color: "rgba(200,255,180,0.8)",
+    fontSize: "16px",
+    backdropFilter: "blur(8px)",
+    backdropFilter: "blur(8px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: 1,
+    padding: 0,
+  }}
+>
+  {muted ? "🔇" : "🔊"}
+</button>
 
       {/* 3D Daisy Scene */}
       <DaisyScene
