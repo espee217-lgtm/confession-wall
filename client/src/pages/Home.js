@@ -4,8 +4,9 @@ import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
 
 const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
+const SCORCHED_URL = "https://confession-wall-hn63.onrender.com/api/confessions/realm/scorched";
 
-// ── Slanted confession feed panel ────────────────────────────────────────────
+// ── Slanted confession feed panel (LEFT / Grove) ──────────────────────────────
 function ConfessionFeed({ confessions, onCardClick }) {
   const [offset, setOffset] = useState(0);
   const VISIBLE = 4;
@@ -15,12 +16,7 @@ function ConfessionFeed({ confessions, onCardClick }) {
   const visible = confessions.slice(offset, offset + VISIBLE);
 
   const ArrowBtn = ({ direction, active, onClick }) => (
-    <div style={{
-      width: "100%",
-      display: "flex",
-      justifyContent: "center",
-      padding: "6px 0",
-    }}>
+    <div style={{ width: "100%", display: "flex", justifyContent: "center", padding: "6px 0" }}>
       <button
         onClick={onClick}
         style={{
@@ -55,26 +51,19 @@ function ConfessionFeed({ confessions, onCardClick }) {
       width: "320px",
       pointerEvents: "auto",
     }}>
-      {/* Up arrow — aligned to right edge of top card */}
       <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginBottom: "30px" }}>
         <ArrowBtn direction="up" active={canUp} onClick={() => canUp && setOffset(o => Math.max(0, o - 1))} />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
         {visible.map((conf, i) => (
-          <ConfessionCard
-            key={conf._id || i}
-            conf={conf}
-            index={i}
-            onClick={() => onCardClick(conf._id)}
-          />
+          <ConfessionCard key={conf._id || i} conf={conf} index={i} onClick={() => onCardClick(conf._id)} />
         ))}
         {Array.from({ length: VISIBLE - visible.length }).map((_, i) => (
           <div key={`empty-${i}`} style={{ height: "66px" }} />
         ))}
       </div>
 
-      {/* Down arrow — aligned to right edge of bottom card */}
       <div style={{ display: "flex", justifyContent: "flex-end", paddingRight: "6px", marginTop: "8px" }}>
         <ArrowBtn direction="down" active={canDown} onClick={() => canDown && setOffset(o => Math.min(total - VISIBLE, o + 1))} />
       </div>
@@ -84,11 +73,8 @@ function ConfessionFeed({ confessions, onCardClick }) {
 
 function ConfessionCard({ conf, index, onClick }) {
   const [hovered, setHovered] = useState(false);
-
-  // Each card: left bleeds off screen, right edge steps inward
   const skewDeg = -5;
-  // How much of the card peeks out from the left edge
-  const peekOut = 200 + index * 22; // first card shows most, last shows least
+  const peekOut = 200 + index * 22;
   const cardWidth = 280 - index * 10;
 
   return (
@@ -98,7 +84,7 @@ function ConfessionCard({ conf, index, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         width: `${cardWidth}px`,
-        marginLeft: `-${cardWidth - peekOut}px`,  // bleed left off screen
+        marginLeft: `-${cardWidth - peekOut}px`,
         transform: `skewY(${skewDeg}deg)`,
         transformOrigin: "left center",
         background: hovered ? "rgba(12,40,14,0.92)" : "rgba(7,22,8,0.82)",
@@ -116,7 +102,6 @@ function ConfessionCard({ conf, index, onClick }) {
         overflow: "hidden",
       }}
     >
-      {/* shimmer top edge */}
       <div style={{
         position: "absolute", top: 0, left: 0, right: 0, height: "1px",
         background: "linear-gradient(90deg, transparent, rgba(130,220,90,0.5), transparent)",
@@ -125,42 +110,160 @@ function ConfessionCard({ conf, index, onClick }) {
       }} />
 
       <p style={{
-        margin: "0 0 4px",
-        fontSize: "8px",
-        letterSpacing: "0.20em",
-        textTransform: "uppercase",
-        color: "rgba(130,215,100,0.65)",
-        fontFamily: "Georgia, serif",
-        textAlign: "right",
+        margin: "0 0 4px", fontSize: "8px", letterSpacing: "0.20em",
+        textTransform: "uppercase", color: "rgba(130,215,100,0.65)",
+        fontFamily: "Georgia, serif", textAlign: "right",
       }}>
         @{conf.userId?.username || "anon"}
       </p>
 
       <p style={{
-        margin: 0,
-        fontSize: "11.5px",
-        color: "rgba(215,255,205,0.85)",
-        fontFamily: "Georgia, serif",
-        lineHeight: 1.5,
-        textAlign: "right",
-        display: "-webkit-box",
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: "vertical",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
+        margin: 0, fontSize: "11.5px", color: "rgba(215,255,205,0.85)",
+        fontFamily: "Georgia, serif", lineHeight: 1.5, textAlign: "right",
+        display: "-webkit-box", WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis",
       }}>
         {conf.message}
       </p>
 
       <span style={{
-        position: "absolute", bottom: "7px", right: "11px",
-        fontSize: "8px",
-        color: "rgba(130,215,90,0.40)",
-        fontFamily: "Georgia, serif",
-        letterSpacing: "0.12em",
-        opacity: hovered ? 1 : 0,
-        transition: "opacity 0.2s",
+        position: "absolute", bottom: "7px", right: "11px", fontSize: "8px",
+        color: "rgba(130,215,90,0.40)", fontFamily: "Georgia, serif",
+        letterSpacing: "0.12em", opacity: hovered ? 1 : 0, transition: "opacity 0.2s",
       }}>read →</span>
+    </div>
+  );
+}
+
+// ── Slanted scorched feed panel (RIGHT / red theme) ───────────────────────────
+function ScorchedFeed({ confessions, onCardClick }) {
+  const [offset, setOffset] = useState(0);
+  const VISIBLE = 4;
+  const total = confessions.length;
+  const canUp = offset > 0;
+  const canDown = offset + VISIBLE < total;
+  const visible = confessions.slice(offset, offset + VISIBLE);
+
+  const ArrowBtn = ({ direction, active, onClick }) => (
+    <div style={{ width: "100%", display: "flex", justifyContent: "center", padding: "6px 0" }}>
+      <button
+        onClick={onClick}
+        style={{
+          background: active ? "rgba(50,10,8,0.85)" : "rgba(30,8,6,0.45)",
+          border: `1px solid ${active ? "rgba(220,80,50,0.45)" : "rgba(150,50,30,0.18)"}`,
+          backdropFilter: "blur(10px)",
+          borderRadius: "4px",
+          width: "52px",
+          height: "28px",
+          cursor: active ? "pointer" : "default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.25s",
+          color: active ? "rgba(255,160,100,0.9)" : "rgba(180,80,60,0.25)",
+          fontSize: "14px",
+          lineHeight: 1,
+        }}
+      >
+        {direction === "up" ? "▲" : "▼"}
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: "absolute",
+      right: 0,
+      top: "50%",
+      transform: "translateY(-50%)",
+      zIndex: 50,
+      width: "320px",
+      pointerEvents: "auto",
+    }}>
+      {/* Up arrow — aligned to left edge of top card */}
+      <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: "6px", marginBottom: "30px" }}>
+        <ArrowBtn direction="up" active={canUp} onClick={() => canUp && setOffset(o => Math.max(0, o - 1))} />
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+        {visible.map((conf, i) => (
+          <ScorchedCard key={conf._id || i} conf={conf} index={i} onClick={() => onCardClick(conf._id)} />
+        ))}
+        {Array.from({ length: VISIBLE - visible.length }).map((_, i) => (
+          <div key={`empty-${i}`} style={{ height: "66px" }} />
+        ))}
+      </div>
+
+      {/* Down arrow — aligned to left edge of bottom card */}
+      <div style={{ display: "flex", justifyContent: "flex-start", paddingLeft: "6px", marginTop: "8px" }}>
+        <ArrowBtn direction="down" active={canDown} onClick={() => canDown && setOffset(o => Math.min(total - VISIBLE, o + 1))} />
+      </div>
+    </div>
+  );
+}
+
+function ScorchedCard({ conf, index, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  const skewDeg = 5; // mirror of left side
+  const peekOut = 200 + index * 22;
+  const cardWidth = 280 - index * 10;
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: `${cardWidth}px`,
+        marginRight: `-${cardWidth - peekOut}px`, // bleed right off screen
+        marginLeft: "auto",
+        transform: `skewY(${skewDeg}deg)`,
+        transformOrigin: "right center",
+        background: hovered ? "rgba(50,12,8,0.92)" : "rgba(30,7,5,0.82)",
+        border: `1px solid ${hovered ? "rgba(220,90,50,0.45)" : "rgba(160,60,40,0.22)"}`,
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
+        borderRadius: "3px",
+        padding: "11px 15px",
+        cursor: "pointer",
+        transition: "all 0.22s ease",
+        boxShadow: hovered
+          ? "0 6px 28px rgba(200,60,30,0.22), inset 0 1px 0 rgba(255,130,80,0.10)"
+          : "0 3px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,130,80,0.04)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* shimmer top edge */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: "1px",
+        background: "linear-gradient(90deg, transparent, rgba(220,90,50,0.5), transparent)",
+        opacity: hovered ? 1 : 0.35,
+        transition: "opacity 0.22s",
+      }} />
+
+      <p style={{
+        margin: "0 0 4px", fontSize: "8px", letterSpacing: "0.20em",
+        textTransform: "uppercase", color: "rgba(220,120,80,0.65)",
+        fontFamily: "Georgia, serif", textAlign: "left",
+      }}>
+        @{conf.userId?.username || "anon"}
+      </p>
+
+      <p style={{
+        margin: 0, fontSize: "11.5px", color: "rgba(255,210,190,0.85)",
+        fontFamily: "Georgia, serif", lineHeight: 1.5, textAlign: "left",
+        display: "-webkit-box", WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis",
+      }}>
+        {conf.message}
+      </p>
+
+      <span style={{
+        position: "absolute", bottom: "7px", left: "11px", fontSize: "8px",
+        color: "rgba(220,100,60,0.40)", fontFamily: "Georgia, serif",
+        letterSpacing: "0.12em", opacity: hovered ? 1 : 0, transition: "opacity 0.2s",
+      }}>← read</span>
     </div>
   );
 }
@@ -170,20 +273,29 @@ export default function Home() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
   const [confessions, setConfessions] = useState([]);
+  const [scorchedPosts, setScorchedPosts] = useState([]);
   const [showCompose, setShowCompose] = useState(false);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showFeed, setShowFeed] = useState(true);
-  const [muted, setMuted] = useState(true);  
-  const videoRef = useRef(null);              
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     if (!user) { navigate("/login"); return; }
+
+    // Fetch grove confessions
     fetch(API_URL)
       .then(r => r.json())
       .then(d => setConfessions(Array.isArray(d) ? d : []))
+      .catch(err => console.error(err));
+
+    // Fetch scorched posts
+    fetch(SCORCHED_URL)
+      .then(r => r.json())
+      .then(d => setScorchedPosts(Array.isArray(d) ? d : []))
       .catch(err => console.error(err));
   }, [user, navigate]);
 
@@ -222,51 +334,51 @@ export default function Home() {
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
       {/* Background video */}
-<video
-  ref={videoRef}
-  autoPlay
-  loop
-  muted={muted}
-  playsInline
-  style={{
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    opacity: 0.6,
-    zIndex: 0,
-    pointerEvents: "none",
-  }}
->
-  <source src="/green.mp4" type="video/mp4" />
-</video>
-<button
-  onClick={() => setMuted(m => !m)}
-  style={{
-    position: "absolute",
-    bottom: "20px",
-    right: "20px",
-    zIndex: 100,
-    background: "rgba(10,30,12,0.7)",
-    border: "1px solid rgba(120,200,90,0.3)",
-    borderRadius: "50%",
-    width: "40px",
-    height: "40px",
-    cursor: "pointer",
-    color: "rgba(200,255,180,0.8)",
-    fontSize: "16px",
-    backdropFilter: "blur(8px)",
-    backdropFilter: "blur(8px)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    lineHeight: 1,
-    padding: 0,
-  }}
->
-  {muted ? "🔇" : "🔊"}
-</button>
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted={muted}
+        playsInline
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.6,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <source src="/green.mp4" type="video/mp4" />
+      </video>
+
+      <button
+        onClick={() => setMuted(m => !m)}
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 100,
+          background: "rgba(10,30,12,0.7)",
+          border: "1px solid rgba(120,200,90,0.3)",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          cursor: "pointer",
+          color: "rgba(200,255,180,0.8)",
+          fontSize: "16px",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          lineHeight: 1,
+          padding: 0,
+        }}
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
 
       {/* 3D Daisy Scene */}
       <DaisyScene
@@ -277,10 +389,18 @@ export default function Home() {
         onProfile={() => navigate("/settings")}
       />
 
-      {/* Slanted confession feed — left side */}
+      {/* Grove feed — left side (green) */}
       {confessions.length > 0 && (
         <ConfessionFeed
           confessions={confessions}
+          onCardClick={(id) => navigate(`/confession/${id}`)}
+        />
+      )}
+
+      {/* Scorched feed — right side (red) */}
+      {scorchedPosts.length > 0 && (
+        <ScorchedFeed
+          confessions={scorchedPosts}
           onCardClick={(id) => navigate(`/confession/${id}`)}
         />
       )}
