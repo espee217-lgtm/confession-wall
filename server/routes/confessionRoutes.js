@@ -150,4 +150,41 @@ router.post("/:id/comments/:commentIndex/react", protect, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// GET thriving confessions (water ratio >= 50%)
+router.get("/realm/thriving", async (req, res) => {
+  try {
+    const confessions = await Confession.find()
+      .sort({ createdAt: -1 })
+      .populate("userId", "username profilePicture");
+
+    const thriving = confessions.filter(p => {
+      const total = p.wateredBy.length + p.burnedBy.length;
+      if (total === 0) return true;
+      return p.wateredBy.length / total >= 0.5;
+    });
+
+    res.json(thriving);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET scorched confessions (burn ratio > 50%)
+router.get("/realm/scorched", async (req, res) => {
+  try {
+    const confessions = await Confession.find()
+      .sort({ createdAt: -1 })
+      .populate("userId", "username profilePicture");
+
+    const scorched = confessions.filter(p => {
+      const total = p.wateredBy.length + p.burnedBy.length;
+      if (total === 0) return false;
+      return p.burnedBy.length / total > 0.5;
+    });
+
+    res.json(scorched);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

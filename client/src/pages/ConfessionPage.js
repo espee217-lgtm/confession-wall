@@ -167,8 +167,8 @@ function realmStatus(wateredBy = [], burnedBy = []) {
   if (r >= 0.65) return { label: "🌿 thriving",    color: "#3b8a5a" };
   if (r >= 0.50) return { label: "🌱 sprouting",   color: "#7aab5a" };
   if (r >= 0.30) return { label: "🍂 wilting",     color: "#BA7517" };
-  if (r >= 0.15) return { label: "💀 charred",     color: "#993C1D" };
-  return               { label: "🔥 scorched",      color: "#D85A30" };
+  if (r >= 0.15) return { label: "🔥 scorched",    color: "#D85A30" };
+  return               { label: "💀 charred",      color: "#712B13" };
 }
 
 function ReactionBar({ wateredBy = [], burnedBy = [], onReact, userId, small = false }) {
