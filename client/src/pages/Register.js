@@ -65,6 +65,11 @@ export default function Register() {
   const [currentBg, setCurrentBg] = useState(0);
   const [fade, setFade] = useState(true);
 
+  // OTP state
+  const [step, setStep] = useState(1); // 1 = form, 2 = otp
+  const [otp, setOtp] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setFade(false);
@@ -84,19 +89,55 @@ export default function Register() {
     if (file) setPreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer(t => { if (t <= 1) { clearInterval(interval); return 0; } return t - 1; });
+    }, 1000);
+  };
+
+  // Step 1: Send OTP
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.message || "Failed to send OTP"); setLoading(false); return; }
+      setStep(2);
+      startResendTimer();
+    } catch (err) {
+      setError("Could not send OTP. Check your connection.");
+    }
+    setLoading(false);
+  };
+
+  // Step 2: Verify OTP + Create Account
+  const handleVerifyAndRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (otp.length !== 6) { setError("Please enter the 6-digit OTP."); return; }
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("username", form.username);
       formData.append("email", form.email);
       formData.append("password", form.password);
+      formData.append("otp", otp);
       if (profilePicture) formData.append("profilePicture", profilePicture);
+
       const res = await fetch(`${API_URL}/register`, { method: "POST", body: formData });
       const data = await res.json();
-      if (!res.ok) return setError(data.message || "Registration failed");
+      if (!res.ok) { setError(data.message || "Registration failed"); setLoading(false); return; }
       login(data.user, data.token);
       navigate("/");
     } catch (err) {
@@ -104,6 +145,24 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.message); setLoading(false); return; }
+      setOtp("");
+      startResendTimer();
+    } catch { setError("Could not resend OTP."); }
+    setLoading(false);
   };
 
   const inputStyle = {
@@ -188,46 +247,30 @@ export default function Register() {
         overflowY: "auto",
       }}>
 
-        {/* Logo / Title */}
+        {/* Logo / Title — always visible */}
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-
-          {/* Row 1: Confession */}
           <div style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            gap: "4px",
-            flexWrap: "nowrap",
-            paddingBottom: "6px",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+            gap: "4px", flexWrap: "nowrap", paddingBottom: "6px",
           }}>
             {WORD1.map((letter, i) => (
               <LetterCard key={i} letter={letter} bg={REDS1[i]} waveY={WAVE1[i]} />
             ))}
           </div>
-
-          {/* Row 2: Wall */}
           <div style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            gap: "4px",
-            flexWrap: "nowrap",
-            paddingBottom: "14px",
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+            gap: "4px", flexWrap: "nowrap", paddingBottom: "14px",
           }}>
             {WORD2.map((letter, i) => (
               <LetterCard key={i} letter={letter} bg={REDS2[i]} waveY={WAVE2[i]} />
             ))}
           </div>
-
-          <p style={{
-            color: "rgba(255,255,255,0.7)",
-            fontSize: "14px",
-            marginTop: "2px",
-          }}>
-            Create your account
+          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", marginTop: "2px" }}>
+            {step === 1 ? "Create your account" : "Verify your email"}
           </p>
         </div>
 
+        {/* Error */}
         {error && (
           <div style={{
             background: "rgba(220,53,69,0.2)",
@@ -242,65 +285,108 @@ export default function Register() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Profile picture upload */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "1.2rem" }}>
-            {preview ? (
-              <img src={preview} alt="preview" style={{
-                width: "80px", height: "80px", borderRadius: "50%",
-                objectFit: "cover", marginBottom: "10px",
-                border: "2px solid rgba(255,255,255,0.4)",
-              }} />
-            ) : (
-              <div style={{
-                width: "80px", height: "80px", borderRadius: "50%",
-                background: "rgba(255,255,255,0.15)", marginBottom: "10px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "2rem", border: "2px dashed rgba(255,255,255,0.3)",
-              }}>👤</div>
-            )}
-            <label style={{
-              cursor: "pointer", padding: "6px 16px", borderRadius: "20px",
-              border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.8)",
-              fontSize: "13px", background: "rgba(255,255,255,0.1)",
-            }}>
-              Upload Photo
-              <input type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
-            </label>
-          </div>
+        {/* ── STEP 1: Original registration form ── */}
+        {step === 1 && (
+          <form onSubmit={handleSendOtp}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "1.2rem" }}>
+              {preview ? (
+                <img src={preview} alt="preview" style={{
+                  width: "80px", height: "80px", borderRadius: "50%",
+                  objectFit: "cover", marginBottom: "10px",
+                  border: "2px solid rgba(255,255,255,0.4)",
+                }} />
+              ) : (
+                <div style={{
+                  width: "80px", height: "80px", borderRadius: "50%",
+                  background: "rgba(255,255,255,0.15)", marginBottom: "10px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "2rem", border: "2px dashed rgba(255,255,255,0.3)",
+                }}>👤</div>
+              )}
+              <label style={{
+                cursor: "pointer", padding: "6px 16px", borderRadius: "20px",
+                border: "1px solid rgba(255,255,255,0.3)", color: "rgba(255,255,255,0.8)",
+                fontSize: "13px", background: "rgba(255,255,255,0.1)",
+              }}>
+                Upload Photo
+                <input type="file" accept="image/*" onChange={handleImage} style={{ display: "none" }} />
+              </label>
+            </div>
 
-          <input type="text" name="username" placeholder="Username" value={form.username} onChange={handleChange} required style={inputStyle} />
-          <input type="email" name="email" placeholder="Email address" value={form.email} onChange={handleChange} required style={inputStyle} />
-          <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ ...inputStyle, marginBottom: "20px" }} />
+            <input type="text" name="username" placeholder="Username" value={form.username} onChange={handleChange} required style={inputStyle} />
+            <input type="email" name="email" placeholder="Email address" value={form.email} onChange={handleChange} required style={inputStyle} />
+            <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ ...inputStyle, marginBottom: "20px" }} />
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "13px",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.3)",
-              background: "rgba(255,255,255,0.22)",
-              color: "white",
-              fontSize: "15px",
-              fontWeight: "600",
-              cursor: loading ? "not-allowed" : "pointer",
-              backdropFilter: "blur(8px)",
-              transition: "all 0.2s ease",
-              letterSpacing: "0.3px",
-            }}
-          >
-            {loading ? "Creating account..." : "Create Account"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%", padding: "13px", borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                background: "rgba(255,255,255,0.22)",
+                color: "white", fontSize: "15px", fontWeight: "600",
+                cursor: loading ? "not-allowed" : "pointer",
+                backdropFilter: "blur(8px)", transition: "all 0.2s ease", letterSpacing: "0.3px",
+              }}
+            >
+              {loading ? "Sending OTP…" : "Send OTP →"}
+            </button>
 
-        <p style={{ textAlign: "center", marginTop: "1.2rem", color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
-          Already have an account?{" "}
-          <Link to="/login" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>
-            Login
-          </Link>
-        </p>
+            <p style={{ textAlign: "center", marginTop: "1.2rem", color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
+              Already have an account?{" "}
+              <Link to="/login" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>Login</Link>
+            </p>
+          </form>
+        )}
+
+        {/* ── STEP 2: OTP screen (same card, same styling) ── */}
+        {step === 2 && (
+          <form onSubmit={handleVerifyAndRegister}>
+            <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "13px", textAlign: "center", marginBottom: "4px" }}>
+              A 6-digit code was sent to
+            </p>
+            <p style={{ color: "white", fontWeight: "600", fontSize: "14px", textAlign: "center", marginBottom: "20px" }}>
+              {form.email}
+            </p>
+
+            <input
+              type="text"
+              placeholder="· · · · · ·"
+              maxLength={6}
+              value={otp}
+              onChange={e => setOtp(e.target.value.replace(/\D/g, ""))}
+              autoFocus
+              style={{ ...inputStyle, fontSize: "28px", textAlign: "center", letterSpacing: "0.5em", fontWeight: "700", marginBottom: "20px" }}
+            />
+
+            <button
+              type="submit"
+              disabled={loading || otp.length !== 6}
+              style={{
+                width: "100%", padding: "13px", borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                background: otp.length === 6 ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.08)",
+                color: otp.length === 6 ? "white" : "rgba(255,255,255,0.35)",
+                fontSize: "15px", fontWeight: "600",
+                cursor: loading || otp.length !== 6 ? "not-allowed" : "pointer",
+                backdropFilter: "blur(8px)", transition: "all 0.2s ease", letterSpacing: "0.3px",
+              }}
+            >
+              {loading ? "Verifying…" : "Create Account"}
+            </button>
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "14px" }}>
+              <button type="button" onClick={() => { setStep(1); setOtp(""); setError(""); }}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: "13px", cursor: "pointer", padding: 0 }}>
+                ← Change details
+              </button>
+              <button type="button" onClick={handleResend} disabled={resendTimer > 0}
+                style={{ background: "none", border: "none", color: resendTimer > 0 ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)", fontSize: "13px", cursor: resendTimer > 0 ? "default" : "pointer", padding: 0 }}>
+                {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
