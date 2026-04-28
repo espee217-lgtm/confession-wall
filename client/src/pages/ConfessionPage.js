@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const styles = {
   page: {
