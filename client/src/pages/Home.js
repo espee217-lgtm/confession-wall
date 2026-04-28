@@ -338,11 +338,35 @@ export default function Home() {
             />
 
             {imagePreview && (
-              <div style={{ marginTop: "10px", position: "relative", display: "inline-block" }}>
-                <img src={imagePreview} alt="preview" style={{ maxHeight: "80px", borderRadius: "10px", opacity: 0.8 }} />
+              <div style={{ marginTop: "12px", position: "relative", display: "inline-block", overflow: "visible" }}>
+                <img
+                  src={imagePreview}
+                  alt="preview"
+                  style={{
+                    maxHeight: "160px",
+                    maxWidth: "100%",
+                    borderRadius: "12px",
+                    opacity: 0.9,
+                    display: "block",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    cursor: "zoom-in",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "scale(2.2)";
+                    e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.7)";
+                    e.currentTarget.style.zIndex = "10";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.zIndex = "1";
+                  }}
+                />
                 <button
                   onClick={() => { setImage(null); setImagePreview(null); }}
-                  style={{ position: "absolute", top: "-6px", right: "-6px", background: "rgba(255,80,80,0.8)", border: "none", borderRadius: "50%", width: "18px", height: "18px", color: "#fff", cursor: "pointer", fontSize: "10px", lineHeight: 1 }}
+                  style={{ position: "absolute", top: "-6px", right: "-6px", background: "rgba(255,80,80,0.8)", border: "none", borderRadius: "50%", width: "18px", height: "18px", color: "#fff", cursor: "pointer", fontSize: "10px", lineHeight: 1, zIndex: 11 }}
                 >✕</button>
               </div>
             )}

@@ -147,6 +147,9 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
     lastFrame: 0,
   });
   const [tooltip, setTooltip] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const loadedCount = useRef(0);
+  const markLoaded = () => { loadedCount.current += 1; if (loadedCount.current >= 2) setLoaded(true); };
   const confRef = useRef(confessions);
   useEffect(() => { confRef.current = confessions; }, [confessions]);
 
@@ -235,6 +238,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
       scene.add(hand);
       s.hand = hand;
       s.handBaseY = hand.position.y;
+      markLoaded();
 
       const fistHit = new THREE.Mesh(
         new THREE.SphereGeometry(0.60, 6, 6),
@@ -272,6 +276,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
             isInteractive: def.isInteractive,
           };
         });
+        markLoaded();
       }, undefined, () => loadDaisy(tail));
     };
     loadDaisy(tryPaths);
@@ -542,6 +547,107 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+
+      {/* ── Daisy Loading Screen ── */}
+      {!loaded && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 999,
+          background: "linear-gradient(160deg, #030d02 0%, #071a05 60%, #0a2208 100%)",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          transition: "opacity 1s ease",
+          opacity: loaded ? 0 : 1,
+        }}>
+          {/* Daisy SVG animation */}
+          <div style={{ marginBottom: "32px" }}>
+            <svg width="120" height="120" viewBox="0 0 120 120">
+              <style>{`
+                @keyframes petalBloom {
+                  0% { transform-origin: 60px 60px; transform: scale(0) rotate(var(--r)); opacity: 0; }
+                  60% { transform-origin: 60px 60px; transform: scale(1.15) rotate(var(--r)); opacity: 1; }
+                  100% { transform-origin: 60px 60px; transform: scale(1) rotate(var(--r)); opacity: 1; }
+                }
+                @keyframes centreGlow {
+                  0%, 100% { r: 12; opacity: 0.9; }
+                  50% { r: 15; opacity: 1; }
+                }
+                @keyframes stemGrow {
+                  0% { stroke-dashoffset: 60; }
+                  100% { stroke-dashoffset: 0; }
+                }
+                .petal { animation: petalBloom 0.6s ease-out forwards; opacity: 0; }
+                .p1  { --r: 0deg;    animation-delay: 0.1s; }
+                .p2  { --r: 45deg;   animation-delay: 0.2s; }
+                .p3  { --r: 90deg;   animation-delay: 0.3s; }
+                .p4  { --r: 135deg;  animation-delay: 0.4s; }
+                .p5  { --r: 180deg;  animation-delay: 0.5s; }
+                .p6  { --r: 225deg;  animation-delay: 0.6s; }
+                .p7  { --r: 270deg;  animation-delay: 0.7s; }
+                .p8  { --r: 315deg;  animation-delay: 0.8s; }
+                @keyframes sway {
+                  0%, 100% { transform: rotate(-3deg); transform-origin: 60px 95px; }
+                  50% { transform: rotate(3deg); transform-origin: 60px 95px; }
+                }
+                .daisy-group { animation: sway 3s ease-in-out infinite; animation-delay: 1.2s; }
+              `}</style>
+
+              {/* Stem */}
+              <line x1="60" y1="95" x2="60" y2="68"
+                stroke="#4a8f35" strokeWidth="3" strokeLinecap="round"
+                strokeDasharray="30" strokeDashoffset="30"
+                style={{ animation: "stemGrow 0.4s ease-out 0.05s forwards" }}
+              />
+
+              <g className="daisy-group">
+                {/* Petals */}
+                {[0,45,90,135,180,225,270,315].map((deg, i) => (
+                  <ellipse key={i}
+                    className={`petal p${i+1}`}
+                    cx="60" cy="38" rx="7" ry="18"
+                    fill="white" opacity="0.95"
+                    style={{ transform: `rotate(${deg}deg)`, transformOrigin: "60px 60px" }}
+                  />
+                ))}
+                {/* Centre yellow circle */}
+                <circle cx="60" cy="60" r="13" fill="#f5c842"
+                  style={{ animation: "centreGlow 2s ease-in-out infinite", animationDelay: "0.9s" }}
+                />
+                <circle cx="60" cy="60" r="8" fill="#e8a800" opacity="0.7" />
+              </g>
+            </svg>
+          </div>
+
+          {/* Text */}
+          <p style={{
+            fontFamily: "Georgia, serif",
+            fontSize: "22px",
+            color: "rgba(255,255,220,0.9)",
+            letterSpacing: "0.15em",
+            margin: "0 0 10px",
+            fontWeight: "bold",
+          }}>
+            Confession Wall
+          </p>
+          <p style={{
+            fontFamily: "Georgia, serif",
+            fontSize: "13px",
+            color: "rgba(160,230,120,0.6)",
+            letterSpacing: "0.25em",
+            margin: 0,
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}>
+            blooming...
+          </p>
+
+          <style>{`
+            @keyframes pulse {
+              0%, 100% { opacity: 0.4; }
+              50% { opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
+
       <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
 
       {tooltip?.role === "post" && (
