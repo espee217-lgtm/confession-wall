@@ -6,18 +6,11 @@ const commentSchema = new mongoose.Schema({
     ref: "User",
     default: null,
   },
-  text: {
-    type: String,
-    default: "",
-  },
-  image: {
-    type: String,
-    default: null,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  text: { type: String, default: "" },
+  image: { type: String, default: null },
+  wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  createdAt: { type: Date, default: Date.now },
 });
 
 const confessionSchema = new mongoose.Schema(
@@ -27,13 +20,10 @@ const confessionSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
-    message: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-    },
+    message: { type: String, required: true },
+    image:   { type: String },
+    wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [commentSchema],
   },
   { timestamps: true }

@@ -159,10 +159,83 @@ function Avatar({ src, size = 38 }) {
   if (src) return <img src={src} alt="avatar" style={{ ...styles.avatar, width: size, height: size }} />;
   return <div style={{ ...styles.avatarPlaceholder, width: size, height: size }}>🌿</div>;
 }
+function realmStatus(wateredBy = [], burnedBy = []) {
+  const total = wateredBy.length + burnedBy.length;
+  if (total === 0) return { label: "🌱 be the first", color: "#8aab7a" };
+  const r = wateredBy.length / total;
+  if (r >= 0.85) return { label: "🌳 flourishing", color: "#1D9E75" };
+  if (r >= 0.65) return { label: "🌿 thriving",    color: "#3b8a5a" };
+  if (r >= 0.50) return { label: "🌱 sprouting",   color: "#7aab5a" };
+  if (r >= 0.30) return { label: "🍂 wilting",     color: "#BA7517" };
+  if (r >= 0.15) return { label: "💀 charred",     color: "#993C1D" };
+  return               { label: "🔥 scorched",      color: "#D85A30" };
+}
 
+function ReactionBar({ wateredBy = [], burnedBy = [], onReact, userId, small = false }) {
+  const userWatered = userId && wateredBy.some(id => (id?._id || id)?.toString() === userId);
+  const userBurned  = userId && burnedBy.some(id => (id?._id || id)?.toString() === userId);
+  const status = realmStatus(wateredBy, burnedBy);
+  const total  = wateredBy.length + burnedBy.length;
+  const ratio  = total === 0 ? 0 : wateredBy.length / total;
+
+  const btn = (type) => {
+    const isWater  = type === "water";
+    const active   = isWater ? userWatered : userBurned;
+    const activeColor = isWater ? "rgba(29,158,117,0.7)"  : "rgba(216,90,48,0.7)";
+    const idleColor   = isWater ? "rgba(29,158,117,0.25)" : "rgba(216,90,48,0.25)";
+    const activeText  = isWater ? "#085041" : "#712B13";
+    const idleText    = isWater ? "#3b8a5a" : "#993C1D";
+    return (
+      <button
+        onClick={() => onReact(type)}
+        style={{
+          display: "flex", alignItems: "center", gap: small ? "4px" : "6px",
+          padding: small ? "3px 10px" : "5px 14px",
+          borderRadius: "20px",
+          border: `0.5px solid ${active ? activeColor : idleColor}`,
+          background: active ? (isWater ? "rgba(29,158,117,0.1)" : "rgba(216,90,48,0.1)") : "transparent",
+          cursor: "pointer",
+          fontFamily: "Georgia, serif",
+          fontSize: small ? "11px" : "12px",
+          color: active ? activeText : idleText,
+          transition: "all 0.2s ease",
+        }}
+      >
+        {isWater ? "🌱" : "🔥"} <span>{isWater ? wateredBy.length : burnedBy.length}</span>
+      </button>
+    );
+  };
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: "8px",
+      marginTop: small ? "8px" : "14px",
+      paddingTop: small ? "8px" : "12px",
+      borderTop: "1px solid rgba(100,180,80,0.12)",
+    }}>
+      {btn("water")}
+      {btn("burn")}
+      {total > 0 && (
+        <div style={{ flex: 1, height: "3px", borderRadius: "2px",
+          background: "rgba(100,180,80,0.12)", overflow: "hidden", maxWidth: "60px" }}>
+          <div style={{
+            height: "100%", borderRadius: "2px",
+            width: `${Math.round(ratio * 100)}%`,
+            background: ratio >= 0.65 ? "#1D9E75" : ratio >= 0.45 ? "#639922" : ratio >= 0.3 ? "#BA7517" : "#D85A30",
+            transition: "width 0.4s ease",
+          }} />
+        </div>
+      )}
+      <span style={{ fontSize: "10px", color: status.color, fontFamily: "Georgia, serif",
+        fontStyle: "italic", letterSpacing: "0.03em" }}>
+        {status.label}
+      </span>
+    </div>
+  );
+}
 export default function ConfessionPage() {
   const { id } = useParams();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [confession, setConfession] = useState(null);
   const [comment, setComment] = useState("");
   const [commentImage, setCommentImage] = useState(null);
@@ -251,8 +324,23 @@ export default function ConfessionPage() {
                 style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "12px", marginTop: "8px" }} />
             )}
             <div style={styles.timestamp}>
-              🌱 {new Date(confession.createdAt).toLocaleString()}
-            </div>
+  🌱 {new Date(confession.createdAt).toLocaleString()}
+</div>
+
+<ReactionBar
+  wateredBy={confession.wateredBy || []}
+  burnedBy={confession.burnedBy || []}
+  userId={user?._id}
+  onReact={async (type) => {
+    const res = await fetch(`${API_URL}/${id}/react`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ type }),
+    });
+    const data = await res.json();
+    setConfession(prev => ({ ...prev, wateredBy: data.wateredBy, burnedBy: data.burnedBy }));
+  }}
+/>
           </div>
 
           <div style={styles.sectionTitle}>
@@ -275,6 +363,25 @@ export default function ConfessionPage() {
                 <img src={c.image} alt="comment"
                   style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "10px", marginTop: "8px" }} />
               )}
+              <ReactionBar
+  wateredBy={c.wateredBy || []}
+  burnedBy={c.burnedBy || []}
+  userId={user?._id}
+  small
+  onReact={async (type) => {
+    const res = await fetch(`${API_URL}/${id}/comments/${i}/react`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ type }),
+    });
+    const data = await res.json();
+    setConfession(prev => {
+      const updated = [...prev.comments];
+      updated[i] = { ...updated[i], wateredBy: data.wateredBy, burnedBy: data.burnedBy };
+      return { ...prev, comments: updated };
+    });
+  }}
+/>
             </div>
           )) : (
             <div style={styles.noComments}>no confessions yet · be the first 🌿</div>
