@@ -306,6 +306,66 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
   const [leftHover, setLeftHover] = useState(false);
   const [rightHover, setRightHover] = useState(false);
 
+  const leftImgRef = useRef(null);
+  const rightImgRef = useRef(null);
+
+  const isOpaqueAt = (img, e) => {
+    if (!img || !img.complete || !img.naturalWidth) return false;
+
+    const rect = img.getBoundingClientRect();
+
+    if (
+      e.clientX < rect.left ||
+      e.clientX > rect.right ||
+      e.clientY < rect.top ||
+      e.clientY > rect.bottom
+    ) {
+      return false;
+    }
+
+    const x = ((e.clientX - rect.left) / rect.width) * img.naturalWidth;
+    const y = ((e.clientY - rect.top) / rect.height) * img.naturalHeight;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+
+    const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+    return pixel[3] > 20;
+  };
+
+  useEffect(() => {
+    const handlePointerDown = (e) => {
+      if (e.target.closest('[data-ui="true"]')) return;
+  
+      if (isOpaqueAt(leftImgRef.current, e)) {
+        e.preventDefault();
+        e.stopPropagation();
+        onLeftClick();
+        return;
+      }
+
+      if (isOpaqueAt(rightImgRef.current, e)) {
+        e.preventDefault();
+        e.stopPropagation();
+        onRightClick();
+      }
+    };
+    const handleMouseMove = (e) => {
+  setLeftHover(isOpaqueAt(leftImgRef.current, e));
+  setRightHover(isOpaqueAt(rightImgRef.current, e));
+};
+    window.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+  window.removeEventListener("pointerdown", handlePointerDown, true);
+  window.removeEventListener("mousemove", handleMouseMove);
+};
+  }, [onLeftClick, onRightClick]);
+
   return (
     <>
       {/* LEFT — KRISHNA */}
@@ -315,8 +375,8 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
           left: 0,
           top: "80px",
           height: "calc(100vh - 80px)",
-          width: "50vw",
-          zIndex: 40,
+          width: "30vw",
+          zIndex: 29,
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -324,31 +384,23 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
         }}
       >
         <img
+          ref={leftImgRef}
           src="/krishna.png"
           alt="Enter Grove"
           onMouseEnter={() => setLeftHover(true)}
           onMouseLeave={() => setLeftHover(false)}
-          onClick={(e) => {
-            if (clickedOpaquePixel(e)) {
-              onLeftClick();
-            }
-          }}
           style={{
-            maxHeight: "105%",
-            maxWidth: "60vw",
+            maxHeight: "130%",
+            maxWidth: "45vw",
             objectFit: "contain",
-            pointerEvents: "auto",
-            cursor: "pointer",
             opacity: 0.95,
+            pointerEvents: "none",
             transform: leftHover
-  ? "translateX(38%) translateY(-8%) scale(1.22)"
-  : "translateX(35%) translateY(-6%) scale(1.17)",
-transition: "all 0.4s ease",
-willChange: "transform",
-           filter: leftHover
-  ? "drop-shadow(0 0 25px rgba(120,255,180,0.7)) drop-shadow(0 0 60px rgba(120,255,180,0.35))"
-  : "drop-shadow(0 0 10px rgba(120,255,180,0.25))",
-animation: "greenPulse 3s ease-in-out infinite",
+              ? "translateX(20%) translateY(8%) scale(1.48)"
+              : "translateX(17%) translateY(6%) scale(1.43)",
+            filter: leftHover
+              ? "drop-shadow(0 0 25px rgba(120,255,180,0.7))"
+              : "drop-shadow(0 0 10px rgba(120,255,180,0.25))",
             transition: "all 0.3s ease",
           }}
         />
@@ -361,8 +413,8 @@ animation: "greenPulse 3s ease-in-out infinite",
           right: 0,
           top: "80px",
           height: "calc(100vh - 80px)",
-          width: "50vw",
-          zIndex: 40,
+          width: "30vw",
+          zIndex: 29,
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
@@ -370,31 +422,23 @@ animation: "greenPulse 3s ease-in-out infinite",
         }}
       >
         <img
+          ref={rightImgRef}
           src="/Demon.png"
           alt="Enter Scorched Lands"
           onMouseEnter={() => setRightHover(true)}
           onMouseLeave={() => setRightHover(false)}
-          onClick={(e) => {
-            if (clickedOpaquePixel(e)) {
-              onRightClick();
-            }
-          }}
           style={{
-            maxHeight: "105%",
-            maxWidth: "60vw",
+            maxHeight: "130%",
+            maxWidth: "45vw",
             objectFit: "contain",
-            pointerEvents: "auto",
-            cursor: "pointer",
             opacity: 0.95,
+            pointerEvents: "none",
             transform: rightHover
-  ? "translateX(-38%) translateY(-8%) scale(1.22)"
-  : "translateX(-35%) translateY(-6%) scale(1.17)",
-transition: "all 0.4s ease",
-willChange: "transform",
+              ? "translateX(-20%) translateY(8%) scale(1.48)"
+              : "translateX(-17%) translateY(6%) scale(1.43)",
             filter: rightHover
-  ? "drop-shadow(0 0 25px rgba(255,80,60,0.7)) drop-shadow(0 0 60px rgba(255,80,60,0.35))"
-  : "drop-shadow(0 0 10px rgba(255,80,60,0.25))",
-animation: "redPulse 3s ease-in-out infinite",
+              ? "drop-shadow(0 0 25px rgba(255,80,60,0.7))"
+              : "drop-shadow(0 0 10px rgba(255,80,60,0.25))",
             transition: "all 0.3s ease",
           }}
         />
@@ -457,14 +501,14 @@ export default function Home() {
 
   // 👁️ Pause/resume on tab switch
   useEffect(() => {
-    const handleVisibility = () => {
-      if (!videoRef.current) return;
-      document.hidden ? videoRef.current.pause() : videoRef.current.play();
-    };
+  const handleVisibility = () => {
+    if (!videoRef.current || muted) return; // ← add muted check
+    document.hidden ? videoRef.current.pause() : videoRef.current.play().catch(() => {});
+  };
 
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, []);
+  document.addEventListener('visibilitychange', handleVisibility);
+  return () => document.removeEventListener('visibilitychange', handleVisibility);
+}, [muted]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -560,13 +604,15 @@ export default function Home() {
         {muted ? "🔇" : "🔊"}
       </button>
 
-      <DaisyScene
-        confessions={confessions}
-        user={user}
-        onPostClick={(id) => navigate(`/confession/${id}`)}
-        onCompose={() => setShowCompose(true)}
-        onProfile={() => navigate("/settings")}
-      />
+      <div style={{ position: "absolute", inset: 0, zIndex: 20 }}>
+  <DaisyScene
+    confessions={confessions}
+    user={user}
+    onPostClick={(id) => navigate(`/confession/${id}`)}
+    onCompose={() => setShowCompose(true)}
+    onProfile={() => navigate("/settings")}
+  />
+</div>
 
       <SpiritNavigation
         onLeftClick={() => navigate("/grove")}
@@ -631,8 +677,10 @@ export default function Home() {
       )}
 
       {showCompose && (
-        <div
-          onClick={(e) => {
+  <div
+    data-ui="true"   // ✅ ADD THIS LINE
+    onClick={(e) => {
+           e.stopPropagation();  
             if (e.target === e.currentTarget) setShowCompose(false);
           }}
           style={{
@@ -659,7 +707,10 @@ export default function Home() {
             }}
           >
             <button
-              onClick={() => setShowCompose(false)}
+  onClick={(e) => {
+    e.stopPropagation();   // ✅ IMPORTANT
+    setShowCompose(false);
+  }}
               style={{
                 position: "absolute",
                 top: "16px",

@@ -546,7 +546,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
   }, []);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+    <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", zIndex: 20, pointerEvents: "auto" }}>
 
       {/* ── Daisy Loading Screen ── */}
       {!loaded && (
@@ -648,7 +648,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
         </div>
       )}
 
-      <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={mountRef} style={{ width: "100%", height: "100%", pointerEvents: "auto" }} />
 
       {tooltip?.role === "post" && (
         <div style={{
