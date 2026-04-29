@@ -434,6 +434,38 @@ export default function Home() {
       .catch((err) => console.error(err));
   }, [user, navigate]);
 
+  // 🔊 Auto-unmute on first interaction
+  useEffect(() => {
+    const tryUnmute = () => {
+      setMuted(false);
+      if (videoRef.current) videoRef.current.muted = false;
+      document.removeEventListener('click', tryUnmute);
+      document.removeEventListener('keydown', tryUnmute);
+      document.removeEventListener('touchstart', tryUnmute);
+    };
+
+    document.addEventListener('click', tryUnmute);
+    document.addEventListener('keydown', tryUnmute);
+    document.addEventListener('touchstart', tryUnmute);
+
+    return () => {
+      document.removeEventListener('click', tryUnmute);
+      document.removeEventListener('keydown', tryUnmute);
+      document.removeEventListener('touchstart', tryUnmute);
+    };
+  }, []);
+
+  // 👁️ Pause/resume on tab switch
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!videoRef.current) return;
+      document.hidden ? videoRef.current.pause() : videoRef.current.play();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
