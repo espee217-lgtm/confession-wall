@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const API_URL = process.env.REACT_APP_API_URL;
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const REPORT_URL = `${API_BASE}/api/reports`;
 
 const styles = {
   page: {
@@ -253,7 +255,43 @@ export default function ConfessionPage() {
     setCommentImage(file);
     setCommentPreview(file ? URL.createObjectURL(file) : null);
   };
+const reportComment = async (commentId) => {
+  if (!token) {
+    alert("You must be logged in to report.");
+    return;
+  }
 
+  const reason = window.prompt("Why are you reporting this comment?");
+  if (!reason || !reason.trim()) return;
+
+  try {
+    const res = await fetch(REPORT_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        targetType: "comment",
+        confessionId: id,
+        commentId,
+        reason: reason.trim(),
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || data.error || "Could not submit report.");
+      return;
+    }
+
+    alert("Comment reported.");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong while reporting.");
+  }
+};
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!comment.trim() && !commentImage) return;
@@ -372,6 +410,23 @@ if (burned > watered) {
                 <img src={c.image} alt="comment"
                   style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "10px", marginTop: "8px" }} />
               )}
+              <button
+  type="button"
+  onClick={() => reportComment(c._id)}
+  style={{
+    marginTop: "10px",
+    background: "rgba(255,80,80,0.08)",
+    border: "1px solid rgba(255,80,80,0.25)",
+    color: "#c85a5a",
+    borderRadius: "12px",
+    padding: "5px 11px",
+    fontSize: "11px",
+    cursor: "pointer",
+    fontFamily: "Georgia, serif",
+  }}
+>
+  Report
+</button>
               <ReactionBar
   wateredBy={c.wateredBy || []}
   burnedBy={c.burnedBy || []}
