@@ -279,7 +279,16 @@ export default function ConfessionPage() {
       <span style={{ color: "#7ab868", fontSize: "13px", letterSpacing: "0.1em" }}>loading…</span>
     </div>
   );
+const watered = confession?.wateredBy?.length || 0;
+const burned = confession?.burnedBy?.length || 0;
 
+let bgVideo = "/forest3.mp4"; // default → grove
+
+if (burned > watered) {
+  bgVideo = "/Burnt.mp4"; // scorched
+} else if (watered === burned) {
+  bgVideo = "/budding.mp4"; // budding
+}
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
 
@@ -300,7 +309,7 @@ export default function ConfessionPage() {
           pointerEvents: "none",
         }}
       >
-        <source src="/forest3.mp4" type="video/mp4" />
+        <source src={bgVideo} type="video/mp4" />
       </video>
 
       {/* Content */}

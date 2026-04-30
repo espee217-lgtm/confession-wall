@@ -451,8 +451,27 @@ export default function Home() {
   const navigate = useNavigate();
 
   const [confessions, setConfessions] = useState([]);
-  const [scorchedPosts, setScorchedPosts] = useState([]);
+  const grovePosts = confessions.filter(
+  (c) => (c.wateredBy?.length || 0) > (c.burnedBy?.length || 0)
+);
+
+const scorchedPosts = confessions.filter(
+  (c) => (c.burnedBy?.length || 0) > (c.wateredBy?.length || 0)
+);
+const NEW_WINDOW = 1000 * 60 * 60 * 24 * 7; // 7 days
+
+const freshPosts = confessions
+  .filter((c) => {
+    const created = new Date(c.createdAt).getTime();
+    const watered = c.wateredBy?.length || 0;
+    const burned = c.burnedBy?.length || 0;
+
+    return Date.now() - created < NEW_WINDOW && watered === burned;
+  })
+  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const [showCompose, setShowCompose] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+const [tutorialStep, setTutorialStep] = useState(0);
   const [message, setMessage] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -460,7 +479,13 @@ export default function Home() {
   const [muted, setMuted] = useState(true);
 
   const videoRef = useRef(null);
+useEffect(() => {
+  const seenTutorial = localStorage.getItem("seenHomeTutorial");
 
+  if (!seenTutorial) {
+    setShowTutorial(true);
+  }
+}, []);
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -470,11 +495,6 @@ export default function Home() {
     fetch(API_URL)
       .then((r) => r.json())
       .then((d) => setConfessions(Array.isArray(d) ? d : []))
-      .catch((err) => console.error(err));
-
-    fetch(SCORCHED_URL)
-      .then((r) => r.json())
-      .then((d) => setScorchedPosts(Array.isArray(d) ? d : []))
       .catch((err) => console.error(err));
   }, [user, navigate]);
 
@@ -606,9 +626,9 @@ export default function Home() {
 
       <div style={{ position: "absolute", inset: 0, zIndex: 20 }}>
   <DaisyScene
-    confessions={confessions}
+    confessions={freshPosts}
     user={user}
-    onPostClick={(id) => navigate(`/confession/${id}`)}
+    onPostClick={(id) => navigate(`/budding?post=${id}`)}
     onCompose={() => setShowCompose(true)}
     onProfile={() => navigate("/settings")}
   />
@@ -664,15 +684,15 @@ export default function Home() {
 
       {confessions.length > 0 && (
         <ConfessionFeed
-          confessions={confessions}
-          onCardClick={(id) => navigate(`/confession/${id}`)}
+          confessions={grovePosts}
+          onCardClick={(id) => navigate(`/grove?post=${id}`)}
         />
       )}
 
       {scorchedPosts.length > 0 && (
         <ScorchedFeed
           confessions={scorchedPosts}
-          onCardClick={(id) => navigate(`/confession/${id}`)}
+          onCardClick={(id) => navigate(`/scorched?post=${id}`)}
         />
       )}
 
@@ -842,6 +862,99 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
+    {showTutorial && (
+  <div
+    data-ui="true"
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 9999,
+      background:
+  tutorialStep === 0
+    ? "radial-gradient(circle at 50% 45%, transparent 0px, transparent 150px, rgba(0,0,0,0.85) 230px)"
+    : tutorialStep === 1
+    ? "radial-gradient(circle at 12% 50%, transparent 0px, transparent 140px, rgba(0,0,0,0.85) 220px)"
+    : tutorialStep === 2
+    ? "radial-gradient(circle at 88% 50%, transparent 0px, transparent 140px, rgba(0,0,0,0.85) 220px)"
+    : "radial-gradient(circle at 50% 95%, transparent 0px, transparent 140px, rgba(0,0,0,0.85) 220px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      flexDirection: "column",
+      paddingBottom: "90px",
+      color: "white",
+      fontFamily: "Georgia, serif",
+    }}
+  >
+    {/* TEXT */}
+    <p style={{ fontSize: "18px", marginBottom: "20px" }}>
+      {tutorialStep === 0 && "🌼 These are new budding confessions. Click to explore."}
+      {tutorialStep === 1 && "🌿 Water confessions → Grove."}
+      {tutorialStep === 2 && "🔥 Burn confessions → Scorched."}
+      {tutorialStep === 3 && "✋ Plant your own confession here."}
+    </p>
+
+    {/* BUTTONS */}
+<div style={{ display: "flex", gap: "10px" }}>
+  <button
+    onClick={() => {
+      if (tutorialStep < 3) {
+        setTutorialStep((s) => s + 1);
+      } else {
+        localStorage.setItem("seenHomeTutorial", "true");
+        setShowTutorial(false);
+      }
+    }}
+    style={{
+      padding: "10px 18px",
+      borderRadius: "20px",
+      border: "1px solid rgba(120,255,180,0.4)",
+      background: "linear-gradient(135deg, #0f3d2e, #145c3a)",
+      color: "#d6ffe8",
+      fontFamily: "Georgia, serif",
+      cursor: "pointer",
+      boxShadow: "0 0 12px rgba(120,255,180,0.25)",
+      transition: "all 0.25s ease",
+    }}
+    onMouseEnter={(e) => {
+      e.target.style.boxShadow = "0 0 18px rgba(120,255,180,0.6)";
+      e.target.style.transform = "scale(1.05)";
+    }}
+    onMouseLeave={(e) => {
+      e.target.style.boxShadow = "0 0 12px rgba(120,255,180,0.25)";
+      e.target.style.transform = "scale(1)";
+    }}
+  >
+    {tutorialStep < 3 ? "Continue" : "Enter"}
+  </button>
+
+  <button
+    onClick={() => {
+      localStorage.setItem("seenHomeTutorial", "true");
+      setShowTutorial(false);
+    }}
+    style={{
+      padding: "10px 18px",
+      borderRadius: "20px",
+      border: "1px solid rgba(255,255,220,0.15)",
+      background: "rgba(255,255,220,0.05)",
+      color: "rgba(255,255,220,0.6)",
+      fontFamily: "Georgia, serif",
+      cursor: "pointer",
+      transition: "all 0.25s ease",
+    }}
+    onMouseEnter={(e) => {
+      e.target.style.background = "rgba(255,255,220,0.12)";
+    }}
+    onMouseLeave={(e) => {
+      e.target.style.background = "rgba(255,255,220,0.05)";
+    }}
+  >
+    Skip
+  </button>
+</div>
+  </div>
+)}
+</div>
   );
 }

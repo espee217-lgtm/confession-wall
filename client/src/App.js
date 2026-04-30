@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserProfile from "./pages/UserProfile";
 import ThrivingGrove from "./pages/ThrivingGrove";
 import ScorchedLands from "./pages/ScorchedLands";
+import BuddingLand from "./pages/BuddingLand";
 import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
@@ -46,6 +47,30 @@ function Navbar() {
               color: location.pathname === "/grove" ? "#9FE1CB" : "rgba(255,255,255,0.6)",
               transition: "all 0.2s ease",
             }}>🌿 Grove</Link>
+<Link to="/budding" style={{
+  fontSize: "12px",
+  fontFamily: "Georgia, serif",
+  letterSpacing: "0.06em",
+  textDecoration: "none",
+  padding: "5px 14px",
+  borderRadius: "20px",
+  border: `0.5px solid ${
+    location.pathname === "/budding"
+      ? "rgba(150,255,200,0.7)"
+      : "rgba(255,255,255,0.2)"
+  }`,
+  background:
+    location.pathname === "/budding"
+      ? "rgba(120,255,180,0.2)"
+      : "transparent",
+  color:
+    location.pathname === "/budding"
+      ? "#BFFFE3"
+      : "rgba(255,255,255,0.6)",
+  transition: "all 0.2s ease",
+}}>
+  ⚖️ Budding
+</Link>
 
             <Link to="/scorched" style={{
               fontSize: "12px", fontFamily: "Georgia, serif",
@@ -113,6 +138,7 @@ function App() {
           <Route path="/user/:id" element={<UserProfile />} />
           <Route path="/grove" element={<ThrivingGrove />} />
           <Route path="/scorched" element={<ScorchedLands />} />
+          <Route path="/budding" element={<BuddingLand />} />
         </Routes>
       </Router>
     </AdminAuthProvider>

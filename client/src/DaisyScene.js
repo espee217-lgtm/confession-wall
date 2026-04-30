@@ -31,16 +31,13 @@ function easeOutElastic(t) {
 }
 function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
-const INTERACTIVE = [
-  { id: "profile", role: "profile" },
-  { id: "post-0",  role: "post", confIdx: 0 },
-  { id: "post-1",  role: "post", confIdx: 1 },
-  { id: "post-2",  role: "post", confIdx: 2 },
-  { id: "post-3",  role: "post", confIdx: 3 },
-  { id: "post-4",  role: "post", confIdx: 4 },
-  { id: "post-5",  role: "post", confIdx: 5 },
-  { id: "post-6",  role: "post", confIdx: 6 },
-];
+const MAX_FLOWERS = 7;
+
+const INTERACTIVE = Array.from({ length: MAX_FLOWERS }, (_, i) => ({
+  id: `post-${i}`,
+  role: "post",
+  confIdx: i,
+}));
 const N_BG = 7;
 
 function buildDefs() {
@@ -147,6 +144,8 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
     lastFrame: 0,
   });
   const [tooltip, setTooltip] = useState(null);
+  const autoIndexRef = useRef(0);
+  const manualHoverRef = useRef(false);
   const [loaded, setLoaded] = useState(false);
   const loadedCount = useRef(0);
   const markLoaded = () => { loadedCount.current += 1; if (loadedCount.current >= 2) setLoaded(true); };
@@ -371,11 +370,55 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
       const hits = raycaster.intersectObjects(hitMeshes(), false);
       return hits.length ? hits[0].object : null;
     };
+    const showAutoTooltip = () => {
+  if (manualHoverRef.current) return;
+
+  const posts = confRef.current || [];
+  if (!posts.length) {
+    setTooltip(null);
+    return;
+  }
+
+  const postFlowers = Object.values(s.flowers)
+    .filter((f) => f.isInteractive && f.def?.role === "post")
+    .sort((a, b) => (a.def.confIdx ?? 0) - (b.def.confIdx ?? 0));
+
+  if (!postFlowers.length) return;
+
+  const idx = autoIndexRef.current % Math.min(posts.length, postFlowers.length);
+  const flower = postFlowers[idx];
+  const conf = posts[flower.def.confIdx];
+
+  if (!flower || !conf) return;
+
+  const wp = new THREE.Vector3();
+  flower.wrapper.getWorldPosition(wp);
+  wp.y += 0.8;
+
+  const proj = wp.clone().project(camera);
+  const rect = renderer.domElement.getBoundingClientRect();
+
+  setTooltip({
+    x: (proj.x * 0.5 + 0.5) * rect.width,
+    y: (-proj.y * 0.5 + 0.5) * rect.height,
+    text:
+      conf.message?.substring(0, 100) +
+      (conf.message?.length > 100 ? "…" : ""),
+    username: conf.userId?.username || "anon",
+    role: "post",
+  });
+
+  autoIndexRef.current += 1;
+};
+
+const autoTooltipTimer = setInterval(showAutoTooltip, 2000);
+setTimeout(showAutoTooltip, 700);
 
     const onMouseMove = (e) => {
       toNDC(e.clientX, e.clientY);
       const hit = raycast();
       const newId = hit?.userData.flowerId ?? null;
+      manualHoverRef.current = !!newId;
       if (newId !== s.hoveredId) {
         if (s.hoveredId && s.hoveredId !== "fist" && s.flowers[s.hoveredId])
           s.flowers[s.hoveredId].wrapper.scale.setScalar(1);
@@ -400,10 +443,10 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
           }
         } else if (role === "compose") {
           setTooltip({ role: "compose", label: "✦ plant a confession" });
-        } else if (role === "profile") {
-          setTooltip({ role: "profile", label: "⌘ your profile" });
-        }
-      } else { setTooltip(null); }
+        } 
+      } else {
+  manualHoverRef.current = false;
+}
     };
 
     const handleClick = (e) => {
@@ -412,7 +455,6 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
       if (!hit) return;
       const { role, confIdx } = hit.userData;
       if (role === "compose") { s.fistClickTime = performance.now(); onCompose?.(); }
-      else if (role === "profile") onProfile?.();
       else if (role === "post") { const c = confRef.current[confIdx]; if (c) onPostClick?.(c._id); }
     };
 
@@ -423,7 +465,6 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
       if (!hit) return;
       const { role, confIdx } = hit.userData;
       if (role === "compose") { s.fistClickTime = performance.now(); onCompose?.(); }
-      else if (role === "profile") onProfile?.();
       else if (role === "post") { const c = confRef.current[confIdx]; if (c) onPostClick?.(c._id); }
     };
 
@@ -535,6 +576,7 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
     window.addEventListener("resize", onResize);
 
     return () => {
+      clearInterval(autoTooltipTimer);
       cancelAnimationFrame(s.frame);
       window.removeEventListener("resize", onResize);
       renderer.domElement.removeEventListener("mousemove", onMouseMove);
