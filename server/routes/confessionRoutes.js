@@ -15,6 +15,15 @@ const postLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+const commentLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  message: {
+    message: "Too many comments. Please wait before commenting again.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -80,7 +89,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 // ADD a comment to a confession (with optional image)
-router.post("/:id/comments", protect, upload.single("image"), async (req, res) => {
+router.post("/:id/comments", protect, commentLimiter, upload.single("image"), async (req, res) => {
   try {
     const confession = await Confession.findById(req.params.id);
     if (!confession)

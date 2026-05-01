@@ -14,6 +14,9 @@ import BuddingLand from "./pages/BuddingLand";
 import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
+import CommunityGuidelines from "./pages/CommunityGuidelines";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin"];
 
@@ -139,6 +142,9 @@ function App() {
           <Route path="/grove" element={<ThrivingGrove />} />
           <Route path="/scorched" element={<ScorchedLands />} />
           <Route path="/budding" element={<BuddingLand />} />
+          <Route path="/guidelines" element={<CommunityGuidelines />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </Router>
     </AdminAuthProvider>
