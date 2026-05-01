@@ -4,7 +4,17 @@ const cloudinary = require("../config/cloudinary");
 const express = require("express");
 const router = express.Router();
 const Confession = require("../models/Confession");
+const rateLimit = require("express-rate-limit");
 const { protect } = require("../middleware/auth");
+const postLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 3,
+  message: {
+    message: "Too many posts. Please wait before posting again.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -42,7 +52,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST a new confession
-router.post("/", protect, upload.single("image"), async (req, res) => {
+router.post("/", protect, postLimiter, upload.single("image"), async (req, res) => {
   try {
     const newConfession = new Confession({
       userId: req.user._id,
