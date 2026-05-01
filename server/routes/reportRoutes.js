@@ -1,3 +1,4 @@
+const rateLimit = require("express-rate-limit");
 const express = require("express");
 const router = express.Router();
 
@@ -6,8 +7,19 @@ const Confession = require("../models/Confession");
 const { protect } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
 
+
+const reportLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  message: {
+    message: "Too many reports. Please wait before reporting again.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // USER: report confession/comment
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, reportLimiter, async (req, res) => {
   try {
     const { targetType, confessionId, commentId, reason } = req.body;
 
