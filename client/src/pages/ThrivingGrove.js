@@ -174,7 +174,7 @@ export default function ThrivingGrove() {
               post={p}
               realm="grove"
               highlighted={highlightedPost === p._id}
-              onOpen={() => navigate(`/confession/${p._id}`)}
+              onOpen={() => navigate(`/confession/${p._id}?realm=grove`)}
             />
           ))
         )}

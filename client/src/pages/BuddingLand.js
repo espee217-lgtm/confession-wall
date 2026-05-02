@@ -185,7 +185,7 @@ export default function BuddingLand() {
               post={p}
               realm="budding"
               highlighted={highlightedPost === p._id}
-              onOpen={() => navigate(`/confession/${p._id}`)}
+              onOpen={() => navigate(`/confession/${p._id}?realm=budding`)}
             />
           ))
         )}

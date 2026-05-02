@@ -179,7 +179,7 @@ export default function ScorchedLands() {
               post={p}
               realm="scorched"
               highlighted={highlightedPost === p._id}
-              onOpen={() => navigate(`/confession/${p._id}`)}
+              onOpen={() => navigate(`/confession/${p._id}?realm=scorched`)}
             />
           ))
         )}
