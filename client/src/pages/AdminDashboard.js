@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
@@ -9,6 +10,7 @@ const REPORT_URL = `${API_BASE}/api/reports`;
 
 export default function AdminDashboard() {
   const { adminToken, adminLogout } = useAdminAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState("reports");
@@ -116,6 +118,101 @@ export default function AdminDashboard() {
     setUsers((prev) => prev.filter((u) => u._id !== id));
   };
 
+    const updateUserInState = (updatedUser) => {
+    setUsers((prev) =>
+      prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
+    );
+  };
+
+  const suspendUser = async (id) => {
+    const reason = window.prompt(
+      "Reason for suspending this user:",
+      "Suspended by admin."
+    );
+
+    if (reason === null) return;
+
+    const res = await fetch(`${API_URL}/users/${id}/suspend`, {
+      method: "PATCH",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Could not suspend user.");
+      return;
+    }
+
+    updateUserInState(data.user);
+  };
+
+  const unsuspendUser = async (id) => {
+    const res = await fetch(`${API_URL}/users/${id}/unsuspend`, {
+      method: "PATCH",
+      headers,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Could not unsuspend user.");
+      return;
+    }
+
+    updateUserInState(data.user);
+  };
+
+  const banUser = async (id) => {
+    const reason = window.prompt(
+      "Reason for banning this user:",
+      "Banned by admin."
+    );
+
+    if (reason === null) return;
+
+    if (!window.confirm("Ban this user? They will not be able to log in or use protected actions.")) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/users/${id}/ban`, {
+      method: "PATCH",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Could not ban user.");
+      return;
+    }
+
+    updateUserInState(data.user);
+  };
+
+  const unbanUser = async (id) => {
+    const res = await fetch(`${API_URL}/users/${id}/unban`, {
+      method: "PATCH",
+      headers,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Could not unban user.");
+      return;
+    }
+
+    updateUserInState(data.user);
+  };
   const resolveReport = async (id) => {
     const note = window.prompt(
       "Optional resolve note for this report:",
@@ -164,6 +261,27 @@ export default function AdminDashboard() {
     navigate(`/confession/${confessionId}?from=admin`);
   };
 
+  const enterMainSiteAsAdmin = async () => {
+  try {
+    const res = await fetch(`${API_URL}/enter-site`, {
+      method: "POST",
+      headers,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Could not enter main site as admin.");
+      return;
+    }
+
+    login(data.user, data.token);
+    navigate("/");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong while entering main site.");
+  }
+};
   const cardStyle = {
     background: "rgba(255,255,255,0.07)",
     border: "1px solid rgba(255,255,255,0.12)",
@@ -193,6 +311,39 @@ export default function AdminDashboard() {
     fontWeight: 600,
     fontSize: "0.85rem",
   };
+
+  const suspendBtnStyle = {
+  background: "rgba(255,200,80,0.13)",
+  border: "1px solid rgba(255,200,80,0.45)",
+  borderRadius: "8px",
+  color: "#ffd27a",
+  padding: "6px 14px",
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: "0.85rem",
+};
+
+const banBtnStyle = {
+  background: "rgba(255,60,60,0.18)",
+  border: "1px solid rgba(255,80,80,0.55)",
+  borderRadius: "8px",
+  color: "#ff7777",
+  padding: "6px 14px",
+  cursor: "pointer",
+  fontWeight: 700,
+  fontSize: "0.85rem",
+};
+
+const safeBtnStyle = {
+  background: "rgba(100,255,150,0.13)",
+  border: "1px solid rgba(100,255,150,0.45)",
+  borderRadius: "8px",
+  color: "#9cffb2",
+  padding: "6px 14px",
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: "0.85rem",
+};
 
   const commentDeleteBtnStyle = {
     background: "rgba(120,180,255,0.13)",
@@ -234,15 +385,28 @@ export default function AdminDashboard() {
         >
           <h1 style={{ margin: 0, fontSize: "1.8rem" }}>Admin Dashboard</h1>
 
-          <button
-            onClick={() => {
-              adminLogout();
-              navigate("/admin");
-            }}
-            style={deleteBtnStyle}
-          >
-            Logout
-          </button>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+  <button
+    onClick={enterMainSiteAsAdmin}
+    style={{
+      ...btnStyle,
+      color: "#9cffb2",
+      borderColor: "rgba(100,255,150,0.45)",
+    }}
+  >
+    Enter Main Site
+  </button>
+
+  <button
+    onClick={() => {
+      adminLogout();
+      navigate("/admin");
+    }}
+    style={deleteBtnStyle}
+  >
+    Logout
+  </button>
+</div>
         </div>
 
         <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
@@ -473,24 +637,122 @@ export default function AdminDashboard() {
               <p style={{ opacity: 0.5 }}>No users found.</p>
             ) : (
               users.map((u) => (
-                <div key={u._id} style={cardStyle}>
-                  <strong>{u.username}</strong>
+  <div key={u._id} style={cardStyle}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "1rem",
+        alignItems: "flex-start",
+      }}
+    >
+      <div>
+        <strong>{u.username}</strong>
 
-                  <div style={{ opacity: 0.5, fontSize: "0.85rem" }}>
-                    {u.email} · Joined{" "}
-                    {new Date(u.createdAt).toLocaleDateString()}
-                  </div>
+        <div style={{ opacity: 0.5, fontSize: "0.85rem", marginTop: "4px" }}>
+          {u.email} · Joined {new Date(u.createdAt).toLocaleDateString()}
+        </div>
 
-                  <div style={{ marginTop: "0.8rem" }}>
-                    <button
-                      onClick={() => deleteUser(u._id)}
-                      style={deleteBtnStyle}
-                    >
-                      Delete User
-                    </button>
-                  </div>
-                </div>
-              ))
+        <div style={{ marginTop: "8px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {u.isBanned && (
+            <span
+              style={{
+                padding: "4px 9px",
+                borderRadius: "999px",
+                background: "rgba(255,60,60,0.14)",
+                border: "1px solid rgba(255,80,80,0.35)",
+                color: "#ff7777",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              BANNED
+            </span>
+          )}
+
+          {u.isSuspended && !u.isBanned && (
+            <span
+              style={{
+                padding: "4px 9px",
+                borderRadius: "999px",
+                background: "rgba(255,200,80,0.14)",
+                border: "1px solid rgba(255,200,80,0.35)",
+                color: "#ffd27a",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              SUSPENDED
+            </span>
+          )}
+
+          {!u.isBanned && !u.isSuspended && (
+            <span
+              style={{
+                padding: "4px 9px",
+                borderRadius: "999px",
+                background: "rgba(100,255,150,0.12)",
+                border: "1px solid rgba(100,255,150,0.3)",
+                color: "#9cffb2",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              ACTIVE
+            </span>
+          )}
+        </div>
+
+        {u.suspendReason && (
+          <div style={{ marginTop: "8px", color: "#ffd27a", fontSize: "0.85rem" }}>
+            Suspend reason: {u.suspendReason}
+          </div>
+        )}
+
+        {u.banReason && (
+          <div style={{ marginTop: "8px", color: "#ff7777", fontSize: "0.85rem" }}>
+            Ban reason: {u.banReason}
+          </div>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
+        }}
+      >
+        {u.isSuspended ? (
+          <button onClick={() => unsuspendUser(u._id)} style={safeBtnStyle}>
+            Unsuspend
+          </button>
+        ) : (
+          !u.isBanned && (
+            <button onClick={() => suspendUser(u._id)} style={suspendBtnStyle}>
+              Suspend
+            </button>
+          )
+        )}
+
+        {u.isBanned ? (
+          <button onClick={() => unbanUser(u._id)} style={safeBtnStyle}>
+            Unban
+          </button>
+        ) : (
+          <button onClick={() => banUser(u._id)} style={banBtnStyle}>
+            Ban
+          </button>
+        )}
+
+        <button onClick={() => deleteUser(u._id)} style={deleteBtnStyle}>
+          Delete User
+        </button>
+      </div>
+    </div>
+  </div>
+))
             )}
           </div>
         )}

@@ -74,7 +74,7 @@ router.delete("/users/:id", adminProtect, async (req, res) => {
 router.get("/confessions", adminProtect, async (req, res) => {
   try {
     const confessions = await Confession.find()
-      .populate("userId", "username profilePicture")
+      .populate("userId", "username profilePicture isAdmin role")
       .sort({ createdAt: -1 });
 
     res.json(confessions);
@@ -187,6 +187,190 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
   } catch (err) {
     console.error("Delete reported comment error:", err);
     res.status(500).json({ message: "Could not delete reported comment" });
+  }
+});
+// PATCH /api/admin/users/:id/suspend
+router.patch("/users/:id/suspend", adminProtect, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        isSuspended: true,
+        suspendReason: reason || "Suspended by admin.",
+        suspendedAt: new Date(),
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "User suspended", user });
+  } catch (err) {
+    console.error("Suspend user error:", err);
+    res.status(500).json({ message: "Could not suspend user" });
+  }
+});
+
+// PATCH /api/admin/users/:id/unsuspend
+router.patch("/users/:id/unsuspend", adminProtect, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        isSuspended: false,
+        suspendReason: "",
+        suspendedAt: null,
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "User unsuspended", user });
+  } catch (err) {
+    console.error("Unsuspend user error:", err);
+    res.status(500).json({ message: "Could not unsuspend user" });
+  }
+});
+
+// PATCH /api/admin/users/:id/ban
+router.patch("/users/:id/ban", adminProtect, async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        isBanned: true,
+        banReason: reason || "Banned by admin.",
+        bannedAt: new Date(),
+        isSuspended: false,
+        suspendReason: "",
+        suspendedAt: null,
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "User banned", user });
+  } catch (err) {
+    console.error("Ban user error:", err);
+    res.status(500).json({ message: "Could not ban user" });
+  }
+});
+
+// PATCH /api/admin/users/:id/unban
+router.patch("/users/:id/unban", adminProtect, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        isBanned: false,
+        banReason: "",
+        bannedAt: null,
+      },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "User unbanned", user });
+  } catch (err) {
+    console.error("Unban user error:", err);
+    res.status(500).json({ message: "Could not unban user" });
+  }
+});
+
+// POST /api/admin/enter-site
+// Admin dashboard -> enter main website as a public admin user
+router.post("/enter-site", adminProtect, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.admin.id);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    let publicUser = await User.findOne({ linkedAdminId: admin._id });
+
+    if (!publicUser) {
+      const safeUsername = `Admin_${admin.username}`.replace(/\s+/g, "_");
+      const fallbackUsername = `Admin_${admin._id.toString().slice(-6)}`;
+
+      const usernameTaken = await User.findOne({ username: safeUsername });
+
+      const hashedPassword = await bcrypt.hash(
+        `${admin._id}-${Date.now()}-${Math.random()}`,
+        10
+      );
+
+      publicUser = await User.create({
+        username: usernameTaken ? fallbackUsername : safeUsername,
+        email: `admin_${admin._id}@confessionwall.local`,
+        password: hashedPassword,
+        isAdmin: true,
+        role: "admin",
+        linkedAdminId: admin._id,
+        bio: "Official Confession Wall administrator.",
+      });
+    } else {
+      let changed = false;
+
+      if (!publicUser.isAdmin) {
+        publicUser.isAdmin = true;
+        changed = true;
+      }
+
+      if (publicUser.role !== "admin") {
+        publicUser.role = "admin";
+        changed = true;
+      }
+
+      if (publicUser.isBanned) {
+        publicUser.isBanned = false;
+        publicUser.banReason = "";
+        publicUser.bannedAt = null;
+        changed = true;
+      }
+
+      if (publicUser.isSuspended) {
+        publicUser.isSuspended = false;
+        publicUser.suspendReason = "";
+        publicUser.suspendedAt = null;
+        changed = true;
+      }
+
+      if (changed) await publicUser.save();
+    }
+
+    const token = jwt.sign(
+      { id: publicUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "Entered main site as admin",
+      token,
+      user: {
+        _id: publicUser._id,
+        username: publicUser.username,
+        email: publicUser.email,
+        profilePicture: publicUser.profilePicture,
+        isAdmin: publicUser.isAdmin,
+        role: publicUser.role,
+        isSuspended: publicUser.isSuspended,
+        isBanned: publicUser.isBanned,
+        suspendReason: publicUser.suspendReason,
+        banReason: publicUser.banReason,
+      },
+    });
+  } catch (err) {
+    console.error("Enter site as admin error:", err);
+    res.status(500).json({ message: "Could not enter main site as admin" });
   }
 });
 module.exports = { router, adminProtect };

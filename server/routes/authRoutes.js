@@ -109,12 +109,16 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
     res.json({
       token,
       user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        profilePicture: user.profilePicture,
-        isAdmin: user.isAdmin,
-      },
+  _id: user._id,
+  username: user.username,
+  email: user.email,
+  profilePicture: user.profilePicture,
+  isAdmin: user.isAdmin,
+  isSuspended: user.isSuspended,
+  isBanned: user.isBanned,
+  suspendReason: user.suspendReason,
+  banReason: user.banReason,
+},
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -128,6 +132,15 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
+        if (user.isBanned) {
+      return res.status(403).json({
+        message:
+          user.banReason ||
+          "Your account has been banned by admin.",
+        statusType: "banned",
+      });
+    }
+
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: "Invalid credentials" });
 
@@ -135,12 +148,16 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        profilePicture: user.profilePicture,
-        isAdmin: user.isAdmin,
-      },
+  _id: user._id,
+  username: user.username,
+  email: user.email,
+  profilePicture: user.profilePicture,
+  isAdmin: user.isAdmin,
+  isSuspended: user.isSuspended,
+  isBanned: user.isBanned,
+  suspendReason: user.suspendReason,
+  banReason: user.banReason,
+},
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

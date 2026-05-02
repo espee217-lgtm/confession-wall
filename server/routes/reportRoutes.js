@@ -4,7 +4,7 @@ const router = express.Router();
 
 const Report = require("../models/Report");
 const Confession = require("../models/Confession");
-const { protect } = require("../middleware/auth");
+const { protect, blockSuspended } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
 
 const reportLimiter = rateLimit({
@@ -18,7 +18,7 @@ const reportLimiter = rateLimit({
 });
 
 // USER: report confession/comment
-router.post("/", protect, reportLimiter, async (req, res) => {
+router.post("/", protect, blockSuspended, reportLimiter, async (req, res) => {
   try {
     const { targetType, confessionId, commentId, reason } = req.body;
 
