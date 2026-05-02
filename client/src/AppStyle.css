@@ -1,4 +1,4 @@
-
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap');
 :root {
   --primary: #007bff;
   --danger: #ff4d4f;
@@ -164,4 +164,107 @@ a.chip {
   color: white !important;
   text-decoration: none !important;
   font-size: 14px;
+}
+.nav-firefly {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #e7ff9f;
+  box-shadow:
+    0 0 8px rgba(230, 255, 150, 0.95),
+    0 0 16px rgba(120, 255, 160, 0.5);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.85;
+}
+
+.nav-firefly-1 {
+  animation: fireflyDriftA 7s ease-in-out infinite;
+}
+
+.nav-firefly-2 {
+  animation: fireflyDriftB 8.5s ease-in-out infinite;
+  animation-delay: -1.5s;
+}
+
+.nav-firefly-3 {
+  animation: fireflyDriftC 9s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.nav-firefly-4 {
+  animation: fireflyDriftD 7.5s ease-in-out infinite;
+  animation-delay: -4.2s;
+}
+
+.nav-firefly-5 {
+  animation: fireflyDriftE 10s ease-in-out infinite;
+  animation-delay: -2.6s;
+}
+
+.nav-firefly-6 {
+  animation: fireflyDriftF 8s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.nav-firefly-7 {
+  animation: fireflyDriftG 11s ease-in-out infinite;
+  animation-delay: -6.5s;
+}
+
+@keyframes fireflyDriftA {
+  0%   { transform: translate(10px, -22px) scale(0.6); opacity: 0.15; }
+  25%  { transform: translate(80px, -34px) scale(1); opacity: 0.9; }
+  50%  { transform: translate(190px, -18px) scale(0.7); opacity: 0.45; }
+  75%  { transform: translate(310px, -32px) scale(1.1); opacity: 1; }
+  100% { transform: translate(430px, -20px) scale(0.6); opacity: 0.15; }
+}
+
+@keyframes fireflyDriftB {
+  0%   { transform: translate(430px, 18px) scale(0.6); opacity: 0.2; }
+  25%  { transform: translate(330px, 4px) scale(1); opacity: 0.9; }
+  50%  { transform: translate(220px, 20px) scale(0.75); opacity: 0.5; }
+  75%  { transform: translate(110px, 2px) scale(1.1); opacity: 1; }
+  100% { transform: translate(0px, 16px) scale(0.6); opacity: 0.2; }
+}
+
+@keyframes fireflyDriftC {
+  0%   { transform: translate(45px, 10px) scale(0.5); opacity: 0.15; }
+  30%  { transform: translate(130px, -8px) scale(1.05); opacity: 0.95; }
+  55%  { transform: translate(245px, 8px) scale(0.7); opacity: 0.45; }
+  80%  { transform: translate(365px, -10px) scale(1); opacity: 0.85; }
+  100% { transform: translate(450px, 6px) scale(0.55); opacity: 0.15; }
+}
+
+@keyframes fireflyDriftD {
+  0%   { transform: translate(160px, -28px) scale(0.5); opacity: 0.2; }
+  35%  { transform: translate(230px, -40px) scale(1); opacity: 1; }
+  65%  { transform: translate(300px, -18px) scale(0.75); opacity: 0.45; }
+  100% { transform: translate(210px, -26px) scale(0.55); opacity: 0.2; }
+}
+
+@keyframes fireflyDriftE {
+  0%   { transform: translate(70px, 26px) scale(0.55); opacity: 0.2; }
+  25%  { transform: translate(150px, 12px) scale(1); opacity: 0.85; }
+  50%  { transform: translate(260px, 28px) scale(0.8); opacity: 0.45; }
+  75%  { transform: translate(370px, 10px) scale(1.1); opacity: 1; }
+  100% { transform: translate(460px, 22px) scale(0.55); opacity: 0.2; }
+}
+
+@keyframes fireflyDriftF {
+  0%   { transform: translate(280px, -6px) scale(0.6); opacity: 0.2; }
+  30%  { transform: translate(200px, -26px) scale(1); opacity: 0.95; }
+  60%  { transform: translate(120px, -4px) scale(0.75); opacity: 0.45; }
+  100% { transform: translate(40px, -18px) scale(0.55); opacity: 0.2; }
+}
+
+@keyframes fireflyDriftG {
+  0%   { transform: translate(390px, -30px) scale(0.5); opacity: 0.2; }
+  25%  { transform: translate(300px, -8px) scale(0.95); opacity: 0.85; }
+  50%  { transform: translate(210px, -32px) scale(0.75); opacity: 0.45; }
+  75%  { transform: translate(120px, -12px) scale(1.05); opacity: 1; }
+  100% { transform: translate(30px, -26px) scale(0.5); opacity: 0.2; }
 }
