@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -29,6 +29,334 @@ import "./AppStyle.css";
 
 const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
 const HIDE_FOOTER_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
+const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://confession-wall-hn63.onrender.com");
+
+
+function NotificationBell() {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+  const bellRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const authHeaders = token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+
+  const fetchUnreadCount = async () => {
+    if (!user || !token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/notifications/unread-count`, {
+        headers: authHeaders,
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setUnreadCount(data.count || 0);
+    } catch (err) {
+      console.error("Fetch unread notifications error:", err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    if (!user || !token) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/notifications`, {
+        headers: authHeaders,
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setNotifications(Array.isArray(data) ? data : []);
+      setUnreadCount(Array.isArray(data) ? data.filter((n) => !n.read).length : 0);
+    } catch (err) {
+      console.error("Fetch notifications error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+
+    const interval = setInterval(fetchUnreadCount, 25000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id, token]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (bellRef.current && !bellRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const openDropdown = async () => {
+    const nextOpen = !open;
+    setOpen(nextOpen);
+
+    if (nextOpen) {
+      await fetchNotifications();
+    }
+  };
+
+  const markOneAsRead = async (notification) => {
+    if (!notification?.read) {
+      try {
+        await fetch(`${API_BASE}/api/notifications/${notification._id}/read`, {
+          method: "PATCH",
+          headers: authHeaders,
+        });
+
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item._id === notification._id ? { ...item, read: true } : item
+          )
+        );
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
+      } catch (err) {
+        console.error("Mark notification read error:", err);
+      }
+    }
+
+    setOpen(false);
+    navigate(notification.link || "/");
+  };
+
+  const markAllAsRead = async (event) => {
+    event.stopPropagation();
+
+    try {
+      await fetch(`${API_BASE}/api/notifications/read-all`, {
+        method: "PATCH",
+        headers: authHeaders,
+      });
+
+      setNotifications((prev) => prev.map((item) => ({ ...item, read: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Mark all notifications read error:", err);
+    }
+  };
+
+  const formatNotificationTime = (dateValue) => {
+    if (!dateValue) return "";
+
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (!user || !token) return null;
+
+  return (
+    <div ref={bellRef} style={{ position: "relative", justifySelf: "end" }}>
+      <button
+        type="button"
+        onClick={openDropdown}
+        title="Notifications"
+        style={{
+          position: "relative",
+          width: "42px",
+          height: "42px",
+          borderRadius: "50%",
+          border: "1px solid rgba(190,255,190,0.38)",
+          background:
+            "radial-gradient(circle at top, rgba(215,255,166,0.35), rgba(12,45,20,0.92))",
+          color: "#f4ffe8",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "20px",
+          boxShadow: "0 0 18px rgba(120,255,180,0.28)",
+          margin: 0,
+          padding: 0,
+        }}
+      >
+        🔔
+
+        {unreadCount > 0 && (
+          <span
+            style={{
+              position: "absolute",
+              top: "-6px",
+              right: "-7px",
+              minWidth: "18px",
+              height: "18px",
+              padding: "0 5px",
+              borderRadius: "999px",
+              background: "#ff3b3b",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "2px solid rgba(10,28,12,0.95)",
+            }}
+          >
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "52px",
+            right: 0,
+            width: "340px",
+            maxHeight: "430px",
+            overflowY: "auto",
+            background:
+              "linear-gradient(180deg, rgba(9,30,13,0.98), rgba(3,14,6,0.98))",
+            border: "1px solid rgba(145,220,145,0.28)",
+            borderRadius: "16px",
+            boxShadow: "0 18px 50px rgba(0,0,0,0.65)",
+            zIndex: 5000,
+            color: "#efffde",
+            textAlign: "left",
+            padding: "10px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "10px",
+              padding: "8px 8px 12px",
+              borderBottom: "1px solid rgba(150,220,150,0.18)",
+              marginBottom: "6px",
+            }}
+          >
+            <strong style={{ fontFamily: "'Cinzel', Georgia, serif" }}>
+              Notifications
+            </strong>
+
+            {notifications.length > 0 && (
+              <button
+                type="button"
+                onClick={markAllAsRead}
+                style={{
+                  margin: 0,
+                  padding: "6px 8px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(170,255,170,0.28)",
+                  background: "rgba(130,255,150,0.12)",
+                  color: "#caffc5",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                }}
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          {loading ? (
+            <div style={{ padding: "18px", color: "rgba(235,255,225,0.7)" }}>
+              Loading notifications...
+            </div>
+          ) : notifications.length === 0 ? (
+            <div style={{ padding: "18px", color: "rgba(235,255,225,0.7)" }}>
+              No notifications yet.
+            </div>
+          ) : (
+            notifications.map((notification) => (
+              <button
+                type="button"
+                key={notification._id}
+                onClick={() => markOneAsRead(notification)}
+                style={{
+                  width: "100%",
+                  margin: "0 0 7px",
+                  padding: "11px 12px",
+                  borderRadius: "12px",
+                  border: notification.read
+                    ? "1px solid rgba(160,210,160,0.12)"
+                    : "1px solid rgba(140,255,150,0.35)",
+                  background: notification.read
+                    ? "rgba(255,255,255,0.045)"
+                    : "rgba(100,255,135,0.13)",
+                  color: "#efffde",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  boxShadow: notification.read
+                    ? "none"
+                    : "0 0 16px rgba(110,255,140,0.12)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                  }}
+                >
+                  {!notification.read && (
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: "#7dff8a",
+                        marginTop: "6px",
+                        flex: "0 0 auto",
+                        boxShadow: "0 0 10px rgba(125,255,138,0.9)",
+                      }}
+                    />
+                  )}
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: "13px", lineHeight: 1.35 }}>
+                      {notification.message}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "5px",
+                        fontSize: "11px",
+                        color: "rgba(230,255,220,0.55)",
+                      }}
+                    >
+                      {formatNotificationTime(notification.createdAt)}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Navbar() {
   const { user } = useAuth();
@@ -159,46 +487,55 @@ function Navbar() {
 
         {user && (
           <div
-            onClick={() => navigate("/settings")}
             style={{
               justifySelf: "end",
-              cursor: "pointer",
-              padding: "3px",
-              borderRadius: "50%",
-              background:
-                "linear-gradient(135deg, rgba(120,255,180,0.4), rgba(255,220,120,0.18))",
-              boxShadow: "0 0 18px rgba(120,255,180,0.35)",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
             }}
           >
-            {user.profilePicture ? (
-              <img
-                src={user.profilePicture}
-                alt="profile"
-                style={{
-                  width: "42px",
-                  height: "42px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "2px solid rgba(255,255,255,0.75)",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "42px",
-                  height: "42px",
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.25)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
-                  color: "white",
-                }}
-              >
-                {user.username[0].toUpperCase()}
-              </div>
-            )}
+            <div
+              onClick={() => navigate("/settings")}
+              style={{
+                cursor: "pointer",
+                padding: "3px",
+                borderRadius: "50%",
+                background:
+                  "linear-gradient(135deg, rgba(120,255,180,0.4), rgba(255,220,120,0.18))",
+                boxShadow: "0 0 18px rgba(120,255,180,0.35)",
+              }}
+            >
+              {user.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt="profile"
+                  style={{
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid rgba(255,255,255,0.75)",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.25)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 700,
+                    color: "white",
+                  }}
+                >
+                  {user.username[0].toUpperCase()}
+                </div>
+              )}
+            </div>
+          <NotificationBell />
           </div>
         )}
       </div>

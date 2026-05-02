@@ -4,6 +4,7 @@ const cloudinary = require("../config/cloudinary");
 const express = require("express");
 const router = express.Router();
 const Confession = require("../models/Confession");
+const Notification = require("../models/Notification");
 const rateLimit = require("express-rate-limit");
 const { protect, blockSuspended } = require("../middleware/auth");
 
@@ -26,6 +27,21 @@ const commentLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+const createNotification = async ({ userId, type, message, link }) => {
+  try {
+    if (!userId) return;
+
+    await Notification.create({
+      userId,
+      type,
+      message,
+      link,
+    });
+  } catch (err) {
+    console.error("Create notification error:", err);
+  }
+};
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -177,6 +193,18 @@ router.post(
 
       await confession.save();
 
+      const postOwnerId = confession.userId;
+      const commenterId = req.user._id;
+
+      if (postOwnerId && !postOwnerId.equals(commenterId)) {
+        await createNotification({
+          userId: postOwnerId,
+          type: "comment",
+          message: `${req.user.username || "Someone"} commented on your post.`,
+          link: `/confession/${confession._id}`,
+        });
+      }
+
       const updated = await Confession.findById(req.params.id)
         .populate("userId", "username profilePicture isAdmin role")
         .populate("comments.userId", "username profilePicture isAdmin role");
@@ -219,6 +247,18 @@ router.post("/:id/react", protect, blockSuspended, async (req, res) => {
     }
 
     await confession.save();
+
+    if (!alreadyVoted && confession.userId && !confession.userId.equals(userId)) {
+      await createNotification({
+        userId: confession.userId,
+        type: "reaction",
+        message:
+          type === "water"
+            ? `${req.user.username || "Someone"} watered your post.`
+            : `${req.user.username || "Someone"} burned your post.`,
+        link: `/confession/${confession._id}`,
+      });
+    }
 
     res.json({
       wateredBy: confession.wateredBy,
@@ -270,6 +310,18 @@ router.post(
       }
 
       await confession.save();
+
+      if (!alreadyVoted && comment.userId && !comment.userId.equals(userId)) {
+        await createNotification({
+          userId: comment.userId,
+          type: "reaction",
+          message:
+            type === "water"
+              ? `${req.user.username || "Someone"} watered your comment.`
+              : `${req.user.username || "Someone"} burned your comment.`,
+          link: `/confession/${confession._id}`,
+        });
+      }
 
       res.json({
         wateredBy: comment.wateredBy,

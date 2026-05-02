@@ -4,8 +4,25 @@ const router = express.Router();
 
 const Report = require("../models/Report");
 const Confession = require("../models/Confession");
+const Notification = require("../models/Notification");
 const { protect, blockSuspended } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
+
+
+const createNotification = async ({ userId, type, message, link }) => {
+  try {
+    if (!userId) return;
+
+    await Notification.create({
+      userId,
+      type,
+      message,
+      link,
+    });
+  } catch (err) {
+    console.error("Create notification error:", err);
+  }
+};
 
 const reportLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -106,6 +123,15 @@ router.put("/:id/resolve", adminProtect, async (req, res) => {
     );
 
     if (!report) return res.status(404).json({ message: "Report not found" });
+
+    await createNotification({
+      userId: report.reportedBy,
+      type: "report_resolved",
+      message: note
+        ? `Admin reviewed your report: ${note}`
+        : "Admin reviewed and resolved your report.",
+      link: report.confessionId ? `/confession/${report.confessionId}` : "/",
+    });
 
     res.json({ message: "Report resolved", report });
   } catch (err) {

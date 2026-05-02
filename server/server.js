@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const reportRoutes = require("./routes/reportRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 dotenv.config();
 console.log("Mongo URI:", process.env.MONGO_URI);
 
@@ -18,6 +19,7 @@ app.use("/api/auth", authRoutes);
 const { router: adminRoutes } = require("./routes/adminRoutes");
 app.use("/api/admin", adminRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Confession Wall Server is running!");

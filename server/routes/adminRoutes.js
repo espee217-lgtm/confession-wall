@@ -6,6 +6,23 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Confession = require("../models/Confession");
+const Notification = require("../models/Notification");
+
+
+const createNotification = async ({ userId, type, message, link }) => {
+  try {
+    if (!userId) return;
+
+    await Notification.create({
+      userId,
+      type,
+      message,
+      link,
+    });
+  } catch (err) {
+    console.error("Create notification error:", err);
+  }
+};
 
 // Middleware: protect admin routes
 const adminProtect = (req, res, next) => {
@@ -87,7 +104,22 @@ router.get("/confessions", adminProtect, async (req, res) => {
 // DELETE /api/admin/confessions/:id
 router.delete("/confessions/:id", adminProtect, async (req, res) => {
   try {
+    const confession = await Confession.findById(req.params.id);
+
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found" });
+    }
+
+    const ownerId = confession.userId;
+
     await Confession.findByIdAndDelete(req.params.id);
+
+    await createNotification({
+      userId: ownerId,
+      type: "content_removed",
+      message: "Your post was removed by an admin.",
+      link: "/",
+    });
 
     res.json({ message: "Confession deleted" });
   } catch (err) {
@@ -110,17 +142,26 @@ router.delete(
         return res.status(404).json({ message: "Confession not found" });
       }
 
-      const beforeCount = confession.comments.length;
+      const commentToDelete = confession.comments.id(commentId);
+
+      if (!commentToDelete) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      const commentOwnerId = commentToDelete.userId;
 
       confession.comments = confession.comments.filter(
         (comment) => comment._id.toString() !== commentId
       );
 
-      if (confession.comments.length === beforeCount) {
-        return res.status(404).json({ message: "Comment not found" });
-      }
-
       await confession.save();
+
+      await createNotification({
+        userId: commentOwnerId,
+        type: "content_removed",
+        message: "Your comment was removed by an admin.",
+        link: `/confession/${confessionId}`,
+      });
 
       res.json({ message: "Comment deleted" });
     } catch (err) {
@@ -154,12 +195,21 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
       report.resolvedNote = "Parent post was already deleted.";
       await report.save();
 
+      await createNotification({
+        userId: report.reportedBy,
+        type: "report_resolved",
+        message: "Admin reviewed your report. The parent post was already deleted.",
+        link: "/",
+      });
+
       return res.json({
         message: "Parent post already deleted. Report resolved.",
         report,
       });
     }
 
+    const commentToDelete = confession.comments.id(report.commentId);
+    const commentOwnerId = commentToDelete?.userId || null;
     const beforeCount = confession.comments.length;
 
     confession.comments = confession.comments.filter(
@@ -177,6 +227,24 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
       ? "Reported comment was deleted by admin."
       : "Reported comment was already missing.";
     await report.save();
+
+    await createNotification({
+      userId: report.reportedBy,
+      type: "report_resolved",
+      message: commentWasDeleted
+        ? "Admin reviewed your report and removed the reported comment."
+        : "Admin reviewed your report. The reported comment was already missing.",
+      link: report.confessionId ? `/confession/${report.confessionId}` : "/",
+    });
+
+    if (commentWasDeleted) {
+      await createNotification({
+        userId: commentOwnerId,
+        type: "content_removed",
+        message: "Your comment was removed by an admin after a report review.",
+        link: report.confessionId ? `/confession/${report.confessionId}` : "/",
+      });
+    }
 
     res.json({
       message: commentWasDeleted
