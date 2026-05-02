@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { Resend } = require("resend");
 
 const User = require("../models/User");
 const OTP = require("../models/OTP");
@@ -22,34 +21,15 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// ── Resend email client ───────────────────────────────────────────────────────
-// This replaces Nodemailer/Gmail SMTP because Render was timing out on SMTP ports.
-const resend = new Resend(process.env.RESEND_API_KEY);
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
 
-const getEmailFrom = () =>
-  process.env.EMAIL_FROM || "Confession Wall <onboarding@resend.dev>";
+const OTP_EXPIRY_MS = 10 * 60 * 1000;
+const MAX_RESET_ATTEMPTS = 5;
 
-const sendAppEmail = async ({ to, subject, html }) => {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is missing from environment variables.");
-  }
+const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
 
-  const { data, error } = await resend.emails.send({
-    from: getEmailFrom(),
-    to: [to],
-    subject,
-    html,
-  });
-
-  if (error) {
-    console.error("Resend email error:", error);
-    throw new Error(error.message || "Could not send email.");
-  }
-
-  return data;
-};
-
-// ── Helper: generate 6-digit OTP ─────────────────────────────────────────────
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const getRefreshSecret = () =>
@@ -116,31 +96,133 @@ const validatePasswordStrength = (password) => {
   return null;
 };
 
-const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+// ─────────────────────────────────────────────────────────────────────────────
+// GOOGLE APPS SCRIPT EMAIL RELAY
+// Render free blocks SMTP ports, so backend calls Apps Script over HTTPS.
+// Apps Script sends the email using your Gmail account.
+// Required env:
+// EMAIL_RELAY_URL=https://script.google.com/macros/s/xxxx/exec
+// EMAIL_RELAY_SECRET=your_same_secret_from_apps_script
+// ─────────────────────────────────────────────────────────────────────────────
 
-const otpEmailTemplate = (otp) => `
+const sendAppEmail = async ({ to, subject, html, text }) => {
+  const relayUrl = process.env.EMAIL_RELAY_URL;
+  const relaySecret = process.env.EMAIL_RELAY_SECRET;
+
+  if (!relayUrl) {
+    throw new Error("EMAIL_RELAY_URL is missing from environment variables.");
+  }
+
+  if (!relaySecret) {
+    throw new Error("EMAIL_RELAY_SECRET is missing from environment variables.");
+  }
+
+  if (!to || !subject || !html) {
+    throw new Error("Email requires to, subject, and html.");
+  }
+
+  if (typeof fetch !== "function") {
+    throw new Error(
+      "Global fetch is not available. Use Node.js 18+ on Render/local server."
+    );
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await fetch(relayUrl, {
+      method: "POST",
+      headers: {
+        // Apps Script is more reliable with text/plain than application/json.
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify({
+        secret: relaySecret,
+        to,
+        subject,
+        html,
+        text: text || subject,
+      }),
+      signal: controller.signal,
+    });
+
+    const rawText = await response.text();
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      throw new Error(`Email relay returned non-JSON response: ${rawText}`);
+    }
+
+    if (!data.ok) {
+      throw new Error(data.message || "Email relay failed.");
+    }
+
+    return data;
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("Email relay request timed out.");
+    }
+
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMAIL TEMPLATES
+// ─────────────────────────────────────────────────────────────────────────────
+
+const baseEmailTemplate = ({ title, message, otp, footer }) => `
   <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0a1a0a; color: #d7ffcd; border-radius: 16px;">
-    <h2 style="color: #7ada5a; letter-spacing: 0.1em;">Confession Wall</h2>
-    <p style="font-size: 15px; line-height: 1.7;">Your one-time verification code is:</p>
+    <h2 style="color: #7ada5a; letter-spacing: 0.1em; margin-top: 0;">
+      Confession Wall
+    </h2>
+
+    <h3 style="color: #d7ffcd; margin-bottom: 12px;">
+      ${title}
+    </h3>
+
+    <p style="font-size: 15px; line-height: 1.7;">
+      ${message}
+    </p>
+
     <div style="font-size: 36px; font-weight: bold; letter-spacing: 0.3em; color: #a0f080; margin: 24px 0; text-align: center;">
       ${otp}
     </div>
-    <p style="font-size: 13px; color: #6a9a5a;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+
+    <p style="font-size: 13px; color: #6a9a5a; line-height: 1.6;">
+      ${footer}
+    </p>
   </div>
 `;
 
-const resetEmailTemplate = (otp) => `
-  <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #0a1a0a; color: #d7ffcd; border-radius: 16px;">
-    <h2 style="color: #7ada5a; letter-spacing: 0.1em;">Confession Wall</h2>
-    <p style="font-size: 15px; line-height: 1.7;">Use this code to reset your password:</p>
-    <div style="font-size: 36px; font-weight: bold; letter-spacing: 0.3em; color: #a0f080; margin: 24px 0; text-align: center;">
-      ${otp}
-    </div>
-    <p style="font-size: 13px; color: #6a9a5a;">This code expires in <strong>10 minutes</strong>. If you did not request this, ignore this email.</p>
-  </div>
-`;
+const otpEmailTemplate = (otp) =>
+  baseEmailTemplate({
+    title: "Verify your email",
+    message: "Your one-time verification code is:",
+    otp,
+    footer:
+      "This code expires in <strong>10 minutes</strong>. Do not share it with anyone.",
+  });
 
-// ── SEND OTP (step 1 of registration) ────────────────────────────────────────
+const resetEmailTemplate = (otp) =>
+  baseEmailTemplate({
+    title: "Reset your password",
+    message: "Use this code to reset your password:",
+    otp,
+    footer:
+      "This code expires in <strong>10 minutes</strong>. If you did not request this, ignore this email.",
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEND OTP - STEP 1 OF REGISTRATION
+// POST /api/auth/send-otp
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/send-otp", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -167,19 +249,23 @@ router.post("/send-otp", async (req, res) => {
       to: email,
       subject: "Your Confession Wall OTP",
       html: otpEmailTemplate(otp),
+      text: `Your Confession Wall OTP is ${otp}. It expires in 10 minutes.`,
     });
 
     res.json({ message: "OTP sent successfully" });
   } catch (err) {
-    console.error("Send OTP error:", err);
+    console.error("Send OTP error:", err.message);
     res.status(500).json({
       message: "Could not send OTP right now.",
-      error: err.message,
     });
   }
 });
 
-// ── VERIFY OTP + CREATE ACCOUNT (step 2 of registration) ─────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// REGISTER - VERIFY OTP + CREATE ACCOUNT
+// POST /api/auth/register
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/register", upload.single("profilePicture"), async (req, res) => {
   try {
     const username = String(req.body.username || "").trim();
@@ -215,7 +301,7 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
 
     const ageMs = Date.now() - new Date(otpRecord.createdAt).getTime();
 
-    if (ageMs > 10 * 60 * 1000) {
+    if (ageMs > OTP_EXPIRY_MS) {
       await OTP.deleteOne({ email });
       return res
         .status(400)
@@ -253,16 +339,24 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
       user: buildUserPayload(user),
     });
   } catch (err) {
-    console.error("Register error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Register error:", err.message);
+    res.status(500).json({ message: "Could not create account right now." });
   }
 });
 
-// ── LOGIN ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// LOGIN
+// POST /api/auth/login
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/login", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
     const { password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
     const user = await User.findOne({ email });
 
@@ -290,12 +384,16 @@ router.post("/login", async (req, res) => {
       user: buildUserPayload(user),
     });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Login error:", err.message);
+    res.status(500).json({ message: "Could not log in right now." });
   }
 });
 
-// ── REFRESH ACCESS TOKEN ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// REFRESH ACCESS TOKEN
+// POST /api/auth/refresh-token
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/refresh-token", async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -337,7 +435,11 @@ router.post("/refresh-token", async (req, res) => {
   }
 });
 
-// ── FORGOT PASSWORD: SEND RESET OTP ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// FORGOT PASSWORD - SEND RESET OTP
+// POST /api/auth/forgot-password
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -348,7 +450,7 @@ router.post("/forgot-password", async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    // Generic response keeps user emails private.
+    // Generic response keeps registered emails private.
     if (!user) {
       return res.json({
         message: "If this email exists, a reset code has been sent.",
@@ -367,18 +469,23 @@ router.post("/forgot-password", async (req, res) => {
       to: email,
       subject: "Reset your Confession Wall password",
       html: resetEmailTemplate(otp),
+      text: `Your Confession Wall password reset code is ${otp}. It expires in 10 minutes.`,
     });
 
     res.json({
       message: "If this email exists, a reset code has been sent.",
     });
   } catch (err) {
-    console.error("Forgot password error:", err);
+    console.error("Forgot password error:", err.message);
     res.status(500).json({ message: "Could not send reset code right now." });
   }
 });
 
-// ── RESET PASSWORD WITH OTP ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// RESET PASSWORD WITH OTP
+// POST /api/auth/reset-password
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.post("/reset-password", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -407,14 +514,14 @@ router.post("/reset-password", async (req, res) => {
 
     const ageMs = Date.now() - new Date(resetRecord.createdAt).getTime();
 
-    if (ageMs > 10 * 60 * 1000) {
+    if (ageMs > OTP_EXPIRY_MS) {
       await PasswordReset.deleteOne({ email });
       return res
         .status(400)
         .json({ message: "Reset code expired. Please request a new one." });
     }
 
-    if (resetRecord.attempts >= 5) {
+    if (resetRecord.attempts >= MAX_RESET_ATTEMPTS) {
       await PasswordReset.deleteOne({ email });
       return res
         .status(429)
@@ -443,18 +550,22 @@ router.post("/reset-password", async (req, res) => {
       message: "Password reset successfully. Please log in with your new password.",
     });
   } catch (err) {
-    console.error("Reset password error:", err);
+    console.error("Reset password error:", err.message);
     res.status(500).json({ message: "Could not reset password right now." });
   }
 });
 
-// ── UPDATE PROFILE ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE PROFILE
+// PUT /api/auth/profile
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.put("/profile", protect, upload.single("profilePicture"), async (req, res) => {
   try {
     const updates = {};
 
     if (req.body.username) {
-      updates.username = req.body.username;
+      updates.username = String(req.body.username).trim();
     }
 
     if (req.file) {
@@ -467,22 +578,31 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
 
     res.json(updated);
   } catch (err) {
-    console.error("Update profile error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Update profile error:", err.message);
+    res.status(500).json({ message: "Could not update profile right now." });
   }
 });
 
-// ── GET CURRENT USER ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// GET CURRENT USER
+// GET /api/auth/me
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.get("/me", protect, async (req, res) => {
   res.json(req.user);
 });
 
-// ── UPDATE BIO ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE BIO
+// PUT /api/auth/bio
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.put("/bio", protect, async (req, res) => {
   try {
     const { bio } = req.body;
+    const cleanBio = String(bio || "").trim();
 
-    if (bio && bio.length > 200) {
+    if (cleanBio.length > 200) {
       return res
         .status(400)
         .json({ message: "Bio must be 200 characters or less" });
@@ -490,18 +610,22 @@ router.put("/bio", protect, async (req, res) => {
 
     const updated = await User.findByIdAndUpdate(
       req.user._id,
-      { bio: bio || "" },
+      { bio: cleanBio },
       { new: true }
     ).select("-password");
 
     res.json(updated);
   } catch (err) {
-    console.error("Update bio error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Update bio error:", err.message);
+    res.status(500).json({ message: "Could not update bio right now." });
   }
 });
 
-// ── CHANGE PASSWORD ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANGE PASSWORD
+// PUT /api/auth/change-password
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.put("/change-password", protect, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -517,6 +641,11 @@ router.put("/change-password", protect, async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const match = await bcrypt.compare(currentPassword, user.password);
 
     if (!match) {
@@ -528,12 +657,16 @@ router.put("/change-password", protect, async (req, res) => {
 
     res.json({ message: "Password changed successfully" });
   } catch (err) {
-    console.error("Change password error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Change password error:", err.message);
+    res.status(500).json({ message: "Could not change password right now." });
   }
 });
 
-// ── DELETE ACCOUNT ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE ACCOUNT
+// DELETE /api/auth/account
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.delete("/account", protect, async (req, res) => {
   try {
     const { password } = req.body;
@@ -545,6 +678,11 @@ router.delete("/account", protect, async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
@@ -558,12 +696,16 @@ router.delete("/account", protect, async (req, res) => {
 
     res.json({ message: "Account deleted successfully" });
   } catch (err) {
-    console.error("Delete account error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Delete account error:", err.message);
+    res.status(500).json({ message: "Could not delete account right now." });
   }
 });
 
-// ── GET POST COUNT ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// GET POST COUNT
+// GET /api/auth/post-count
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.get("/post-count", protect, async (req, res) => {
   try {
     const Confession = require("../models/Confession");
@@ -571,12 +713,16 @@ router.get("/post-count", protect, async (req, res) => {
 
     res.json({ count });
   } catch (err) {
-    console.error("Post count error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Post count error:", err.message);
+    res.status(500).json({ message: "Could not get post count right now." });
   }
 });
 
-// ── GET PUBLIC USER PROFILE ──────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// GET PUBLIC USER PROFILE
+// GET /api/auth/user/:id
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.get("/user/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password -email");
@@ -587,8 +733,8 @@ router.get("/user/:id", async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error("Public user profile error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Public user profile error:", err.message);
+    res.status(500).json({ message: "Could not load user profile right now." });
   }
 });
 
