@@ -82,7 +82,7 @@ function Navbar() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "420px 1fr 90px",
+          gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
           maxWidth: "1320px",
           margin: "0 auto",
@@ -90,14 +90,15 @@ function Navbar() {
         }}
       >
         <Link
-          to="/"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            overflow: "visible",
-            textDecoration: "none",
-          }}
-        >
+  to="/"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    overflow: "visible",
+    textDecoration: "none",
+    justifySelf: "start",
+  }}
+>
           <img
             src="/confession-logo.png"
             alt="Confession Wall"
