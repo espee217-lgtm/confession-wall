@@ -27,7 +27,8 @@ import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
-const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin"];
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
+const HIDE_FOOTER_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
 
 function Navbar() {
   const { user } = useAuth();
@@ -237,7 +238,35 @@ function Footer() {
     </div>
   );
 }
+function AppContent() {
+  const location = useLocation();
+  const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
 
+  return (
+    <>
+      <Navbar />
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/confession/:id" element={<ConfessionPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/user/:id" element={<UserProfile />} />
+        <Route path="/grove" element={<ThrivingGrove />} />
+        <Route path="/scorched" element={<ScorchedLands />} />
+        <Route path="/budding" element={<BuddingLand />} />
+        <Route path="/guidelines" element={<CommunityGuidelines />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+      </Routes>
+
+      {!hideFooter && <Footer />}
+    </>
+  );
+}
 function App() {
   const [theme] = useState(() => {
     try {
@@ -280,6 +309,7 @@ function App() {
   return (
     <AdminAuthProvider>
       <Router>
+        <AppContent />
         <Navbar />
 
         <Routes>
