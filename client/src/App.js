@@ -12,6 +12,8 @@ import Home from "./pages/Home";
 import ConfessionPage from "./pages/ConfessionPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Settings from "./pages/Settings";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -27,8 +29,8 @@ import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
-const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
-const HIDE_FOOTER_ROUTES = ["/login", "/register", "/admin", "/admin/dashboard"];
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard"];
+const HIDE_FOOTER_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard"];
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
   (window.location.hostname === "localhost"
@@ -602,6 +604,8 @@ function AppContent() {
         <Route path="/confession/:id" element={<ConfessionPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

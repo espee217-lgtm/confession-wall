@@ -2,7 +2,22 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
+const API_URL =
+  process.env.REACT_APP_API_BASE
+    ? `${process.env.REACT_APP_API_BASE}/api/auth`
+    : window.location.hostname === "localhost"
+    ? "http://localhost:5000/api/auth"
+    : "https://confession-wall-hn63.onrender.com/api/auth";
+
+
+function getPasswordError(password) {
+  if (!password || password.length < 8) return "Password must be at least 8 characters.";
+  if (!/[A-Z]/.test(password)) return "Password must include at least one uppercase letter.";
+  if (!/[a-z]/.test(password)) return "Password must include at least one lowercase letter.";
+  if (!/[0-9]/.test(password)) return "Password must include at least one number.";
+  if (!/[^A-Za-z0-9]/.test(password)) return "Password must include at least one special character.";
+  return "";
+}
 
 function getSystemDark() {
   return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -234,7 +249,7 @@ export default function Settings() {
         return;
       }
 
-      login({ ...user, username: data.username, profilePicture: data.profilePicture }, token);
+      login({ ...user, username: data.username, profilePicture: data.profilePicture }, token, localStorage.getItem("cw_refresh_token"), localStorage.getItem("cw_token_expires_at"));
       setProfileMsg({ text: "Profile updated!", type: "success" });
     } catch {
       setProfileMsg({ text: "Something went wrong.", type: "error" });
@@ -273,7 +288,7 @@ export default function Settings() {
 
       const updatedUser = { ...user, bio };
       localStorage.setItem("cw_user", JSON.stringify(updatedUser));
-      login(updatedUser, token);
+      login(updatedUser, token, localStorage.getItem("cw_refresh_token"), localStorage.getItem("cw_token_expires_at"));
       setBioMsg({ text: "Bio updated!", type: "success" });
     } catch {
       setBioMsg({ text: "Something went wrong.", type: "error" });
@@ -291,8 +306,9 @@ export default function Settings() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordMsg({ text: "Min 6 characters.", type: "error" });
+    const passwordError = getPasswordError(newPassword);
+    if (passwordError) {
+      setPasswordMsg({ text: passwordError, type: "error" });
       return;
     }
 

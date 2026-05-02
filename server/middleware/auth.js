@@ -29,7 +29,17 @@ const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(401).json({ message: "Token invalid or expired" });
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        message: "Session expired. Please log in again.",
+        statusType: "token_expired",
+      });
+    }
+
+    res.status(401).json({
+      message: "Token invalid or expired",
+      statusType: "token_invalid",
+    });
   }
 };
 

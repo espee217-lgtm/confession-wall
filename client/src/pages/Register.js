@@ -3,7 +3,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../AppStyle.css";
 
-const API_URL = "https://confession-wall-hn63.onrender.com/api/auth";
+const API_URL =
+  process.env.REACT_APP_API_BASE
+    ? `${process.env.REACT_APP_API_BASE}/api/auth`
+    : window.location.hostname === "localhost"
+    ? "http://localhost:5000/api/auth"
+    : "https://confession-wall-hn63.onrender.com/api/auth";
 
 const BG_IMAGES = [
   "https://i.pinimg.com/736x/3b/de/be/3bdebe37f3e3e6109bf3ee87ed79abcc.jpg",
@@ -54,6 +59,16 @@ function LetterCard({ letter, bg, waveY }) {
   );
 }
 
+
+function getPasswordError(password) {
+  if (!password || password.length < 8) return "Password must be at least 8 characters.";
+  if (!/[A-Z]/.test(password)) return "Password must include at least one uppercase letter.";
+  if (!/[a-z]/.test(password)) return "Password must include at least one lowercase letter.";
+  if (!/[0-9]/.test(password)) return "Password must include at least one number.";
+  if (!/[^A-Za-z0-9]/.test(password)) return "Password must include at least one special character.";
+  return "";
+}
+
 export default function Register() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -100,8 +115,9 @@ export default function Register() {
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    const passwordError = getPasswordError(form.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
     setLoading(true);
@@ -138,7 +154,7 @@ export default function Register() {
       const res = await fetch(`${API_URL}/register`, { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Registration failed"); setLoading(false); return; }
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken, data.tokenExpiresAt);
       navigate("/");
     } catch (err) {
       setError("Something went wrong. Try again.");
@@ -315,7 +331,11 @@ export default function Register() {
 
             <input type="text" name="username" placeholder="Username" value={form.username} onChange={handleChange} required style={inputStyle} />
             <input type="email" name="email" placeholder="Email address" value={form.email} onChange={handleChange} required style={inputStyle} />
-            <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ ...inputStyle, marginBottom: "20px" }} />
+            <input type="password" name="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ ...inputStyle, marginBottom: "8px" }} />
+
+            <p style={{ color: "rgba(255,255,255,0.58)", fontSize: "12px", lineHeight: 1.45, margin: "0 0 16px" }}>
+              Password: 8+ chars, uppercase, lowercase, number, and special character.
+            </p>
 
             <button
               type="submit"
