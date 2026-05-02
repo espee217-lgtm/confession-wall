@@ -40,8 +40,8 @@ function Navbar() {
   const navLinkStyle = (path, activeColor) => ({
     fontSize: "13px",
     fontFamily: "'Cinzel', Georgia, serif",
-    letterSpacing: "0.08em",
-    fontWeight: "500",
+    fontWeight: 700,
+    letterSpacing: "0.16em",
     textTransform: "uppercase",
     textDecoration: "none",
     padding: "8px 22px",
@@ -66,6 +66,9 @@ function Navbar() {
     <header
       className="navbar"
       style={{
+        height: "64px",
+        display: "flex",
+        alignItems: "center",
         padding: "0 28px",
         backgroundImage:
           "linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.62)), url('/forest.png')",
@@ -74,9 +77,6 @@ function Navbar() {
         borderBottom: "1px solid rgba(150,255,180,0.16)",
         boxShadow: "0 12px 38px rgba(0,0,0,0.55)",
         overflow: "visible",
-        height: "64px",
-        display: "flex",
-        alignItems: "center",
       }}
     >
       <div
@@ -117,21 +117,22 @@ function Navbar() {
 
         {user && (
           <div
-  style={{
-    position: "relative",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "14px",
-  }}
->
-<span className="nav-firefly nav-firefly-1" />
-<span className="nav-firefly nav-firefly-2" />
-<span className="nav-firefly nav-firefly-3" />
-<span className="nav-firefly nav-firefly-4" />
-<span className="nav-firefly nav-firefly-5" />
-<span className="nav-firefly nav-firefly-6" />
-<span className="nav-firefly nav-firefly-7" />
+            style={{
+              position: "relative",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "14px",
+            }}
+          >
+            <span className="nav-firefly nav-firefly-1" />
+            <span className="nav-firefly nav-firefly-2" />
+            <span className="nav-firefly nav-firefly-3" />
+            <span className="nav-firefly nav-firefly-4" />
+            <span className="nav-firefly nav-firefly-5" />
+            <span className="nav-firefly nav-firefly-6" />
+            <span className="nav-firefly nav-firefly-7" />
+
             <Link
               to="/grove"
               style={navLinkStyle("/grove", "rgba(115,220,150,0.75)")}
@@ -225,19 +226,31 @@ function Footer() {
       </div>
 
       <div>
-        <Link to="/guidelines" style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}>
+        <Link
+          to="/guidelines"
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
+        >
           Guidelines
         </Link>
-        <Link to="/terms" style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}>
+
+        <Link
+          to="/terms"
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
+        >
           Terms
         </Link>
-        <Link to="/privacy" style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}>
+
+        <Link
+          to="/privacy"
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
+        >
           Privacy
         </Link>
       </div>
     </div>
   );
 }
+
 function AppContent() {
   const location = useLocation();
   const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
@@ -267,6 +280,7 @@ function AppContent() {
     </>
   );
 }
+
 function App() {
   const [theme] = useState(() => {
     try {
@@ -310,26 +324,6 @@ function App() {
     <AdminAuthProvider>
       <Router>
         <AppContent />
-        <Navbar />
-
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/confession/:id" element={<ConfessionPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/user/:id" element={<UserProfile />} />
-          <Route path="/grove" element={<ThrivingGrove />} />
-          <Route path="/scorched" element={<ScorchedLands />} />
-          <Route path="/budding" element={<BuddingLand />} />
-          <Route path="/guidelines" element={<CommunityGuidelines />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-        </Routes>
-
-        <Footer />
       </Router>
     </AdminAuthProvider>
   );
