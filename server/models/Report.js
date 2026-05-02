@@ -19,6 +19,14 @@ const reportSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Snapshot of reported comment/post text at report time
+    // This stays visible in admin dashboard even if content is later deleted.
+    commentText: {
+      type: String,
+      default: "",
+      maxlength: 1000,
+    },
+
     reportedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -36,6 +44,12 @@ const reportSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "resolved"],
       default: "pending",
+    },
+
+    resolvedNote: {
+      type: String,
+      default: "",
+      maxlength: 500,
     },
   },
   { timestamps: true }

@@ -6,11 +6,13 @@ const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 const API_URL = `${API_BASE}/api/admin`;
 const REPORT_URL = `${API_BASE}/api/reports`;
+
 export default function AdminDashboard() {
   const { adminToken, adminLogout } = useAdminAuth();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState("reports");
+  const [reportView, setReportView] = useState("pending");
   const [confessions, setConfessions] = useState([]);
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
@@ -42,7 +44,14 @@ export default function AdminDashboard() {
     if (tab === "reports") fetchReports();
     if (tab === "confessions") fetchConfessions();
     if (tab === "users") fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, adminToken]);
+
+  const pendingReports = reports.filter((r) => r.status !== "resolved");
+  const resolvedReports = reports.filter((r) => r.status === "resolved");
+
+  const visibleReports =
+    reportView === "pending" ? pendingReports : resolvedReports;
 
   const deleteConfession = async (id) => {
     if (!window.confirm("Delete this confession?")) return;
@@ -53,7 +62,47 @@ export default function AdminDashboard() {
     });
 
     setConfessions((prev) => prev.filter((c) => c._id !== id));
-    setReports((prev) => prev.filter((r) => r.confessionId?._id !== id));
+    setReports((prev) =>
+      prev.map((r) =>
+        r.confessionId?._id === id
+          ? { ...r, status: "resolved", resolvedNote: "Post deleted by admin." }
+          : r
+      )
+    );
+  };
+
+  const deleteReportedComment = async (reportId) => {
+    if (!window.confirm("Delete this reported comment and resolve the report?")) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/reports/${reportId}/comment`, {
+      method: "DELETE",
+      headers,
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(data.message || "Could not delete comment.");
+      return;
+    }
+
+    setReports((prev) =>
+      prev.map((r) =>
+        r._id === reportId
+          ? {
+              ...r,
+              status: "resolved",
+              resolvedNote:
+                data.report?.resolvedNote ||
+                "Reported comment was deleted by admin.",
+            }
+          : r
+      )
+    );
+
+    alert(data.message || "Comment deleted and report resolved.");
   };
 
   const deleteUser = async (id) => {
@@ -68,14 +117,51 @@ export default function AdminDashboard() {
   };
 
   const resolveReport = async (id) => {
-    await fetch(`${REPORT_URL}/${id}/resolve`, {
+    const note = window.prompt(
+      "Optional resolve note for this report:",
+      "Reviewed by admin."
+    );
+
+    const res = await fetch(`${REPORT_URL}/${id}/resolve`, {
       method: "PUT",
-      headers,
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ note: note || "" }),
     });
 
+    const data = await res.json().catch(() => ({}));
+
     setReports((prev) =>
-      prev.map((r) => (r._id === id ? { ...r, status: "resolved" } : r))
+      prev.map((r) =>
+        r._id === id
+          ? {
+              ...r,
+              status: "resolved",
+              resolvedNote: data.report?.resolvedNote || note || "",
+            }
+          : r
+      )
     );
+  };
+
+  const openReportedItem = (report) => {
+    const confessionId = report.confessionId?._id;
+
+    if (!confessionId) {
+      alert("This post no longer exists.");
+      return;
+    }
+
+    if (report.targetType === "comment" && report.commentId) {
+      navigate(
+        `/confession/${confessionId}?from=admin&comment=${report.commentId}`
+      );
+      return;
+    }
+
+    navigate(`/confession/${confessionId}?from=admin`);
   };
 
   const cardStyle = {
@@ -107,6 +193,26 @@ export default function AdminDashboard() {
     fontWeight: 600,
     fontSize: "0.85rem",
   };
+
+  const commentDeleteBtnStyle = {
+    background: "rgba(120,180,255,0.13)",
+    border: "1px solid rgba(120,180,255,0.45)",
+    borderRadius: "8px",
+    color: "#9cc7ff",
+    padding: "6px 14px",
+    cursor: "pointer",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+  };
+
+  const pillStyle = (active) => ({
+    ...btnStyle,
+    background: active ? "rgba(120,255,170,0.16)" : "rgba(255,255,255,0.08)",
+    color: active ? "#9cffb2" : "white",
+    borderColor: active
+      ? "rgba(120,255,170,0.35)"
+      : "rgba(255,255,255,0.18)",
+  });
 
   return (
     <div
@@ -155,96 +261,180 @@ export default function AdminDashboard() {
 
         {tab === "reports" && (
           <div>
-            {reports.length === 0 ? (
-              <p style={{ opacity: 0.5 }}>No reports found.</p>
+            <div
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <button
+                onClick={() => setReportView("pending")}
+                style={pillStyle(reportView === "pending")}
+              >
+                Pending ({pendingReports.length})
+              </button>
+
+              <button
+                onClick={() => setReportView("resolved")}
+                style={pillStyle(reportView === "resolved")}
+              >
+                Resolved ({resolvedReports.length})
+              </button>
+            </div>
+
+            {visibleReports.length === 0 ? (
+              <p style={{ opacity: 0.5 }}>
+                No {reportView === "pending" ? "pending" : "resolved"} reports
+                found.
+              </p>
             ) : (
-              reports.map((r) => (
-                <div key={r._id} style={cardStyle}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
-                    <div style={{ flex: 1 }}>
-                       <div
-    style={{
-      display: "inline-block",
-      marginBottom: "8px",
-      padding: "4px 10px",
-      borderRadius: "999px",
-      fontSize: "11px",
-      fontWeight: 700,
-      background:
-        r.targetType === "comment"
-          ? "rgba(120,180,255,0.15)"
-          : "rgba(255,200,80,0.15)",
-      color: r.targetType === "comment" ? "#9cc7ff" : "#ffd27a",
-      border:
-        r.targetType === "comment"
-          ? "1px solid rgba(120,180,255,0.35)"
-          : "1px solid rgba(255,200,80,0.35)",
-    }}
-  >
-    {r.targetType === "comment" ? "Comment Report" : "Post Report"}
-  </div>
-                      <div style={{ fontSize: "0.8rem", opacity: 0.55, marginBottom: "0.4rem" }}>
-                        Status:{" "}
-                        <strong
+              visibleReports.map((r) => {
+                const isCommentReport = r.targetType === "comment";
+                const confessionId = r.confessionId?._id;
+
+                return (
+                  <div key={r._id} style={cardStyle}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div
                           style={{
-                            color: r.status === "resolved" ? "#7CFF9B" : "#ffcc66",
+                            display: "inline-block",
+                            marginBottom: "8px",
+                            padding: "4px 10px",
+                            borderRadius: "999px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            background: isCommentReport
+                              ? "rgba(120,180,255,0.15)"
+                              : "rgba(255,200,80,0.15)",
+                            color: isCommentReport ? "#9cc7ff" : "#ffd27a",
+                            border: isCommentReport
+                              ? "1px solid rgba(120,180,255,0.35)"
+                              : "1px solid rgba(255,200,80,0.35)",
                           }}
                         >
-                          {r.status}
-                        </strong>
+                          {isCommentReport ? "Comment Report" : "Post Report"}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            opacity: 0.65,
+                            marginBottom: "0.4rem",
+                          }}
+                        >
+                          Status:{" "}
+                          <strong
+                            style={{
+                              color:
+                                r.status === "resolved" ? "#7CFF9B" : "#ffcc66",
+                            }}
+                          >
+                            {r.status}
+                          </strong>
+                        </div>
+
+                        <p style={{ margin: "0 0 0.6rem", color: "#ffb3b3" }}>
+                          Reason: {r.reason}
+                        </p>
+
+                        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
+                          Post: {r.confessionId?.message || "Post deleted"}
+                        </p>
+
+                        {isCommentReport && (
+                          <p
+                            style={{
+                              margin: "0 0 0.6rem",
+                              color: "#9cc7ff",
+                              opacity: 0.95,
+                            }}
+                          >
+                            Comment:{" "}
+                            {r.commentText || "Comment text unavailable"}
+                          </p>
+                        )}
+
+                        {r.resolvedNote && (
+                          <p
+                            style={{
+                              margin: "0 0 0.6rem",
+                              color: "#9cffb2",
+                              opacity: 0.85,
+                            }}
+                          >
+                            Resolve note: {r.resolvedNote}
+                          </p>
+                        )}
+
+                        <small style={{ opacity: 0.5 }}>
+                          Reported by @{r.reportedBy?.username || "unknown"} ·{" "}
+                          {new Date(r.createdAt).toLocaleString()}
+                        </small>
                       </div>
 
-                      <p style={{ margin: "0 0 0.6rem", color: "#ffb3b3" }}>
-                        Reason: {r.reason}
-                      </p>
-
-                      <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-                        Post: {r.confessionId?.message || "Post deleted"}
-                      </p>
-
-                      <small style={{ opacity: 0.5 }}>
-                        Reported by @{r.reportedBy?.username || "unknown"} ·{" "}
-                        {new Date(r.createdAt).toLocaleString()}
-                      </small>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      {r.confessionId?._id && (
-                        <>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        {confessionId && (
                           <button
-                            onClick={() =>
-                              navigate(`/confession/${r.confessionId._id}`)
-                            }
+                            onClick={() => openReportedItem(r)}
                             style={btnStyle}
                           >
                             Open
                           </button>
+                        )}
 
+                        {confessionId &&
+                          !isCommentReport &&
+                          r.status !== "resolved" && (
+                            <button
+                              onClick={() => deleteConfession(confessionId)}
+                              style={deleteBtnStyle}
+                            >
+                              Delete Post
+                            </button>
+                          )}
+
+                        {confessionId &&
+                          isCommentReport &&
+                          r.status !== "resolved" && (
+                            <button
+                              onClick={() => deleteReportedComment(r._id)}
+                              style={commentDeleteBtnStyle}
+                            >
+                              Delete Comment
+                            </button>
+                          )}
+
+                        {r.status !== "resolved" && (
                           <button
-                            onClick={() => deleteConfession(r.confessionId._id)}
-                            style={deleteBtnStyle}
+                            onClick={() => resolveReport(r._id)}
+                            style={{
+                              ...btnStyle,
+                              color: "#9cffb2",
+                              borderColor: "rgba(100,255,150,0.4)",
+                            }}
                           >
-                            Delete Post
+                            Resolve
                           </button>
-                        </>
-                      )}
-
-                      {r.status !== "resolved" && (
-                        <button
-                          onClick={() => resolveReport(r._id)}
-                          style={{
-                            ...btnStyle,
-                            color: "#9cffb2",
-                            borderColor: "rgba(100,255,150,0.4)",
-                          }}
-                        >
-                          Resolve
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -257,13 +447,17 @@ export default function AdminDashboard() {
               confessions.map((c) => (
                 <div key={c._id} style={cardStyle}>
                   <p style={{ marginTop: 0 }}>{c.message}</p>
+
                   <small style={{ opacity: 0.5 }}>
                     @{c.userId?.username || "Anonymous"} ·{" "}
                     {new Date(c.createdAt).toLocaleString()}
                   </small>
 
                   <div style={{ marginTop: "0.8rem" }}>
-                    <button onClick={() => deleteConfession(c._id)} style={deleteBtnStyle}>
+                    <button
+                      onClick={() => deleteConfession(c._id)}
+                      style={deleteBtnStyle}
+                    >
                       Delete
                     </button>
                   </div>
@@ -281,12 +475,17 @@ export default function AdminDashboard() {
               users.map((u) => (
                 <div key={u._id} style={cardStyle}>
                   <strong>{u.username}</strong>
+
                   <div style={{ opacity: 0.5, fontSize: "0.85rem" }}>
-                    {u.email} · Joined {new Date(u.createdAt).toLocaleDateString()}
+                    {u.email} · Joined{" "}
+                    {new Date(u.createdAt).toLocaleDateString()}
                   </div>
 
                   <div style={{ marginTop: "0.8rem" }}>
-                    <button onClick={() => deleteUser(u._id)} style={deleteBtnStyle}>
+                    <button
+                      onClick={() => deleteUser(u._id)}
+                      style={deleteBtnStyle}
+                    >
                       Delete User
                     </button>
                   </div>

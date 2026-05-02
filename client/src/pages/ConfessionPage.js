@@ -266,6 +266,7 @@ export default function ConfessionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const targetCommentId = searchParams.get("comment");
   const { token, user } = useAuth();
 
   const [confession, setConfession] = useState(null);
@@ -284,6 +285,7 @@ export default function ConfessionPage() {
   const burned = confession?.burnedBy?.length || 0;
 
   const realmFromUrl = searchParams.get("realm");
+  const from = searchParams.get("from");
 
   const inferredRealm =
     burned > watered ? "scorched" : watered === burned ? "budding" : "grove";
@@ -474,18 +476,20 @@ export default function ConfessionPage() {
         }}
       >
         <div style={styles.inner}>
-          <Link
-            to={
-              realm === "budding"
-                ? "/budding"
-                : realm === "scorched"
-                ? "/scorched"
-                : "/grove"
-            }
-            style={{ ...styles.backBtn, color: theme.accent }}
-          >
-            ← back
-          </Link>
+         <Link
+  to={
+    from === "admin"
+      ? "/admin/dashboard"
+      : realm === "budding"
+      ? "/budding"
+      : realm === "scorched"
+      ? "/scorched"
+      : "/grove"
+  }
+  style={{ ...styles.backBtn, color: theme.accent }}
+>
+  ← back
+</Link>
 
           <div style={cardStyle}>
             <div style={styles.avatarRow}>
@@ -584,8 +588,26 @@ export default function ConfessionPage() {
           </div>
 
           {confession.comments?.length > 0 ? (
-            confession.comments.map((c, i) => (
-              <div key={c._id || i} style={commentCardStyle}>
+  confession.comments.map((c, i) => {
+    const isTargetComment =
+      targetCommentId && c._id?.toString() === targetCommentId;
+
+    return (
+      <div
+        key={c._id || i}
+        id={`comment-${c._id}`}
+        style={{
+          ...commentCardStyle,
+          transform: isTargetComment ? "scale(1.035)" : "scale(1)",
+          border: isTargetComment
+            ? "1px solid rgba(255,230,120,0.75)"
+            : commentCardStyle.border,
+          boxShadow: isTargetComment
+            ? "0 0 35px rgba(255,230,120,0.55)"
+            : commentCardStyle.boxShadow,
+          transition: "all 0.35s ease",
+        }}
+      >
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <Link
                     to={c.userId ? `/user/${c.userId._id}` : "#"}
@@ -680,9 +702,10 @@ export default function ConfessionPage() {
                     });
                   }}
                 />
-              </div>
-            ))
-          ) : (
+                     </div>
+      );
+    })
+  ) : (
             <div
               style={{
                 textAlign: "center",

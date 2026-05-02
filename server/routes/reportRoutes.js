@@ -7,7 +7,6 @@ const Confession = require("../models/Confession");
 const { protect } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
 
-
 const reportLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,
@@ -32,30 +31,41 @@ router.post("/", protect, reportLimiter, async (req, res) => {
     }
 
     const confession = await Confession.findById(confessionId);
+
     if (!confession) {
       return res.status(404).json({ message: "Confession not found" });
     }
 
-    if (targetType === "comment") {
-      const commentExists = confession.comments.some(
-        (c) => c._id.toString() === commentId
-      );
+    let commentText = "";
 
-      if (!commentExists) {
+    if (targetType === "comment") {
+      if (!commentId) {
+        return res.status(400).json({ message: "Comment id required" });
+      }
+
+      const reportedComment = confession.comments.id(commentId);
+
+      if (!reportedComment) {
         return res.status(404).json({ message: "Comment not found" });
       }
+
+      commentText =
+        reportedComment.text?.trim() ||
+        (reportedComment.image ? "[Image comment]" : "[Empty comment]");
     }
 
     const report = await Report.create({
       targetType,
       confessionId,
       commentId: targetType === "comment" ? commentId : null,
+      commentText,
       reportedBy: req.user._id,
-      reason,
+      reason: reason.trim(),
     });
 
     res.json({ message: "Report submitted", report });
   } catch (err) {
+    console.error("Create report error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -76,6 +86,7 @@ router.get("/", adminProtect, async (req, res) => {
 
     res.json(reports);
   } catch (err) {
+    console.error("Fetch reports error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -83,9 +94,14 @@ router.get("/", adminProtect, async (req, res) => {
 // ADMIN: mark report resolved
 router.put("/:id/resolve", adminProtect, async (req, res) => {
   try {
+    const { note } = req.body || {};
+
     const report = await Report.findByIdAndUpdate(
       req.params.id,
-      { status: "resolved" },
+      {
+        status: "resolved",
+        resolvedNote: note || "",
+      },
       { new: true }
     );
 
@@ -93,6 +109,7 @@ router.put("/:id/resolve", adminProtect, async (req, res) => {
 
     res.json({ message: "Report resolved", report });
   } catch (err) {
+    console.error("Resolve report error:", err);
     res.status(500).json({ error: err.message });
   }
 });
