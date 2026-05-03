@@ -1299,3 +1299,37 @@ a.chip {
     box-sizing: border-box;
   }
 }
+/* ===== Mobile Home Navbar Forest Banner Override ===== */
+@media (max-width: 720px) {
+  body.mobile-home-page .navbar {
+    background:
+      linear-gradient(rgba(0, 16, 5, 0.16), rgba(0, 16, 5, 0.34)),
+      url("./assets/mobile-navbar-bg.png") center / cover no-repeat !important;
+    border-bottom: none !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  body.mobile-home-page .navbar::before,
+  body.mobile-home-page .navbar::after {
+    display: none !important;
+  }
+
+  body.mobile-home-page .mobile-home-shell {
+    padding-top: 10px !important;
+  }
+}
+/* ===== Mobile Navbar Forest Banner - All Pages ===== */
+@media (max-width: 720px) {
+  .navbar {
+    background:
+      linear-gradient(rgba(0, 16, 5, 0.16), rgba(0, 16, 5, 0.34)),
+      url("./assets/mobile-navbar-bg.png") center / cover no-repeat !important;
+    border-bottom: none !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .navbar::before,
+  .navbar::after {
+    display: none !important;
+  }
+}
