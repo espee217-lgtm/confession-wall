@@ -283,6 +283,182 @@ function ScorchedCard({ conf, index, onClick }) {
     </div>
   );
 }
+
+function timeAgo(dateValue) {
+  if (!dateValue) return "just now";
+  const date = new Date(dateValue);
+  const diff = Date.now() - date.getTime();
+  if (Number.isNaN(diff)) return "just now";
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString();
+}
+
+function MobileHomePage({
+  user,
+  freshPosts,
+  navigate,
+  showCompose,
+  setShowCompose,
+  message,
+  setMessage,
+  image,
+  setImage,
+  imagePreview,
+  setImagePreview,
+  loading,
+  handleImageChange,
+  handleSubmit,
+}) {
+  const visiblePosts = freshPosts.slice(0, 8);
+
+  const MobileCard = ({ conf }) => {
+    const waterCount = conf.wateredBy?.length || 0;
+    const burnCount = conf.burnedBy?.length || 0;
+    const username = conf.userId?.username || "anon";
+
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(`/confession/${conf._id}`)}
+        className="mobile-home-card"
+      >
+        <div className="mobile-home-card-top">
+          {conf.userId?.profilePicture ? (
+            <img src={conf.userId.profilePicture} alt="profile" className="mobile-home-avatar" />
+          ) : (
+            <span className="mobile-home-avatar mobile-home-avatar-fallback">
+              {username[0]?.toUpperCase() || "A"}
+            </span>
+          )}
+
+          <div className="mobile-home-card-meta">
+            <strong>@{username}</strong>
+            <span>{timeAgo(conf.createdAt)} · 🌱 budding</span>
+          </div>
+
+          <span className="mobile-home-card-menu">⋮</span>
+        </div>
+
+        <p className="mobile-home-card-message">{conf.message}</p>
+
+        <div className="mobile-home-card-actions">
+          <span>🌱 {waterCount}</span>
+          <span>🔥 {burnCount}</span>
+          <span className="mobile-home-report">Report</span>
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <main className="mobile-home-shell">
+      <section className="mobile-home-hero-wrap">
+        <img
+          src="/assets/mobile/mobile-hero-banner.png"
+          alt="Confession Wall"
+          className="mobile-home-hero-img"
+        />
+      </section>
+
+      <section className="mobile-home-realms" aria-label="Realms">
+        <button type="button" onClick={() => navigate("/grove")} className="mobile-home-realm mobile-home-grove">
+          <strong>🌿 Grove</strong>
+          <span>Positive Vibes</span>
+        </button>
+        <button type="button" onClick={() => navigate("/budding")} className="mobile-home-realm mobile-home-budding">
+          <strong>🌱 Budding</strong>
+          <span>New Confessions</span>
+        </button>
+        <button type="button" onClick={() => navigate("/scorched")} className="mobile-home-realm mobile-home-scorched">
+          <strong>🔥 Scorched</strong>
+          <span>Pain & Vent</span>
+        </button>
+      </section>
+
+      <section className="mobile-home-feed-head">
+        <div>
+          <p>🌿 Budding Confessions</p>
+          <span>Fresh thoughts from the community</span>
+        </div>
+        <button type="button" onClick={() => navigate("/budding")}>View all ›</button>
+      </section>
+
+      <section className="mobile-home-feed">
+        {visiblePosts.length === 0 ? (
+          <div className="mobile-home-empty">
+            <strong>No budding confessions yet.</strong>
+            <span>Plant the first one and let it bloom.</span>
+          </div>
+        ) : (
+          visiblePosts.map((conf) => <MobileCard key={conf._id} conf={conf} />)
+        )}
+      </section>
+
+      <nav className="mobile-home-bottom-nav" aria-label="Mobile home navigation">
+        <button type="button" onClick={() => navigate("/")} className="active">🏠<span>Home</span></button>
+        <button type="button" onClick={() => window.cwToast?.("Search is coming soon.", "info")}>🔎<span>Search</span></button>
+        <button type="button" onClick={() => setShowCompose(true)} className="confess">🌿<span>Confess</span></button>
+        <button type="button" onClick={() => window.cwToast?.("Open the bell above for alerts.", "info")}>🔔<span>Activity</span></button>
+        <button type="button" onClick={() => navigate("/settings")}>👤<span>Profile</span></button>
+      </nav>
+
+      {showCompose && (
+        <div
+          data-ui="true"
+          className="mobile-compose-backdrop"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (e.target === e.currentTarget) setShowCompose(false);
+          }}
+        >
+          <div className="mobile-compose-card">
+            <button type="button" className="mobile-compose-close" onClick={() => setShowCompose(false)}>✕</button>
+            <p className="mobile-compose-kicker">✦ plant a confession</p>
+            <h2>What do you need to confess?</h2>
+            <textarea
+              placeholder="write it here..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              autoFocus
+            />
+
+            {imagePreview && (
+              <div className="mobile-compose-preview">
+                <img src={imagePreview} alt="preview" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <div className="mobile-compose-actions">
+              <label>
+                ⌘ image
+                <input type="file" accept="image/*" onChange={handleImageChange} />
+              </label>
+              <button type="button" onClick={handleSubmit} disabled={loading || !message.trim()}>
+                {loading ? "planting…" : "bloom →"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
 function clickedOpaquePixel(e) {
   const img = e.currentTarget;
   const rect = img.getBoundingClientRect();
@@ -477,8 +653,22 @@ const [tutorialStep, setTutorialStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [muted, setMuted] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 720);
 
   const videoRef = useRef(null);
+
+  useEffect(() => {
+    const updateMode = () => setIsMobile(window.innerWidth <= 720);
+    updateMode();
+    window.addEventListener("resize", updateMode);
+    return () => window.removeEventListener("resize", updateMode);
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.add("mobile-home-page");
+    return () => document.body.classList.remove("mobile-home-page");
+  }, []);
+
 useEffect(() => {
   const seenTutorial = localStorage.getItem("seenHomeTutorial");
 
@@ -575,6 +765,27 @@ useEffect(() => {
 
     setLoading(false);
   };
+
+  if (isMobile) {
+    return (
+      <MobileHomePage
+        user={user}
+        freshPosts={freshPosts}
+        navigate={navigate}
+        showCompose={showCompose}
+        setShowCompose={setShowCompose}
+        message={message}
+        setMessage={setMessage}
+        image={image}
+        setImage={setImage}
+        imagePreview={imagePreview}
+        setImagePreview={setImagePreview}
+        loading={loading}
+        handleImageChange={handleImageChange}
+        handleSubmit={handleSubmit}
+      />
+    );
+  }
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
