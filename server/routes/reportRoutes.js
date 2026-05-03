@@ -25,6 +25,12 @@ const createNotification = async ({ userId, type, message, link }) => {
   }
 };
 
+const getReportDeleteAfterDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date;
+};
+
 const reportLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   max: 5,
@@ -120,6 +126,8 @@ router.put("/:id/resolve", adminProtect, async (req, res) => {
       {
         status: "resolved",
         resolvedNote: note,
+        resolvedAt: new Date(),
+        deleteAfter: getReportDeleteAfterDate(),
       },
       { new: true }
     );

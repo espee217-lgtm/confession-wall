@@ -153,8 +153,37 @@ export default function Terms() {
         <div style={sectionStyle}>
           <h3 style={h3Style}>Account Access</h3>
           <p style={pStyle}>
-            Admins may restrict, suspend, or delete abusive accounts if required
-            for safety, moderation, or platform stability.
+            Admins may restrict, suspend, ban, or delete abusive accounts if
+            required for safety, moderation, or platform stability.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Anonymous but Moderated</h3>
+          <p style={pStyle}>
+            Confession Wall may hide your identity from other users, but it is
+            not an unmoderated or consequence-free space. For safety and abuse
+            prevention, activity may be reviewed internally with account,
+            timestamp, report, and security information.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Security and Abuse Prevention</h3>
+          <p style={pStyle}>
+            Important activity such as logins, account creation, posts, and
+            comments may be logged for security, moderation, and legal
+            compliance. Do not use the platform to harass, threaten, impersonate,
+            expose private information, or harm others.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Contact</h3>
+          <p style={pStyle}>
+            For moderation concerns, safety issues, or account-related questions,
+            contact the site administrator through the official contact email
+            provided by the site owner.
           </p>
         </div>
 

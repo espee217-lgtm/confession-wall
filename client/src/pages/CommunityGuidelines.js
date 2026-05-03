@@ -156,7 +156,9 @@ export default function CommunityGuidelines() {
           <h3 style={h3Style}>Moderation</h3>
           <p style={pStyle}>
             Posts and comments can be reported. Admins may review, resolve,
-            remove, or restrict content when needed to protect the community.
+            remove, or restrict content and accounts when needed to protect the
+            community. Some safety actions may use internal account, timestamp,
+            report, and security information.
           </p>
         </div>
 
@@ -164,7 +166,16 @@ export default function CommunityGuidelines() {
           <h3 style={h3Style}>Remember</h3>
           <p style={pStyle}>
             Anonymous does not mean consequence-free. Use the platform
-            responsibly and do not use anonymity to harm others.
+            responsibly and do not use anonymity to harm others. Public posts may
+            look anonymous, but the platform is still moderated for safety.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Need Help?</h3>
+          <p style={pStyle}>
+            If you see dangerous, abusive, targeted, or privacy-invasive content,
+            report it from the post or comment menu so an admin can review it.
           </p>
         </div>
       </div>

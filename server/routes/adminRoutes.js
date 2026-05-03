@@ -25,6 +25,19 @@ const createNotification = async ({ userId, type, message, link }) => {
   }
 };
 
+const getReportDeleteAfterDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date;
+};
+
+const buildResolvedReportUpdate = (resolvedNote) => ({
+  status: "resolved",
+  resolvedNote: resolvedNote || "Reviewed by admin.",
+  resolvedAt: new Date(),
+  deleteAfter: getReportDeleteAfterDate(),
+});
+
 // Middleware: protect admin routes
 const adminProtect = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -82,6 +95,25 @@ router.get("/logs", adminProtect, async (req, res) => {
   }
 });
 
+// DELETE /api/admin/reports/cleanup-resolved
+// Removes resolved reports whose 30-day cleanup date has passed.
+router.delete("/reports/cleanup-resolved", adminProtect, async (req, res) => {
+  try {
+    const result = await Report.deleteMany({
+      status: "resolved",
+      deleteAfter: { $lte: new Date() },
+    });
+
+    res.json({
+      message: `Cleaned ${result.deletedCount || 0} old resolved report(s).`,
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (err) {
+    console.error("Cleanup resolved reports error:", err);
+    res.status(500).json({ message: "Could not cleanup resolved reports" });
+  }
+});
+
 // GET /api/admin/users
 router.get("/users", adminProtect, async (req, res) => {
   try {
@@ -132,6 +164,11 @@ router.delete("/confessions/:id", adminProtect, async (req, res) => {
     const ownerId = confession.userId;
 
     await Confession.findByIdAndDelete(req.params.id);
+
+    await Report.updateMany(
+      { confessionId: req.params.id, status: { $ne: "resolved" } },
+      buildResolvedReportUpdate("Post deleted by admin.")
+    );
 
     await createNotification({
       userId: ownerId,
@@ -210,8 +247,10 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
     const confession = await Confession.findById(report.confessionId);
 
     if (!confession) {
-      report.status = "resolved";
-      report.resolvedNote = "Parent post was already deleted.";
+      Object.assign(
+        report,
+        buildResolvedReportUpdate("Parent post was already deleted.")
+      );
       await report.save();
 
       await createNotification({
@@ -241,10 +280,14 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
       await confession.save();
     }
 
-    report.status = "resolved";
-    report.resolvedNote = commentWasDeleted
-      ? "Reported comment was deleted by admin."
-      : "Reported comment was already missing.";
+    Object.assign(
+      report,
+      buildResolvedReportUpdate(
+        commentWasDeleted
+          ? "Reported comment was deleted by admin."
+          : "Reported comment was already missing."
+      )
+    );
     await report.save();
 
     await createNotification({

@@ -139,7 +139,8 @@ export default function Privacy() {
           <h3 style={h3Style}>Information We Store</h3>
           <p style={pStyle}>
             We may store username, email, hashed password, profile picture,
-            bio, posts, comments, reactions, images, reports, and moderation
+            bio, posts, comments, reactions, images, reports, timestamps, login
+            activity, security logs, IP address information, and moderation
             history.
           </p>
         </div>
@@ -148,15 +149,38 @@ export default function Privacy() {
           <h3 style={h3Style}>Anonymous Posts</h3>
           <p style={pStyle}>
             Posts may appear anonymous publicly, but the system may still store
-            account ownership for moderation, abuse prevention, and safety.
+            internal records that connect posts, comments, reports, timestamps,
+            login activity, and technical security information to an account for
+            moderation, abuse prevention, and safety.
           </p>
         </div>
 
         <div style={sectionStyle}>
-          <h3 style={h3Style}>Reports</h3>
+          <h3 style={h3Style}>Reports and Moderation</h3>
           <p style={pStyle}>
             Reports are visible to admins. They may include the reported post or
-            comment, the reporter, the reason, and the report status.
+            comment, the reporter, the reason, report status, moderation notes,
+            and relevant timestamps. Resolved reports may be kept for a limited
+            time before cleanup.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Security Logs</h3>
+          <p style={pStyle}>
+            For safety, admin review, and abuse prevention, important events
+            such as account login, account creation, post creation, and comment
+            creation may be logged with timestamps and IP address information.
+            Admin logs are automatically cleaned after 30 days.
+          </p>
+        </div>
+
+        <div style={sectionStyle}>
+          <h3 style={h3Style}>Contact</h3>
+          <p style={pStyle}>
+            For moderation concerns, safety issues, privacy questions, or
+            account-related requests, contact the site administrator through the
+            official contact email provided by the site owner.
           </p>
         </div>
 

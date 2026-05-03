@@ -108,7 +108,12 @@ export default function AdminDashboard() {
     setReports((prev) =>
       prev.map((r) =>
         r.confessionId?._id === id
-          ? { ...r, status: "resolved", resolvedNote: "Post deleted by admin." }
+          ? {
+              ...r,
+              status: "resolved",
+              resolvedNote: "Post deleted by admin.",
+              resolvedAt: new Date().toISOString(),
+            }
           : r
       )
     );
@@ -140,6 +145,8 @@ export default function AdminDashboard() {
               resolvedNote:
                 data.report?.resolvedNote ||
                 "Reported comment was deleted by admin.",
+              resolvedAt: data.report?.resolvedAt || new Date().toISOString(),
+              deleteAfter: data.report?.deleteAfter || r.deleteAfter,
             }
           : r
       )
@@ -271,6 +278,11 @@ export default function AdminDashboard() {
 
     const data = await res.json().catch(() => ({}));
 
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not resolve report.", "error") || alert(data.message || "Could not resolve report.");
+      return;
+    }
+
     setReports((prev) =>
       prev.map((r) =>
         r._id === id
@@ -278,10 +290,33 @@ export default function AdminDashboard() {
               ...r,
               status: "resolved",
               resolvedNote: data.report?.resolvedNote || note || "",
+              resolvedAt: data.report?.resolvedAt || new Date().toISOString(),
+              deleteAfter: data.report?.deleteAfter || r.deleteAfter,
             }
           : r
       )
     );
+  };
+
+  const cleanupResolvedReports = async () => {
+    if (!window.confirm("Delete resolved reports whose 30-day cleanup period has passed?")) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/reports/cleanup-resolved`, {
+      method: "DELETE",
+      headers,
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not cleanup resolved reports.", "error") || alert(data.message || "Could not cleanup resolved reports.");
+      return;
+    }
+
+    await fetchReports();
+    window.cwToast?.(data.message || "Old resolved reports cleaned.", "success") || alert(data.message || "Old resolved reports cleaned.");
   };
 
   const openReportedItem = (report) => {
@@ -582,6 +617,20 @@ const safeBtnStyle = {
               >
                 Resolved ({resolvedReports.length})
               </button>
+
+              {reportView === "resolved" && (
+                <button
+                  onClick={cleanupResolvedReports}
+                  style={{
+                    ...btnStyle,
+                    marginLeft: "auto",
+                    color: "#ffd27a",
+                    borderColor: "rgba(255,200,80,0.4)",
+                  }}
+                >
+                  Cleanup 30d+
+                </button>
+              )}
             </div>
 
             {visibleReports.length === 0 ? (
@@ -679,6 +728,12 @@ const safeBtnStyle = {
                           Reported by @{r.reportedBy?.username || "unknown"} ·{" "}
                           {new Date(r.createdAt).toLocaleString()}
                         </small>
+
+                        {r.status === "resolved" && r.deleteAfter && (
+                          <div style={{ opacity: 0.55, fontSize: "0.78rem", marginTop: "6px" }}>
+                            Auto-cleanup after {new Date(r.deleteAfter).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
 
                       <div

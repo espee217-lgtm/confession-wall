@@ -13,6 +13,8 @@ const commentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+commentSchema.index({ userId: 1, createdAt: -1 });
+
 const confessionSchema = new mongoose.Schema(
   {
     userId: {
@@ -28,5 +30,8 @@ const confessionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+confessionSchema.index({ userId: 1, createdAt: -1 });
+confessionSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Confession", confessionSchema);

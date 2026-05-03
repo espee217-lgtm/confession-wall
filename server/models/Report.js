@@ -51,8 +51,27 @@ const reportSchema = new mongoose.Schema(
       default: "",
       maxlength: 500,
     },
+
+    resolvedAt: {
+      type: Date,
+      default: null,
+    },
+
+    // When this is set, MongoDB automatically deletes the resolved report.
+    // Pending/unresolved reports keep this as null and are not auto-deleted.
+    deleteAfter: {
+      type: Date,
+      default: null,
+      expires: 0,
+    },
   },
   { timestamps: true }
 );
+
+reportSchema.index({ status: 1, createdAt: -1 });
+reportSchema.index({ reportedBy: 1, createdAt: -1 });
+reportSchema.index({ confessionId: 1, createdAt: -1 });
+reportSchema.index({ targetType: 1, status: 1, createdAt: -1 });
+reportSchema.index({ resolvedAt: 1 });
 
 module.exports = mongoose.model("Report", reportSchema);
