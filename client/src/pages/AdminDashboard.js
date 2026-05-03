@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { connectSocket } from "../socket";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +11,31 @@ const REPORT_URL = `${API_BASE}/api/reports`;
 
 export default function AdminDashboard() {
   const { adminToken, adminLogout } = useAdminAuth();
+  const [onlineUsers, setOnlineUsers] = useState([]);
+
+  useEffect(() => {
+    if (!adminToken) return;
+
+    const socket = connectSocket(adminToken, "admin");
+
+    if (!socket) return;
+
+    const handleOnlineUsers = (users) => {
+      setOnlineUsers(Array.isArray(users) ? users : []);
+    };
+
+    socket.emit("admin:request_online_users");
+    socket.on("online_users:update", handleOnlineUsers);
+
+    const activePing = setInterval(() => {
+      socket.emit("user:active");
+    }, 30000);
+
+    return () => {
+      clearInterval(activePing);
+      socket.off("online_users:update", handleOnlineUsers);
+    };
+  }, [adminToken]);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -18,6 +44,7 @@ export default function AdminDashboard() {
   const [confessions, setConfessions] = useState([]);
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
+  const [logs, setLogs] = useState([]);
 
   const headers = { Authorization: `Bearer ${adminToken}` };
 
@@ -40,14 +67,28 @@ export default function AdminDashboard() {
     setReports(await res.json());
   };
 
-  useEffect(() => {
-    if (!adminToken) return;
+  const fetchLogs = async () => {
+    const res = await fetch(`${API_URL}/logs?limit=100`, { headers });
+    const data = await res.json();
+    setLogs(Array.isArray(data) ? data : []);
+  };
 
-    if (tab === "reports") fetchReports();
-    if (tab === "confessions") fetchConfessions();
-    if (tab === "users") fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, adminToken]);
+ useEffect(() => {
+  if (!adminToken) return;
+
+  const loadAdminData = async () => {
+    await Promise.allSettled([
+      fetchReports(),
+      fetchConfessions(),
+      fetchUsers(),
+      fetchLogs(),
+    ]);
+  };
+
+  loadAdminData();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [adminToken]);
 
   const pendingReports = reports.filter((r) => r.status !== "resolved");
   const resolvedReports = reports.filter((r) => r.status === "resolved");
@@ -408,7 +449,99 @@ const safeBtnStyle = {
   </button>
 </div>
         </div>
+        <div style={cardStyle}>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "0.8rem",
+    }}
+  >
+    <div>
+      <h2 style={{ margin: 0, fontSize: "1.2rem" }}>Currently Online</h2>
+      <p style={{ margin: "4px 0 0", opacity: 0.6, fontSize: "0.85rem" }}>
+        {onlineUsers.length} active session{onlineUsers.length === 1 ? "" : "s"}
+      </p>
+    </div>
+  </div>
 
+  {onlineUsers.length === 0 ? (
+    <p style={{ opacity: 0.55, margin: 0 }}>No users online right now.</p>
+  ) : (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      {onlineUsers.map((user) => (
+        <div
+          key={user.socketId}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            padding: "10px",
+            borderRadius: "12px",
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          {user.profilePicture ? (
+            <img
+              src={user.profilePicture}
+              alt=""
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                background: "rgba(120,255,170,0.16)",
+                border: "1px solid rgba(120,255,170,0.35)",
+                color: "#9cffb2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 800,
+              }}
+            >
+              {user.username?.charAt(0)?.toUpperCase() || "?"}
+            </div>
+          )}
+
+          <div style={{ minWidth: 0 }}>
+            <strong>@{user.username}</strong>
+            <div style={{ opacity: 0.6, fontSize: "0.82rem", marginTop: "3px" }}>
+              {user.isAdmin ? "Admin" : "User"} · Active{" "}
+              {user.lastActiveAt
+                ? new Date(user.lastActiveAt).toLocaleTimeString()
+                : "now"}
+            </div>
+          </div>
+
+          <span
+            style={{
+              marginLeft: "auto",
+              padding: "4px 9px",
+              borderRadius: "999px",
+              background: "rgba(80,255,120,0.14)",
+              border: "1px solid rgba(80,255,120,0.35)",
+              color: "#8cff9c",
+              fontSize: "11px",
+              fontWeight: 800,
+            }}
+          >
+            ONLINE
+          </span>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
         <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
           <button onClick={() => setTab("reports")} style={btnStyle}>
             Reports ({reports.length})
@@ -420,6 +553,10 @@ const safeBtnStyle = {
 
           <button onClick={() => setTab("users")} style={btnStyle}>
             Users ({users.length})
+          </button>
+
+          <button onClick={() => setTab("logs")} style={btnStyle}>
+            Logs ({logs.length})
           </button>
         </div>
 
@@ -599,6 +736,61 @@ const safeBtnStyle = {
                   </div>
                 );
               })
+            )}
+          </div>
+        )}
+
+
+
+        {tab === "logs" && (
+          <div>
+            {logs.length === 0 ? (
+              <p style={{ opacity: 0.5 }}>No logs found yet.</p>
+            ) : (
+              logs.map((log) => (
+                <div key={log._id} style={cardStyle}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: "1rem",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <strong>{log.message}</strong>
+
+                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
+                        Type: {log.type} · {new Date(log.createdAt).toLocaleString()}
+                      </div>
+
+                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
+                        User: @{log.username || log.userId?.username || "unknown"}
+                        {log.email ? ` · ${log.email}` : ""}
+                      </div>
+
+                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
+                        IP: {log.ipAddress || "Not available"}
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: "999px",
+                        background: "rgba(120,255,170,0.13)",
+                        border: "1px solid rgba(120,255,170,0.32)",
+                        color: "#9cffb2",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {log.type?.replaceAll("_", " ") || "log"}
+                    </span>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         )}

@@ -13,6 +13,7 @@ const { protect } = require("../middleware/auth");
 const { loginLimiter, emailOtpLimiter, resetPasswordLimiter } = require("../middleware/rateLimiter");
 const { sanitizeText, sanitizeEmail } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
+const { createAdminLog } = require("../utils/adminLogger");
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -337,6 +338,15 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
 
     const tokens = createAuthTokens(user);
 
+    await createAdminLog({
+      req,
+      type: "user_register",
+      message: `New account created by @${user.username}.`,
+      user,
+      targetId: user._id,
+      targetType: "user",
+    });
+
     res.json({
       ...tokens,
       user: buildUserPayload(user),
@@ -381,6 +391,15 @@ router.post("/login", loginLimiter, async (req, res) => {
     }
 
     const tokens = createAuthTokens(user);
+
+    await createAdminLog({
+      req,
+      type: "user_login",
+      message: `Existing user @${user.username} logged in.`,
+      user,
+      targetId: user._id,
+      targetType: "user",
+    });
 
     res.json({
       ...tokens,

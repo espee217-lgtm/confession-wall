@@ -10,6 +10,7 @@ const { protect, blockSuspended } = require("../middleware/auth");
 const { sanitizeText } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { reactionLimiter } = require("../middleware/rateLimiter");
+const { createAdminLog } = require("../utils/adminLogger");
 
 const postLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -220,6 +221,16 @@ router.post(
         "username profilePicture isAdmin role"
       );
 
+      await createAdminLog({
+        req,
+        type: "post_create",
+        message: `@${req.user.username || "Someone"} created a new post.`,
+        user: req.user,
+        targetId: saved._id,
+        targetType: "confession",
+        metadata: { hasImage: Boolean(req.file) },
+      });
+
       res.json(populated);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -271,6 +282,8 @@ router.post(
         userId: req.user._id,
       });
 
+      const newComment = confession.comments[confession.comments.length - 1];
+
       await confession.save();
 
       const postOwnerId = confession.userId;
@@ -284,6 +297,19 @@ router.post(
           link: `/confession/${confession._id}`,
         });
       }
+
+      await createAdminLog({
+        req,
+        type: "comment_create",
+        message: `@${req.user.username || "Someone"} commented on a post.`,
+        user: req.user,
+        targetId: newComment?._id || confession._id,
+        targetType: "comment",
+        metadata: {
+          confessionId: String(confession._id),
+          hasImage: Boolean(req.file),
+        },
+      });
 
       const updated = await Confession.findById(req.params.id)
         .populate("userId", "username profilePicture isAdmin role")

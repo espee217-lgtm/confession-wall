@@ -7,6 +7,7 @@ const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
+const AdminLog = require("../models/AdminLog");
 
 
 const createNotification = async ({ userId, type, message, link }) => {
@@ -60,6 +61,24 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Admin login error:", err);
     res.status(500).json({ message: "Admin login failed" });
+  }
+});
+
+
+// GET /api/admin/logs
+router.get("/logs", adminProtect, async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 100, 200);
+
+    const logs = await AdminLog.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("userId", "username email profilePicture isAdmin role");
+
+    res.json(logs);
+  } catch (err) {
+    console.error("Fetch admin logs error:", err);
+    res.status(500).json({ message: "Could not fetch logs" });
   }
 });
 

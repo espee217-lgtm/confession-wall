@@ -1,3 +1,6 @@
+const http = require("http");
+const { Server } = require("socket.io");
+const { setupSocket } = require("./socket");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -90,10 +93,31 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something went wrong on the server." });
 });
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Socket CORS blocked origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
+
+setupSocket(io);
+
+app.set("io", io);
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ Connected to MongoDB");
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => console.error("MongoDB connection error:", err.message));

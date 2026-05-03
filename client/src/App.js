@@ -1,3 +1,4 @@
+import { connectSocket, disconnectSocket } from "./socket";
 import React, { useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
@@ -43,6 +44,21 @@ const API_BASE =
 
 function NotificationBell() {
   const { user, token } = useAuth();
+  useEffect(() => {
+  if (token) {
+    const socket = connectSocket(token);
+
+    const activePing = setInterval(() => {
+      socket?.emit("user:active");
+    }, 30000);
+
+    return () => {
+      clearInterval(activePing);
+    };
+  }
+
+  disconnectSocket();
+}, [token]);
   const navigate = useNavigate();
   const bellRef = useRef(null);
   const [open, setOpen] = useState(false);
