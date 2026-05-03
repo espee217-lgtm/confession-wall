@@ -267,7 +267,7 @@ export default function ConfessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetCommentId = searchParams.get("comment");
-  const { token, user } = useAuth();
+  const { token, user, refreshUser } = useAuth();
 
   const [confession, setConfession] = useState(null);
   const [comment, setComment] = useState("");
@@ -394,11 +394,23 @@ export default function ConfessionPage() {
 
       if (commentImage) formData.append("image", commentImage);
 
-      await fetch(`${API_URL}/${id}/comments`, {
+      const commentRes = await fetch(`${API_URL}/${id}/comments`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+
+      const commentData = await commentRes.json().catch(() => ({}));
+
+      if (!commentRes.ok) {
+        window.cwToast?.(commentData.message || commentData.error || "Could not add comment.", "error") || alert(commentData.message || commentData.error || "Could not add comment.");
+        return;
+      }
+
+      if (commentData.seedReward?.awarded) {
+        window.cwToast?.(commentData.seedReward.message, "success");
+        refreshUser?.();
+      }
 
       setComment("");
       setCommentImage(null);
@@ -561,6 +573,10 @@ export default function ConfessionPage() {
                 });
 
                 const data = await res.json();
+
+                if (data.seedReward?.awarded) {
+                  refreshUser?.();
+                }
 
                 setConfession((prev) => ({
                   ...prev,

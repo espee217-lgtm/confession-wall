@@ -8,6 +8,7 @@ const User = require("../models/User");
 const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
 const AdminLog = require("../models/AdminLog");
+const { awardSeeds, debitSeeds } = require("../utils/seedRewards");
 
 
 const createNotification = async ({ userId, type, message, link }) => {
@@ -37,6 +38,24 @@ const buildResolvedReportUpdate = (resolvedNote) => ({
   resolvedAt: new Date(),
   deleteAfter: getReportDeleteAfterDate(),
 });
+
+const rewardReporterIfNeeded = async (report, link = "/") => {
+  if (!report || report.seedRewardedAt || !report.reportedBy) return null;
+
+  const seedReward = await awardSeeds({
+    userId: report.reportedBy,
+    reason: "accepted_report",
+    reasonLabel: "an accepted report",
+    link,
+  });
+
+  if (seedReward?.awarded) {
+    report.seedRewardedAt = new Date();
+    await report.save();
+  }
+
+  return seedReward;
+};
 
 // Middleware: protect admin routes
 const adminProtect = (req, res, next) => {
@@ -163,12 +182,26 @@ router.delete("/confessions/:id", adminProtect, async (req, res) => {
 
     const ownerId = confession.userId;
 
+    const pendingReports = await Report.find({
+      confessionId: req.params.id,
+      status: { $ne: "resolved" },
+    });
+
     await Confession.findByIdAndDelete(req.params.id);
 
-    await Report.updateMany(
-      { confessionId: req.params.id, status: { $ne: "resolved" } },
-      buildResolvedReportUpdate("Post deleted by admin.")
-    );
+    for (const report of pendingReports) {
+      Object.assign(report, buildResolvedReportUpdate("Post deleted by admin."));
+      await report.save();
+      await rewardReporterIfNeeded(report, "/");
+    }
+
+    await debitSeeds({
+      userId: ownerId,
+      reason: "post_removed",
+      amount: -20,
+      reasonLabel: "a post removed for rules violation",
+      link: "/",
+    });
 
     await createNotification({
       userId: ownerId,
@@ -289,6 +322,13 @@ router.delete("/reports/:reportId/comment", adminProtect, async (req, res) => {
       )
     );
     await report.save();
+
+    if (commentWasDeleted) {
+      await rewardReporterIfNeeded(
+        report,
+        report.confessionId ? `/confession/${report.confessionId}` : "/"
+      );
+    }
 
     await createNotification({
       userId: report.reportedBy,
@@ -496,6 +536,7 @@ router.post("/enter-site", adminProtect, async (req, res) => {
         isBanned: publicUser.isBanned,
         suspendReason: publicUser.suspendReason,
         banReason: publicUser.banReason,
+        seeds: publicUser.seeds || 0,
       },
     });
   } catch (err) {

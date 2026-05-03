@@ -11,6 +11,7 @@ const { sanitizeText } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { reactionLimiter } = require("../middleware/rateLimiter");
 const { createAdminLog } = require("../utils/adminLogger");
+const { awardSeeds } = require("../utils/seedRewards");
 
 const postLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -231,7 +232,17 @@ router.post(
         metadata: { hasImage: Boolean(req.file) },
       });
 
-      res.json(populated);
+      const seedReward = await awardSeeds({
+        userId: req.user._id,
+        reason: "post_create",
+        reasonLabel: "creating a post",
+        link: `/confession/${saved._id}`,
+      });
+
+      const responsePost = populated?.toObject ? populated.toObject() : populated;
+      responsePost.seedReward = seedReward;
+
+      res.json(responsePost);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -311,11 +322,21 @@ router.post(
         },
       });
 
+      const seedReward = await awardSeeds({
+        userId: req.user._id,
+        reason: "comment_create",
+        reasonLabel: "creating a comment",
+        link: `/confession/${confession._id}`,
+      });
+
       const updated = await Confession.findById(req.params.id)
         .populate("userId", "username profilePicture isAdmin role")
         .populate("comments.userId", "username profilePicture isAdmin role");
 
-      res.json(updated);
+      const responsePost = updated?.toObject ? updated.toObject() : updated;
+      responsePost.seedReward = seedReward;
+
+      res.json(responsePost);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -344,6 +365,9 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
     const removeField = type === "water" ? "burnedBy" : "wateredBy";
 
     const alreadyVoted = confession[addField].some((id) => id.equals(userId));
+    const hadAnyReactionBefore =
+      confession.wateredBy.some((id) => id.equals(userId)) ||
+      confession.burnedBy.some((id) => id.equals(userId));
 
     if (alreadyVoted) {
       confession[addField].pull(userId);
@@ -352,7 +376,7 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
       confession[addField].push(userId);
     }
 
-    await confession.save();
+    let seedReward = null;
 
     if (!alreadyVoted && confession.userId && !confession.userId.equals(userId)) {
       await createNotification({
@@ -364,11 +388,29 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
             : `${req.user.username || "Someone"} burned your post.`,
         link: `/confession/${confession._id}`,
       });
+
+      const alreadyRewardedForThisReactor = confession.seedReactionRewardedBy?.some((id) =>
+        id.equals(userId)
+      );
+
+      if (!hadAnyReactionBefore && !alreadyRewardedForThisReactor) {
+        seedReward = await awardSeeds({
+          userId: confession.userId,
+          reason: "post_reaction_received",
+          reasonLabel: "someone reacting to your post",
+          link: `/confession/${confession._id}`,
+        });
+
+        confession.seedReactionRewardedBy.push(userId);
+      }
     }
+
+    await confession.save();
 
     res.json({
       wateredBy: confession.wateredBy,
       burnedBy: confession.burnedBy,
+      seedReward,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

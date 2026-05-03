@@ -3,8 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
 
-const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
-const SCORCHED_URL = "https://confession-wall-hn63.onrender.com/api/confessions/realm/scorched";
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://confession-wall-hn63.onrender.com";
+
+const API_URL = `${API_BASE}/api/confessions`;
+const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
 
 function ConfessionFeed({ confessions, onCardClick }) {
   const [offset, setOffset] = useState(0);
@@ -623,7 +628,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
   );
 }
 export default function Home() {
-  const { user, token } = useAuth();
+  const { user, token, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [confessions, setConfessions] = useState([]);
@@ -743,6 +748,16 @@ useEffect(() => {
       });
 
       const newConfession = await res.json();
+
+      if (!res.ok) {
+        window.cwToast?.(newConfession.message || newConfession.error || "Could not post.", "error") || alert(newConfession.message || newConfession.error || "Could not post.");
+        return;
+      }
+
+      if (newConfession.seedReward?.awarded) {
+        window.cwToast?.(newConfession.seedReward.message, "success");
+        refreshUser?.();
+      }
 
       const confessionWithUser = {
         ...newConfession,

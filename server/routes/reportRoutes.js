@@ -8,6 +8,7 @@ const Notification = require("../models/Notification");
 const { protect, blockSuspended } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
 const { sanitizeText } = require("../middleware/sanitizeInput");
+const { awardSeeds } = require("../utils/seedRewards");
 
 
 const createNotification = async ({ userId, type, message, link }) => {
@@ -121,18 +122,33 @@ router.put("/:id/resolve", adminProtect, async (req, res) => {
   try {
     const note = sanitizeText(req.body?.note, { maxLength: 500, allowNewLines: true });
 
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: "resolved",
-        resolvedNote: note,
-        resolvedAt: new Date(),
-        deleteAfter: getReportDeleteAfterDate(),
-      },
-      { new: true }
-    );
+    const report = await Report.findById(req.params.id);
 
     if (!report) return res.status(404).json({ message: "Report not found" });
+
+    const shouldRewardReporter = !report.seedRewardedAt;
+
+    report.status = "resolved";
+    report.resolvedNote = note;
+    report.resolvedAt = new Date();
+    report.deleteAfter = getReportDeleteAfterDate();
+
+    let seedReward = null;
+
+    if (shouldRewardReporter) {
+      seedReward = await awardSeeds({
+        userId: report.reportedBy,
+        reason: "accepted_report",
+        reasonLabel: "an accepted report",
+        link: report.confessionId ? `/confession/${report.confessionId}` : "/",
+      });
+
+      if (seedReward?.awarded) {
+        report.seedRewardedAt = new Date();
+      }
+    }
+
+    await report.save();
 
     await createNotification({
       userId: report.reportedBy,
@@ -143,7 +159,7 @@ router.put("/:id/resolve", adminProtect, async (req, res) => {
       link: report.confessionId ? `/confession/${report.confessionId}` : "/",
     });
 
-    res.json({ message: "Report resolved", report });
+    res.json({ message: "Report resolved", report, seedReward });
   } catch (err) {
     console.error("Resolve report error:", err);
     res.status(500).json({ error: err.message });

@@ -14,6 +14,7 @@ const { loginLimiter, emailOtpLimiter, resetPasswordLimiter } = require("../midd
 const { sanitizeText, sanitizeEmail } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { createAdminLog } = require("../utils/adminLogger");
+const { awardSeeds } = require("../utils/seedRewards");
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -50,6 +51,7 @@ const buildUserPayload = (user) => ({
   isBanned: user.isBanned,
   suspendReason: user.suspendReason,
   banReason: user.banReason,
+  seeds: user.seeds || 0,
 });
 
 const createAuthTokens = (user) => {
@@ -347,9 +349,18 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
       targetType: "user",
     });
 
+    await awardSeeds({
+      userId: user._id,
+      reason: "daily_login",
+      reasonLabel: "daily login",
+      link: "/",
+    });
+
+    const updatedUser = await User.findById(user._id);
+
     res.json({
       ...tokens,
-      user: buildUserPayload(user),
+      user: buildUserPayload(updatedUser || user),
     });
   } catch (err) {
     console.error("Register error:", err.message);
@@ -401,9 +412,18 @@ router.post("/login", loginLimiter, async (req, res) => {
       targetType: "user",
     });
 
+    await awardSeeds({
+      userId: user._id,
+      reason: "daily_login",
+      reasonLabel: "daily login",
+      link: "/",
+    });
+
+    const updatedUser = await User.findById(user._id);
+
     res.json({
       ...tokens,
-      user: buildUserPayload(user),
+      user: buildUserPayload(updatedUser || user),
     });
   } catch (err) {
     console.error("Login error:", err.message);
@@ -611,7 +631,8 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
 // ─────────────────────────────────────────────────────────────────────────────
 
 router.get("/me", protect, async (req, res) => {
-  res.json(req.user);
+  const freshUser = await User.findById(req.user._id);
+  res.json(buildUserPayload(freshUser || req.user));
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

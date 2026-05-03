@@ -26,6 +26,7 @@ const confessionSchema = new mongoose.Schema(
     image:   { type: String },
     wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    seedReactionRewardedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [commentSchema],
   },
   { timestamps: true }

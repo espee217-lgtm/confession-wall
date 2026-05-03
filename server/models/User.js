@@ -81,6 +81,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    seeds: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    seedDailyStats: {
+      dateKey: { type: String, default: "" },
+      loginRewards: { type: Number, default: 0 },
+      postRewards: { type: Number, default: 0 },
+      commentRewards: { type: Number, default: 0 },
+      reactionRewards: { type: Number, default: 0 },
+      acceptedReportRewards: { type: Number, default: 0 },
+    },
   },
   { timestamps: true }
 );
@@ -88,5 +103,6 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ createdAt: -1 });
 userSchema.index({ isBanned: 1, isSuspended: 1 });
 userSchema.index({ role: 1, createdAt: -1 });
+userSchema.index({ seeds: -1 });
 
 module.exports = mongoose.model("User", userSchema);

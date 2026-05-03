@@ -64,6 +64,11 @@ const reportSchema = new mongoose.Schema(
       default: null,
       expires: 0,
     },
+
+    seedRewardedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -73,5 +78,6 @@ reportSchema.index({ reportedBy: 1, createdAt: -1 });
 reportSchema.index({ confessionId: 1, createdAt: -1 });
 reportSchema.index({ targetType: 1, status: 1, createdAt: -1 });
 reportSchema.index({ resolvedAt: 1 });
+reportSchema.index({ seedRewardedAt: 1 });
 
 module.exports = mongoose.model("Report", reportSchema);

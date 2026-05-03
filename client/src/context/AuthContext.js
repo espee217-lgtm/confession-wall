@@ -75,6 +75,40 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("cw_logout_reason");
   }, []);
 
+  const updateUser = useCallback((updates) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+
+      const nextUser = {
+        ...prev,
+        ...(typeof updates === "function" ? updates(prev) : updates),
+      };
+
+      localStorage.setItem("cw_user", JSON.stringify(nextUser));
+      return nextUser;
+    });
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    if (!token) return null;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) return null;
+
+      const freshUser = await res.json();
+      setUser(freshUser);
+      localStorage.setItem("cw_user", JSON.stringify(freshUser));
+      return freshUser;
+    } catch (err) {
+      console.error("Refresh user error:", err);
+      return null;
+    }
+  }, [token]);
+
   const refreshSession = useCallback(async () => {
     if (!refreshToken) {
       logout("Your session expired. Please log in again.");
@@ -144,8 +178,10 @@ export function AuthProvider({ children }) {
       login,
       logout,
       refreshSession,
+      updateUser,
+      refreshUser,
     }),
-    [user, token, refreshToken, tokenExpiresAt, login, logout, refreshSession]
+    [user, token, refreshToken, tokenExpiresAt, login, logout, refreshSession, updateUser, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -42,6 +42,45 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 
+function SeedCounter() {
+  const { user, token, refreshUser } = useAuth();
+
+  useEffect(() => {
+    if (!user || !token || !refreshUser) return undefined;
+
+    refreshUser();
+    const interval = setInterval(refreshUser, 30000);
+
+    return () => clearInterval(interval);
+  }, [user?._id, token, refreshUser]);
+
+  if (!user) return null;
+
+  return (
+    <div
+      title="Seeds"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "8px 12px",
+        borderRadius: "999px",
+        background: "rgba(8,35,14,0.72)",
+        border: "1px solid rgba(150,255,165,0.34)",
+        color: "#dfffd7",
+        fontWeight: 800,
+        fontSize: "14px",
+        boxShadow: "0 0 18px rgba(120,255,150,0.22)",
+        whiteSpace: "nowrap",
+        fontFamily: "Georgia, serif",
+      }}
+    >
+      <span>🌱</span>
+      <span>{user.seeds || 0}</span>
+    </div>
+  );
+}
+
 function NotificationBell() {
   const { user, token } = useAuth();
   useEffect(() => {
@@ -438,32 +477,43 @@ function Navbar() {
           width: "100%",
         }}
       >
-        <Link
-  to="/"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    overflow: "visible",
-    textDecoration: "none",
-    justifySelf: "start",
-  }}
->
-          <img
-            src="/confession-logo.png"
-            alt="Confession Wall"
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            justifySelf: "start",
+            minWidth: 0,
+          }}
+        >
+          {user && <SeedCounter />}
+
+          <Link
+            to="/"
             style={{
-              width: "390px",
-              height: "160px",
-              objectFit: "contain",
-              objectPosition: "left center",
-              cursor: "pointer",
-              marginTop: "-18px",
-              marginBottom: "-28px",
-              filter:
-                "brightness(3) contrast(1.35) saturate(1.2) drop-shadow(0 0 26px rgba(150,255,160,0.85))",
+              display: "flex",
+              alignItems: "center",
+              overflow: "visible",
+              textDecoration: "none",
             }}
-          />
-        </Link>
+          >
+            <img
+              src="/confession-logo.png"
+              alt="Confession Wall"
+              style={{
+                width: "390px",
+                height: "160px",
+                objectFit: "contain",
+                objectPosition: "left center",
+                cursor: "pointer",
+                marginTop: "-18px",
+                marginBottom: "-28px",
+                filter:
+                  "brightness(3) contrast(1.35) saturate(1.2) drop-shadow(0 0 26px rgba(150,255,160,0.85))",
+              }}
+            />
+          </Link>
+        </div>
 
         {user && (
           <div
