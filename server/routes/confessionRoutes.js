@@ -107,6 +107,71 @@ router.get("/realm/scorched", async (req, res) => {
   }
 });
 
+
+// SEARCH confessions
+// Query params:
+// q = text/username search
+// type = all | grove | budding | scorched
+router.get("/search", async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim();
+    const type = String(req.query.type || "all").trim().toLowerCase();
+
+    const safeRegex = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const query = q
+      ? {
+          $or: [
+            { message: { $regex: safeRegex, $options: "i" } },
+            { "comments.text": { $regex: safeRegex, $options: "i" } },
+          ],
+        }
+      : {};
+
+    let confessions = await Confession.find(query)
+      .sort({ createdAt: -1 })
+      .limit(80)
+      .populate("userId", "username profilePicture isAdmin role");
+
+    // Also allow searching by username after population.
+    if (q) {
+      const lower = q.toLowerCase();
+      const usernameMatches = await Confession.find()
+        .sort({ createdAt: -1 })
+        .limit(120)
+        .populate("userId", "username profilePicture isAdmin role");
+
+      const byUsername = usernameMatches.filter((post) =>
+        String(post.userId?.username || "").toLowerCase().includes(lower)
+      );
+
+      const map = new Map();
+      [...confessions, ...byUsername].forEach((post) => map.set(String(post._id), post));
+      confessions = Array.from(map.values()).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+
+    const getRealm = (post) => {
+      const watered = post.wateredBy?.length || 0;
+      const burned = post.burnedBy?.length || 0;
+      const total = watered + burned;
+
+      if (total === 0) return "budding";
+      if (burned / total > 0.5) return "scorched";
+      return "grove";
+    };
+
+    if (["grove", "budding", "scorched"].includes(type)) {
+      confessions = confessions.filter((post) => getRealm(post) === type);
+    }
+
+    res.json(confessions.slice(0, 60));
+  } catch (err) {
+    console.error("Search confessions error:", err);
+    res.status(500).json({ message: "Could not search confessions right now." });
+  }
+});
+
 // GET single confession by ID
 router.get("/:id", async (req, res) => {
   try {

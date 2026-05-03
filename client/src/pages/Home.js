@@ -402,9 +402,9 @@ function MobileHomePage({
 
       <nav className="mobile-home-bottom-nav" aria-label="Mobile home navigation">
         <button type="button" onClick={() => navigate("/")} className="active">🏠<span>Home</span></button>
-        <button type="button" onClick={() => window.cwToast?.("Search is coming soon.", "info")}>🔎<span>Search</span></button>
+        <button type="button" onClick={() => navigate("/search")}>🔎<span>Search</span></button>
         <button type="button" onClick={() => setShowCompose(true)} className="confess">🌿<span>Confess</span></button>
-        <button type="button" onClick={() => window.cwToast?.("Open the bell above for alerts.", "info")}>🔔<span>Activity</span></button>
+        <button type="button" onClick={() => navigate("/activity")}>🔔<span>Activity</span></button>
         <button type="button" onClick={() => navigate("/settings")}>👤<span>Profile</span></button>
       </nav>
 

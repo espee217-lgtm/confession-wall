@@ -25,6 +25,8 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import ToastContainer from "./components/Toast";
+import SearchPage from "./pages/SearchPage";
+import ActivityPage from "./pages/ActivityPage";
 
 import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
@@ -490,6 +492,7 @@ function Navbar() {
 
         {user && (
           <div
+            className="nav-actions"
             style={{
               justifySelf: "end",
               display: "flex",
@@ -497,6 +500,16 @@ function Navbar() {
               gap: "12px",
             }}
           >
+            <button
+              type="button"
+              className="desktop-search-box"
+              onClick={() => navigate("/search")}
+              title="Search confessions"
+            >
+              <span className="desktop-search-icon">🔍</span>
+              <span>Search confessions</span>
+            </button>
+
             <div
               onClick={() => navigate("/settings")}
               style={{
@@ -614,6 +627,8 @@ function AppContent() {
         <Route path="/grove" element={<ThrivingGrove />} />
         <Route path="/scorched" element={<ScorchedLands />} />
         <Route path="/budding" element={<BuddingLand />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
         <Route path="/guidelines" element={<CommunityGuidelines />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
