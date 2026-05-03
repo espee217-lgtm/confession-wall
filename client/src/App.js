@@ -24,6 +24,7 @@ import BuddingLand from "./pages/BuddingLand";
 import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import ToastContainer from "./components/Toast";
 
 import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
@@ -619,6 +620,7 @@ function AppContent() {
       </Routes>
 
       {!hideFooter && <Footer />}
+      <ToastContainer />
     </>
   );
 }

@@ -7,6 +7,7 @@ const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
 const { protect, blockSuspended } = require("../middleware/auth");
 const { adminProtect } = require("./adminRoutes");
+const { sanitizeText } = require("../middleware/sanitizeInput");
 
 
 const createNotification = async ({ userId, type, message, link }) => {
@@ -37,7 +38,8 @@ const reportLimiter = rateLimit({
 // USER: report confession/comment
 router.post("/", protect, blockSuspended, reportLimiter, async (req, res) => {
   try {
-    const { targetType, confessionId, commentId, reason } = req.body;
+    const { targetType, confessionId, commentId } = req.body;
+    const reason = sanitizeText(req.body.reason, { maxLength: 500, allowNewLines: true });
 
     if (!targetType || !confessionId || !reason) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -77,7 +79,7 @@ router.post("/", protect, blockSuspended, reportLimiter, async (req, res) => {
       commentId: targetType === "comment" ? commentId : null,
       commentText,
       reportedBy: req.user._id,
-      reason: reason.trim(),
+      reason,
     });
 
     res.json({ message: "Report submitted", report });
@@ -111,13 +113,13 @@ router.get("/", adminProtect, async (req, res) => {
 // ADMIN: mark report resolved
 router.put("/:id/resolve", adminProtect, async (req, res) => {
   try {
-    const { note } = req.body || {};
+    const note = sanitizeText(req.body?.note, { maxLength: 500, allowNewLines: true });
 
     const report = await Report.findByIdAndUpdate(
       req.params.id,
       {
         status: "resolved",
-        resolvedNote: note || "",
+        resolvedNote: note,
       },
       { new: true }
     );

@@ -15,7 +15,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     e.stopPropagation();
 
     if (!token) {
-      alert("You must be logged in to report.");
+      window.cwToast?.("You must be logged in to report.", "warning") || alert("You must be logged in to report.");
       return;
     }
 
@@ -39,14 +39,14 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || data.error || "Could not submit report");
+        window.cwToast?.(data.message || data.error || "Could not submit report", "error") || alert(data.message || data.error || "Could not submit report");
         return;
       }
 
-      alert("Report submitted.");
+      window.cwToast?.("Report submitted.", "success") || alert("Report submitted.");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong while reporting.");
+      window.cwToast?.("Something went wrong while reporting.", "error") || alert("Something went wrong while reporting.");
     }
   };
 

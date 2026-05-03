@@ -355,3 +355,96 @@ a.chip {
   60% { transform: translate(18vw, 28vh) scale(0.75); opacity: 0.45; }
   100% { transform: translate(34vw, 42vh) scale(0.55); opacity: 0.2; }
 }
+/* ─────────────────────────────────────────────────────────────
+   Production mobile polish
+   Keeps the heavy forest homepage/nav from overflowing on phones.
+───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .navbar {
+    height: auto !important;
+    min-height: 68px !important;
+    padding: 8px 12px !important;
+  }
+
+  .navbar > div {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .navbar img[alt="Confession Wall"] {
+    width: min(260px, 54vw) !important;
+    height: auto !important;
+    margin-top: -8px !important;
+    margin-bottom: -14px !important;
+  }
+
+  .navbar a {
+    max-width: 100%;
+  }
+
+  .navbar a[href="/grove"],
+  .navbar a[href="/budding"],
+  .navbar a[href="/scorched"] {
+    font-size: 11px !important;
+    padding: 7px 10px !important;
+    letter-spacing: 0.08em !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    overflow-x: clip !important;
+  }
+
+  .navbar > div {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+  }
+
+  .navbar > div > a:first-child {
+    grid-column: 1 / 2;
+  }
+
+  .navbar img[alt="Confession Wall"] {
+    width: min(210px, 52vw) !important;
+  }
+
+  .navbar > div > div:nth-child(2) {
+    grid-column: 1 / -1;
+    order: 3;
+    width: 100%;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-top: 4px;
+  }
+
+  .navbar > div > div:last-child {
+    grid-column: 2 / 3;
+    justify-self: end !important;
+    gap: 8px !important;
+  }
+
+  .navbar img[alt="profile"],
+  .navbar div[style*="width: 42px"] {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .spirit-hitbox,
+  .left-spirit,
+  .right-spirit,
+  .krishna-sprite,
+  .demon-sprite {
+    max-width: 38vw !important;
+    opacity: 0.82;
+    pointer-events: auto;
+  }
+}

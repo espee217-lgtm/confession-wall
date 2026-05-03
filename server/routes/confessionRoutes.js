@@ -7,6 +7,9 @@ const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
 const rateLimit = require("express-rate-limit");
 const { protect, blockSuspended } = require("../middleware/auth");
+const { sanitizeText } = require("../middleware/sanitizeInput");
+const { imageUploadOptions } = require("../middleware/uploadSecurity");
+const { reactionLimiter } = require("../middleware/rateLimiter");
 
 const postLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -51,7 +54,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage, ...imageUploadOptions });
 
 // GET all confessions
 router.get("/", async (req, res) => {
@@ -132,9 +135,15 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
+      const message = sanitizeText(req.body.message, { maxLength: 2000, allowNewLines: true });
+
+      if (!message && !req.file) {
+        return res.status(400).json({ message: "Post text or image is required." });
+      }
+
       const newConfession = new Confession({
         userId: req.user._id,
-        message: req.body.message,
+        message,
         image: req.file ? req.file.path : null,
         comments: [],
       });
@@ -185,8 +194,14 @@ router.post(
         return res.status(404).json({ message: "Confession not found" });
       }
 
+      const text = sanitizeText(req.body.text, { maxLength: 1000, allowNewLines: true });
+
+      if (!text && !req.file) {
+        return res.status(400).json({ message: "Comment text or image is required." });
+      }
+
       confession.comments.push({
-        text: req.body.text || "",
+        text,
         image: req.file ? req.file.path : null,
         userId: req.user._id,
       });
@@ -219,7 +234,7 @@ router.post(
 // REACT to a confession
 // Banned users are blocked by protect.
 // Suspended users are blocked by blockSuspended.
-router.post("/:id/react", protect, blockSuspended, async (req, res) => {
+router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, res) => {
   try {
     const { type } = req.body;
 
@@ -276,6 +291,7 @@ router.post(
   "/:id/comments/:commentIndex/react",
   protect,
   blockSuspended,
+  reactionLimiter,
   async (req, res) => {
     try {
       const { type } = req.body;

@@ -10,6 +10,9 @@ const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const { protect } = require("../middleware/auth");
+const { loginLimiter, emailOtpLimiter, resetPasswordLimiter } = require("../middleware/rateLimiter");
+const { sanitizeText, sanitizeEmail } = require("../middleware/sanitizeInput");
+const { imageUploadOptions } = require("../middleware/uploadSecurity");
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -19,7 +22,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage, ...imageUploadOptions });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG
@@ -28,7 +31,7 @@ const upload = multer({ storage });
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
 const MAX_RESET_ATTEMPTS = 5;
 
-const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
+const normalizeEmail = sanitizeEmail;
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -223,7 +226,7 @@ const resetEmailTemplate = (otp) =>
 // POST /api/auth/send-otp
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.post("/send-otp", async (req, res) => {
+router.post("/send-otp", emailOtpLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
 
@@ -268,7 +271,7 @@ router.post("/send-otp", async (req, res) => {
 
 router.post("/register", upload.single("profilePicture"), async (req, res) => {
   try {
-    const username = String(req.body.username || "").trim();
+    const username = sanitizeText(req.body.username, { maxLength: 40, allowNewLines: false });
     const email = normalizeEmail(req.body.email);
     const password = req.body.password;
     const otp = String(req.body.otp || "").trim();
@@ -349,7 +352,7 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
 // POST /api/auth/login
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
     const { password } = req.body;
@@ -440,7 +443,7 @@ router.post("/refresh-token", async (req, res) => {
 // POST /api/auth/forgot-password
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", emailOtpLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
 
@@ -486,7 +489,7 @@ router.post("/forgot-password", async (req, res) => {
 // POST /api/auth/reset-password
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
     const otp = String(req.body.otp || "").trim();
@@ -565,7 +568,7 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
     const updates = {};
 
     if (req.body.username) {
-      updates.username = String(req.body.username).trim();
+      updates.username = sanitizeText(req.body.username, { maxLength: 40, allowNewLines: false });
     }
 
     if (req.file) {
@@ -600,7 +603,7 @@ router.get("/me", protect, async (req, res) => {
 router.put("/bio", protect, async (req, res) => {
   try {
     const { bio } = req.body;
-    const cleanBio = String(bio || "").trim();
+    const cleanBio = sanitizeText(bio, { maxLength: 200, allowNewLines: true });
 
     if (cleanBio.length > 200) {
       return res

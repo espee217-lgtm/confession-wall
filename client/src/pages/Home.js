@@ -570,7 +570,7 @@ useEffect(() => {
       setShowCompose(false);
     } catch (err) {
       console.error(err);
-      alert("Could not post — is the backend running?");
+      window.cwToast?.("Could not post — is the backend running?", "error") || alert("Could not post — is the backend running?");
     }
 
     setLoading(false);

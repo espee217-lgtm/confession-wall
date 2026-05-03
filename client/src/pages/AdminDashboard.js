@@ -86,7 +86,7 @@ export default function AdminDashboard() {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      alert(data.message || "Could not delete comment.");
+      window.cwToast?.(data.message || "Could not delete comment.", "error") || alert(data.message || "Could not delete comment.");
       return;
     }
 
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
       )
     );
 
-    alert(data.message || "Comment deleted and report resolved.");
+    window.cwToast?.(data.message || "Comment deleted and report resolved.", "success") || alert(data.message || "Comment deleted and report resolved.");
   };
 
   const deleteUser = async (id) => {
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Could not suspend user.");
+      window.cwToast?.(data.message || "Could not suspend user.", "error") || alert(data.message || "Could not suspend user.");
       return;
     }
 
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Could not unsuspend user.");
+      window.cwToast?.(data.message || "Could not unsuspend user.", "error") || alert(data.message || "Could not unsuspend user.");
       return;
     }
 
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Could not ban user.");
+      window.cwToast?.(data.message || "Could not ban user.", "error") || alert(data.message || "Could not ban user.");
       return;
     }
 
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Could not unban user.");
+      window.cwToast?.(data.message || "Could not unban user.", "error") || alert(data.message || "Could not unban user.");
       return;
     }
 
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
     const confessionId = report.confessionId?._id;
 
     if (!confessionId) {
-      alert("This post no longer exists.");
+      window.cwToast?.("This post no longer exists.", "warning") || alert("This post no longer exists.");
       return;
     }
 
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(data.message || "Could not enter main site as admin.");
+      window.cwToast?.(data.message || "Could not enter main site as admin.", "error") || alert(data.message || "Could not enter main site as admin.");
       return;
     }
 
@@ -279,7 +279,7 @@ export default function AdminDashboard() {
     navigate("/");
   } catch (err) {
     console.error(err);
-    alert("Something went wrong while entering main site.");
+    window.cwToast?.("Something went wrong while entering main site.", "error") || alert("Something went wrong while entering main site.");
   }
 };
   const cardStyle = {
