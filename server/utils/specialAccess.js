@@ -2,6 +2,7 @@ const DEFAULT_SPECIAL_EMAILS = [
   "mcr9496@gmail.com",
   "theexperttunic464@gmail.com",
   "espee217@gmail.com",
+  "noiorexd@gmail.com",
 ];
 
 const normalizeEmail = (email) => String(email || "").trim().toLowerCase();
