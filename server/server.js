@@ -1,17 +1,23 @@
 const http = require("http");
-const { Server } = require("socket.io");
-const { setupSocket } = require("./socket");
 const dotenv = require("dotenv");
+
 dotenv.config();
 
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { Server } = require("socket.io");
+
+const { setupSocket } = require("./socket");
 
 const reportRoutes = require("./routes/reportRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const specialRoutes = require("./routes/specialRoutes");
 const confessionRoutes = require("./routes/confessionRoutes");
 const authRoutes = require("./routes/authRoutes");
+const triviaRoutes = require("./routes/triviaRoutes");
+const specialActivityRoutes = require("./routes/specialActivityRoutes");
+const giftRoutes = require("./routes/giftRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
@@ -19,17 +25,20 @@ const PORT = process.env.PORT || 5000;
 
 app.set("trust proxy", 1);
 
-const allowedOrigins = new Set([
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https://confession-wall-ooqkkrirq-espee217-lgtms-projects.vercel.app",
-  process.env.CLIENT_URL,
-  process.env.CORS_ORIGIN,
-].filter(Boolean));
+const allowedOrigins = new Set(
+  [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://confession-wall-ooqkkrirq-espee217-lgtms-projects.vercel.app",
+    process.env.CLIENT_URL,
+    process.env.CORS_ORIGIN,
+  ].filter(Boolean)
+);
 
 const isAllowedVercelPreview = (origin) => {
   try {
     const url = new URL(origin);
+
     return (
       url.protocol === "https:" &&
       url.hostname.endsWith(".vercel.app") &&
@@ -40,23 +49,23 @@ const isAllowedVercelPreview = (origin) => {
   }
 };
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow server-to-server tools, curl, and health checks with no Origin header.
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(new Error(`CORS blocked origin: ${origin}`));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-admin-log-secret"],
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
@@ -66,6 +75,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/trivia", triviaRoutes);
+app.use("/api/special-activity", specialActivityRoutes);
+app.use("/api/gift", giftRoutes);
+app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {
   res.send("Confession Wall Server is running!");
@@ -83,7 +96,9 @@ app.use((err, req, res, next) => {
   }
 
   if (err.code === "LIMIT_FILE_SIZE") {
-    return res.status(413).json({ message: "Image is too large. Maximum size is 5MB." });
+    return res
+      .status(413)
+      .json({ message: "Image is too large. Maximum size is 5MB." });
   }
 
   if (err.message && err.message.includes("file type")) {
@@ -94,6 +109,7 @@ app.use((err, req, res, next) => {
 });
 
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin(origin, callback) {
@@ -111,13 +127,16 @@ const io = new Server(server, {
 });
 
 setupSocket(io);
-
 app.set("io", io);
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ Connected to MongoDB");
-    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   })
-  .catch((err) => console.error("MongoDB connection error:", err.message));
+  .catch((err) => {
+    console.error("MongoDB connection error:", err.message);
+  });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { isSpecialEmail } from "../utils/specialAccess";
 import "../AppStyle.css";
 
 const API_URL =
@@ -130,7 +131,7 @@ export default function Login() {
       }
 
       login(data.user, data.token, data.refreshToken, data.tokenExpiresAt);
-      navigate("/");
+      navigate(isSpecialEmail(data.user?.email) ? "/choose" : "/");
     } catch (err) {
       setError("Something went wrong. Try again.");
     } finally {

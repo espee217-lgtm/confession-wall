@@ -1,5 +1,9 @@
+import ReenaKundaliPage from "./pages/ReenaKundaliPage";
+import ReenaApologyPage from "./pages/ReenaApologyPage";
+import ReenaTriviaPage from "./pages/ReenaTriviaPage";
 import { connectSocket, disconnectSocket } from "./socket";
 import React, { useEffect, useRef, useState } from "react";
+import SpecialLogsAdminPage from "./pages/SpecialLogsAdminPage";
 import {
   BrowserRouter as Router,
   Routes,
@@ -28,13 +32,15 @@ import Privacy from "./pages/Privacy";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
+import ChoicePage from "./pages/ChoicePage";
+import ReenaPage from "./pages/ReenaPage";
 
 import { useAuth } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
-const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard"];
-const HIDE_FOOTER_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard"];
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard", "/choose", "/reena"];
+const HIDE_FOOTER_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard", "/choose", "/reena"];
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
   (window.location.hostname === "localhost"
@@ -695,9 +701,15 @@ function AppContent() {
         <Route path="/budding" element={<BuddingLand />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/choose" element={<ChoicePage />} />
+        <Route path="/reena" element={<ReenaPage />} />
         <Route path="/guidelines" element={<CommunityGuidelines />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
+        <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
+        <Route path="/reena-apology" element={<ReenaApologyPage />} />
+        <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
       </Routes>
 
       {!hideFooter && <Footer />}

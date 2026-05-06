@@ -1,0 +1,122 @@
+.apology-page {
+  min-height: 100vh;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
+    linear-gradient(rgba(1, 10, 4, 0.62), rgba(1, 10, 4, 0.78)),
+    url("../../public/reena-choice/forest-bg.png") center / cover fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 24px;
+}
+
+.apology-card {
+  width: min(920px, 100%);
+  padding: clamp(32px, 6vw, 72px);
+  border-radius: 38px;
+  border: 1px solid rgba(255, 232, 165, 0.2);
+  background:
+    radial-gradient(circle at top left, rgba(255, 226, 150, 0.14), transparent 38%),
+    radial-gradient(circle at bottom right, rgba(255, 140, 180, 0.1), transparent 38%),
+    linear-gradient(135deg, rgba(2, 28, 10, 0.88), rgba(6, 10, 7, 0.86));
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.48),
+    inset 0 0 40px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.apology-kicker {
+  margin: 0 0 18px;
+  color: #ffe59a;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.apology-card h1 {
+  margin: 0 0 34px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 7vw, 6.4rem);
+  line-height: 0.98;
+  color: #fff3c6;
+  text-shadow:
+    0 0 24px rgba(255, 226, 145, 0.2),
+    0 10px 34px rgba(0, 0, 0, 0.4);
+}
+
+.apology-letter {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  text-align: left;
+}
+
+.apology-letter p {
+  margin: 0 0 20px;
+  color: rgba(255, 246, 220, 0.88);
+  font-size: clamp(1rem, 1.6vw, 1.18rem);
+  line-height: 1.85;
+}
+
+.apology-letter .apology-final {
+  margin-top: 28px;
+  color: #ffe59a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  text-align: center;
+}
+
+.apology-actions {
+  margin-top: 42px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.apology-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  padding: 16px 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 232, 165, 0.3);
+  color: #fff3c6;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.apology-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+}
+
+.apology-btn.secondary {
+  background: linear-gradient(135deg, rgba(44, 94, 40, 0.92), rgba(8, 42, 16, 0.92));
+}
+
+.apology-btn.primary {
+  background: linear-gradient(135deg, rgba(88, 48, 78, 0.92), rgba(44, 94, 40, 0.92));
+}
+
+@media (max-width: 560px) {
+  .apology-card {
+    padding: 34px 22px;
+    border-radius: 28px;
+  }
+
+  .apology-actions {
+    flex-direction: column;
+  }
+
+  .apology-btn {
+    width: 100%;
+  }
+}

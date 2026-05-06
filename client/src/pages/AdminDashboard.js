@@ -577,23 +577,35 @@ const safeBtnStyle = {
     </div>
   )}
 </div>
-        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <button onClick={() => setTab("reports")} style={btnStyle}>
-            Reports ({reports.length})
-          </button>
+        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+  <button onClick={() => setTab("reports")} style={btnStyle}>
+    Reports ({reports.length})
+  </button>
 
-          <button onClick={() => setTab("confessions")} style={btnStyle}>
-            Confessions ({confessions.length})
-          </button>
+  <button onClick={() => setTab("confessions")} style={btnStyle}>
+    Confessions ({confessions.length})
+  </button>
 
-          <button onClick={() => setTab("users")} style={btnStyle}>
-            Users ({users.length})
-          </button>
+  <button onClick={() => setTab("users")} style={btnStyle}>
+    Users ({users.length})
+  </button>
 
-          <button onClick={() => setTab("logs")} style={btnStyle}>
-            Logs ({logs.length})
-          </button>
-        </div>
+  <button onClick={() => setTab("logs")} style={btnStyle}>
+    Logs ({logs.length})
+  </button>
+
+  <button
+    onClick={() => navigate("/admin/special-logs")}
+    style={{
+      ...btnStyle,
+      color: "#ffe59a",
+      borderColor: "rgba(255, 229, 154, 0.45)",
+      background: "rgba(255, 229, 154, 0.1)",
+    }}
+  >
+    Special Section Logs
+  </button>
+</div>
 
         {tab === "reports" && (
           <div>

@@ -1,0 +1,408 @@
+.kundali-page {
+  min-height: 100vh;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
+    linear-gradient(rgba(1, 10, 4, 0.58), rgba(1, 10, 4, 0.72)),
+    url("../../public/reena-choice/forest-bg.png") center / cover fixed;
+  overflow-x: hidden;
+}
+
+.kundali-back-btn {
+  position: fixed;
+  top: 28px;
+  left: 28px;
+  z-index: 20;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 232, 165, 0.3);
+  background: rgba(3, 22, 9, 0.72);
+  color: #fff3c6;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+}
+
+.kundali-hero,
+.kundali-ending {
+  position: relative;
+  min-height: 100vh;
+  width: min(1100px, calc(100% - 48px));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.kundali-hero::before,
+.kundali-ending::before,
+.kundali-slide::before {
+  content: "";
+  position: absolute;
+  inset: 12% 4%;
+  border-radius: 38px;
+  border: 1px solid rgba(255, 232, 165, 0.17);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 226, 150, 0.13), transparent 35%),
+    radial-gradient(circle at 80% 70%, rgba(58, 255, 149, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(2, 28, 10, 0.84), rgba(6, 10, 7, 0.82));
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.45),
+    inset 0 0 42px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+  z-index: 0;
+}
+
+.kundali-hero > *,
+.kundali-ending > *,
+.kundali-slide > * {
+  position: relative;
+  z-index: 1;
+}
+
+.kundali-kicker {
+  margin: 0 0 16px;
+  color: #ffe59a;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.kundali-hero h1,
+.kundali-ending h2 {
+  margin: 0 0 24px;
+  max-width: 900px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.4rem, 8vw, 8rem);
+  line-height: 0.95;
+  color: #fff3c6;
+  text-shadow:
+    0 0 24px rgba(255, 226, 145, 0.2),
+    0 10px 34px rgba(0, 0, 0, 0.4);
+}
+
+.kundali-hero p,
+.kundali-ending p {
+  max-width: 760px;
+  margin: 0 auto;
+  font-size: clamp(1rem, 1.5vw, 1.28rem);
+  line-height: 1.75;
+  color: rgba(255, 246, 220, 0.86);
+}
+
+.kundali-disclaimer {
+  margin-top: 26px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 232, 165, 0.22);
+  background: rgba(5, 21, 9, 0.55);
+  color: rgba(255, 229, 154, 0.9);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.kundali-scroll-hint {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 246, 220, 0.75);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.kundali-scroll-hint b {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.6rem;
+  color: #ffe59a;
+  animation: kundaliBounce 1.2s ease-in-out infinite;
+}
+
+.kundali-scroll-hint.small {
+  bottom: 26px;
+}
+
+@keyframes kundaliBounce {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+
+.kundali-slide {
+  position: relative;
+  min-height: 100vh;
+  width: min(1220px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 90px 0;
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  gap: 44px;
+  align-items: center;
+}
+
+.kundali-slide-text {
+  padding-left: 42px;
+}
+
+.kundali-slide-text span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(255, 232, 165, 0.12);
+  color: #ffe59a;
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.kundali-slide-text h2 {
+  margin: 0 0 22px;
+  max-width: 440px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 4vw, 4.6rem);
+  line-height: 1.02;
+  color: #fff3c6;
+  text-shadow:
+    0 0 22px rgba(255, 226, 145, 0.16),
+    0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.kundali-slide-text p {
+  max-width: 430px;
+  font-size: clamp(0.98rem, 1.22vw, 1.16rem);
+  line-height: 1.75;
+  color: rgba(255, 246, 220, 0.84);
+}
+
+.kundali-image-frame {
+    .kundali-image-frame {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(255, 232, 165, 0.2);
+  background:
+    radial-gradient(circle at top, rgba(255, 226, 150, 0.11), transparent 40%),
+    rgba(5, 21, 9, 0.5);
+  padding: 14px;
+  cursor: zoom-in;
+  outline: none;
+}
+  justify-self: center;
+  width: min(100%, 560px);
+  max-height: 84vh;
+  padding: 14px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 232, 165, 0.2);
+  background:
+    radial-gradient(circle at top, rgba(255, 226, 150, 0.11), transparent 40%),
+    rgba(5, 21, 9, 0.5);
+  box-shadow:
+    0 26px 90px rgba(0, 0, 0, 0.5),
+    0 0 44px rgba(255, 222, 140, 0.09),
+    inset 0 0 24px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(10px);
+}
+
+.kundali-image-frame img {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 22px;
+}
+
+.kundali-return-btn {
+  margin-top: 34px;
+  padding: 16px 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 232, 165, 0.28);
+  background:
+    linear-gradient(135deg, rgba(34, 94, 40, 0.9), rgba(8, 42, 16, 0.9));
+  color: #fff3c6;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+}
+
+@media (max-width: 900px) {
+  .kundali-slide {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 110px 0;
+  }
+
+  .kundali-slide-text {
+    padding-left: 0;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .kundali-slide-text h2,
+  .kundali-slide-text p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .kundali-image-frame {
+    width: min(100%, 500px);
+  }
+
+  .kundali-back-btn {
+    top: 18px;
+    left: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .kundali-hero,
+  .kundali-ending,
+  .kundali-slide {
+    width: min(100% - 28px, 760px);
+  }
+
+  .kundali-hero h1,
+  .kundali-ending h2 {
+    font-size: clamp(2.7rem, 14vw, 4.2rem);
+  }
+
+  .kundali-hero::before,
+  .kundali-ending::before,
+  .kundali-slide::before {
+    inset: 9% 0;
+  }
+
+  .kundali-slide-text h2 {
+    font-size: clamp(2.2rem, 11vw, 3.4rem);
+  }
+
+  .kundali-image-frame {
+    padding: 8px;
+    border-radius: 24px;
+  }
+
+  .kundali-image-frame img {
+    border-radius: 18px;
+  }
+}
+/* infographic zoom on hover/click */
+.kundali-image-frame {
+  cursor: zoom-in;
+}
+
+.kundali-image-frame img {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  transform-origin: center center;
+}
+
+.kundali-image-frame:hover img {
+  transform: scale(1.08);
+}
+
+/* click / tap zoom */
+.kundali-image-frame:active img {
+  transform: scale(3);
+  position: relative;
+  z-index: 50;
+  cursor: zoom-out;
+}
+.kundali-image-frame {
+  cursor: zoom-in;
+  border: 1px solid rgba(255, 232, 165, 0.2);
+  outline: none;
+}
+
+.kundali-image-frame:hover img {
+  transform: scale(1.04);
+}
+
+.kundali-image-frame img {
+  transition: transform 0.3s ease;
+}
+
+.kundali-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 40px;
+  border: 0;
+  background: rgba(0, 0, 0, 0.86);
+  cursor: zoom-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kundali-zoom-overlay img {
+  width: auto;
+  height: auto;
+  max-width: 78vw;
+  max-height: 92vh;
+  transform: scale(1.35);
+  transform-origin: center;
+  border-radius: 18px;
+  box-shadow:
+    0 0 70px rgba(255, 222, 140, 0.22),
+    0 30px 100px rgba(0, 0, 0, 0.65);
+}
+.kundali-image-frame:focus,
+.kundali-image-frame:focus-visible,
+.kundali-image-frame:active {
+  outline: none;
+  background:
+    radial-gradient(circle at top, rgba(255, 226, 150, 0.11), transparent 40%),
+    rgba(5, 21, 9, 0.5);
+}
+
+.kundali-image-frame::-moz-focus-inner {
+  border: 0;
+}
+/* force infographic button frame to stay transparent */
+button.kundali-image-frame,
+button.kundali-image-frame:hover,
+button.kundali-image-frame:focus,
+button.kundali-image-frame:focus-visible,
+button.kundali-image-frame:active {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 232, 165, 0.2);
+  outline: none !important;
+  box-shadow:
+    0 26px 90px rgba(0, 0, 0, 0.5),
+    0 0 44px rgba(255, 222, 140, 0.09),
+    inset 0 0 24px rgba(255, 255, 255, 0.025);
+}
+/* force zoom overlay to never show blue button background */
+button.kundali-zoom-overlay,
+button.kundali-zoom-overlay:hover,
+button.kundali-zoom-overlay:focus,
+button.kundali-zoom-overlay:focus-visible,
+button.kundali-zoom-overlay:active {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(0, 0, 0, 0.82) !important;
+  background-color: rgba(0, 0, 0, 0.82) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
