@@ -97,5 +97,10 @@ router.post("/check", async (req, res) => {
     });
   }
 });
-
+router.get("/debug-emails", (req, res) => {
+  res.json({
+    env: process.env.SPECIAL_ALLOWED_EMAILS,
+    allowedEmails: getSpecialAllowedEmails(),
+  });
+});
 module.exports = router;
