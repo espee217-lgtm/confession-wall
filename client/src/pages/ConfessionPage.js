@@ -1,3 +1,8 @@
+import DisplayTitlePill from "../components/DisplayTitlePill";
+import {
+  getBadgeLabel,
+  getPostThemeStyle,
+} from "../utils/cosmetics";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -95,7 +100,7 @@ const styles = {
     height: "38px",
     borderRadius: "50%",
     objectFit: "cover",
-    border: "2px solid rgba(100,180,80,0.3)",
+    display: "block",
   },
   avatarPlaceholder: {
     width: "38px",
@@ -106,24 +111,121 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: "16px",
-    border: "2px solid rgba(100,180,80,0.3)",
   },
 };
 
-function Avatar({ src, size = 38 }) {
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt="avatar"
-        style={{ ...styles.avatar, width: size, height: size }}
-      />
-    );
+function normalizeFrameId(frameId) {
+  if (!frameId) return "";
+
+  const value = String(frameId).trim();
+
+  const aliases = {
+    "vine-glow-frame": "frame-vine-glow",
+    vine_glow_frame: "frame-vine-glow",
+    vineGlowFrame: "frame-vine-glow",
+    "frame-vine-glow": "frame-vine-glow",
+
+    "golden-leaf-frame": "frame-golden-leaf",
+    golden_leaf_frame: "frame-golden-leaf",
+    goldenLeafFrame: "frame-golden-leaf",
+    "frame-golden-leaf": "frame-golden-leaf",
+
+    "ember-root-frame": "frame-ember-root",
+    ember_root_frame: "frame-ember-root",
+    emberRootFrame: "frame-ember-root",
+    "frame-ember-root": "frame-ember-root",
+  };
+
+  return aliases[value] || value;
+}
+
+function getFrameStyle(frameId) {
+  const normalized = normalizeFrameId(frameId);
+
+  if (normalized === "frame-vine-glow") {
+    return {
+      padding: "3px",
+      background:
+        "linear-gradient(135deg, rgba(120,255,140,0.95), rgba(28,120,45,0.45))",
+      boxShadow:
+        "0 0 12px rgba(120,255,130,0.9), 0 0 25px rgba(120,255,130,0.35)",
+    };
   }
 
+  if (normalized === "frame-golden-leaf") {
+    return {
+      padding: "3px",
+      background:
+        "linear-gradient(135deg, rgba(255,224,118,0.95), rgba(150,105,20,0.45))",
+      boxShadow:
+        "0 0 12px rgba(255,210,90,0.9), 0 0 25px rgba(255,210,90,0.35)",
+    };
+  }
+
+  if (normalized === "frame-ember-root") {
+    return {
+      padding: "3px",
+      background:
+        "linear-gradient(135deg, rgba(255,110,70,0.95), rgba(120,20,12,0.5))",
+      boxShadow:
+        "0 0 12px rgba(255,85,45,0.9), 0 0 25px rgba(255,85,45,0.35)",
+    };
+  }
+
+  return {
+    padding: "0px",
+    background: "transparent",
+    boxShadow: "none",
+  };
+}
+
+function Avatar({ src, size = 38, frameId = "" }) {
+  const frameStyle = getFrameStyle(frameId);
+  const hasFrame = !!normalizeFrameId(frameId);
+
   return (
-    <div style={{ ...styles.avatarPlaceholder, width: size, height: size }}>
-      🌿
+    <div
+      style={{
+        width: size,
+        height: size,
+        minWidth: size,
+        minHeight: size,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        overflow: "visible",
+        ...frameStyle,
+      }}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt="avatar"
+          style={{
+            ...styles.avatar,
+            width: "100%",
+            height: "100%",
+            border: hasFrame
+              ? "2px solid rgba(4, 18, 8, 0.9)"
+              : "2px solid rgba(100,180,80,0.3)",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            ...styles.avatarPlaceholder,
+            width: "100%",
+            height: "100%",
+            border: hasFrame
+              ? "2px solid rgba(4, 18, 8, 0.9)"
+              : "2px solid rgba(100,180,80,0.3)",
+          }}
+        >
+          🌿
+        </div>
+      )}
     </div>
   );
 }
@@ -281,6 +383,17 @@ export default function ConfessionPage() {
       .catch((err) => console.error(err));
   }, [id]);
 
+  useEffect(() => {
+    if (!targetCommentId || !confession) return;
+
+    const el = document.getElementById(`comment-${targetCommentId}`);
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 250);
+    }
+  }, [targetCommentId, confession]);
+
   const watered = confession?.wateredBy?.length || 0;
   const burned = confession?.burnedBy?.length || 0;
 
@@ -292,6 +405,12 @@ export default function ConfessionPage() {
 
   const realm = realmFromUrl || inferredRealm;
   const theme = realmThemes[realm] || realmThemes.grove;
+  const authorEquipped = confession?.userId?.equippedCosmetics || {};
+const authorPostThemeStyle = getPostThemeStyle(authorEquipped.postTheme, realm);
+const authorBadge = getBadgeLabel(authorEquipped.badge);
+const viewerEquipped = user?.equippedCosmetics || {};
+const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
+const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
 
   let bgVideo = "/forest3.mp4";
 
@@ -311,6 +430,7 @@ export default function ConfessionPage() {
     color: theme.text,
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
+    ...authorPostThemeStyle,
   };
 
   const commentCardStyle = {
@@ -337,6 +457,7 @@ export default function ConfessionPage() {
     boxShadow: theme.cardShadow,
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
+    ...viewerPostThemeStyle,
   };
 
   const handleImageChange = (e) => {
@@ -347,7 +468,8 @@ export default function ConfessionPage() {
 
   const reportComment = async (commentId) => {
     if (!token) {
-      window.cwToast?.("You must be logged in to report.", "warning") || alert("You must be logged in to report.");
+      window.cwToast?.("You must be logged in to report.", "warning") ||
+        alert("You must be logged in to report.");
       return;
     }
 
@@ -372,14 +494,19 @@ export default function ConfessionPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        window.cwToast?.(data.message || data.error || "Could not submit report.", "error") || alert(data.message || data.error || "Could not submit report.");
+        window.cwToast?.(
+          data.message || data.error || "Could not submit report.",
+          "error"
+        ) || alert(data.message || data.error || "Could not submit report.");
         return;
       }
 
-      window.cwToast?.("Comment reported.", "success") || alert("Comment reported.");
+      window.cwToast?.("Comment reported.", "success") ||
+        alert("Comment reported.");
     } catch (err) {
       console.error(err);
-      window.cwToast?.("Something went wrong while reporting.", "error") || alert("Something went wrong while reporting.");
+      window.cwToast?.("Something went wrong while reporting.", "error") ||
+        alert("Something went wrong while reporting.");
     }
   };
 
@@ -387,6 +514,12 @@ export default function ConfessionPage() {
     e.preventDefault();
 
     if (!comment.trim() && !commentImage) return;
+
+    if (!token) {
+      window.cwToast?.("You must be logged in to comment.", "warning") ||
+        alert("You must be logged in to comment.");
+      return;
+    }
 
     try {
       const formData = new FormData();
@@ -403,7 +536,13 @@ export default function ConfessionPage() {
       const commentData = await commentRes.json().catch(() => ({}));
 
       if (!commentRes.ok) {
-        window.cwToast?.(commentData.message || commentData.error || "Could not add comment.", "error") || alert(commentData.message || commentData.error || "Could not add comment.");
+        window.cwToast?.(
+          commentData.message || commentData.error || "Could not add comment.",
+          "error"
+        ) ||
+          alert(
+            commentData.message || commentData.error || "Could not add comment."
+          );
         return;
       }
 
@@ -420,7 +559,8 @@ export default function ConfessionPage() {
       setConfession(updated);
     } catch (err) {
       console.error(err);
-      window.cwToast?.("Could not add comment.", "error") || alert("Could not add comment.");
+      window.cwToast?.("Could not add comment.", "error") ||
+        alert("Could not add comment.");
     }
   };
 
@@ -488,38 +628,63 @@ export default function ConfessionPage() {
         }}
       >
         <div style={styles.inner}>
-         <Link
-  to={
-    from === "admin"
-      ? "/admin/dashboard"
-      : realm === "budding"
-      ? "/budding"
-      : realm === "scorched"
-      ? "/scorched"
-      : "/grove"
-  }
-  style={{ ...styles.backBtn, color: theme.accent }}
->
-  ← back
-</Link>
+          <Link
+            to={
+              from === "admin"
+                ? "/admin/dashboard"
+                : realm === "budding"
+                ? "/budding"
+                : realm === "scorched"
+                ? "/scorched"
+                : "/grove"
+            }
+            style={{ ...styles.backBtn, color: theme.accent }}
+          >
+            ← back
+          </Link>
 
           <div style={cardStyle}>
             <div style={styles.avatarRow}>
-              <Link to={confession.userId ? `/user/${confession.userId._id}` : "#"}>
-                <Avatar src={confession.userId?.profilePicture} />
-              </Link>
-
               <Link
                 to={confession.userId ? `/user/${confession.userId._id}` : "#"}
                 style={{
-                  fontWeight: 600,
-                  fontSize: "14px",
-                  color: theme.username,
+                  display: "inline-flex",
+                  alignItems: "center",
                   textDecoration: "none",
                 }}
               >
-                @{confession.userId?.username || "anonymous"}
+                <Avatar
+                  src={confession.userId?.profilePicture}
+                  frameId={confession.userId?.equippedCosmetics?.frame}
+                />
               </Link>
+
+              <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    flexWrap: "wrap",
+  }}
+>
+  <Link
+    to={confession.userId ? `/user/${confession.userId._id}` : "#"}
+    style={{
+      fontWeight: 600,
+      fontSize: "14px",
+      color: theme.username,
+      textDecoration: "none",
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "4px",
+    }}
+  >
+    @{confession.userId?.username || "anonymous"}{" "}
+    {authorBadge ? authorBadge.icon : ""}
+  </Link>
+
+  <DisplayTitlePill titleId={authorEquipped.title} />
+</div>
             </div>
 
             <p
@@ -563,6 +728,12 @@ export default function ConfessionPage() {
               userId={user?._id}
               theme={theme}
               onReact={async (type) => {
+                if (!token) {
+                  window.cwToast?.("You must be logged in to react.", "warning") ||
+                    alert("You must be logged in to react.");
+                  return;
+                }
+
                 const res = await fetch(`${API_URL}/${id}/react`, {
                   method: "POST",
                   headers: {
@@ -573,6 +744,14 @@ export default function ConfessionPage() {
                 });
 
                 const data = await res.json();
+
+                if (!res.ok) {
+                  window.cwToast?.(
+                    data.message || data.error || "Could not react.",
+                    "error"
+                  ) || alert(data.message || data.error || "Could not react.");
+                  return;
+                }
 
                 if (data.seedReward?.awarded) {
                   refreshUser?.();
@@ -604,124 +783,170 @@ export default function ConfessionPage() {
           </div>
 
           {confession.comments?.length > 0 ? (
-  confession.comments.map((c, i) => {
-    const isTargetComment =
-      targetCommentId && c._id?.toString() === targetCommentId;
+            confession.comments.map((c, i) => {
+  const isTargetComment =
+    targetCommentId && c._id?.toString() === targetCommentId;
 
-    return (
-      <div
-        key={c._id || i}
-        id={`comment-${c._id}`}
-        style={{
-          ...commentCardStyle,
-          transform: isTargetComment ? "scale(1.035)" : "scale(1)",
-          border: isTargetComment
-            ? "1px solid rgba(255,230,120,0.75)"
-            : commentCardStyle.border,
-          boxShadow: isTargetComment
-            ? "0 0 35px rgba(255,230,120,0.55)"
-            : commentCardStyle.boxShadow,
-          transition: "all 0.35s ease",
-        }}
-      >
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <Link
-                    to={c.userId ? `/user/${c.userId._id}` : "#"}
-                    style={{ marginRight: "10px" }}
-                  >
-                    <Avatar src={c.userId?.profilePicture} size={30} />
-                  </Link>
+  const commentEquipped = c.userId?.equippedCosmetics || {};
+  const commentPostThemeStyle = getPostThemeStyle(
+    commentEquipped.postTheme,
+    realm
+  );
+  const commentBadge = getBadgeLabel(commentEquipped.badge);
+  const commentHasTheme = Boolean(commentEquipped.postTheme);
 
-                  <Link
-                    to={c.userId ? `/user/${c.userId._id}` : "#"}
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "13px",
-                      color: theme.username,
-                      textDecoration: "none",
-                    }}
-                  >
-                    @{c.userId?.username || "anonymous"}
-                  </Link>
-                </div>
+  const commentTextColor = commentHasTheme
+    ? "rgba(240,255,235,0.94)"
+    : theme.text;
 
-                {c.text && (
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: theme.text,
-                      lineHeight: 1.65,
-                      margin: "5px 0 0",
-                    }}
-                  >
-                    {c.text}
-                  </p>
-                )}
-
-                {c.image && (
-                  <img
-                    src={c.image}
-                    alt="comment"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "200px",
-                      borderRadius: "10px",
-                      marginTop: "8px",
-                    }}
-                  />
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => reportComment(c._id)}
+  return (
+                <div
+                  key={c._id || i}
+                  id={`comment-${c._id}`}
                   style={{
-                    marginTop: "10px",
-                    background: theme.reportBg,
-                    border: theme.reportBorder,
-                    color: theme.reportColor,
-                    borderRadius: "12px",
-                    padding: "5px 11px",
-                    fontSize: "11px",
-                    cursor: "pointer",
-                    fontFamily: "Georgia, serif",
+  ...commentCardStyle,
+  ...commentPostThemeStyle,
+  color: commentTextColor,
+  transform: isTargetComment ? "scale(1.035)" : "scale(1)",
+                    border: isTargetComment
+                      ? "1px solid rgba(255,230,120,0.75)"
+                      : commentCardStyle.border,
+                    boxShadow: isTargetComment
+                      ? "0 0 35px rgba(255,230,120,0.55)"
+                      : commentCardStyle.boxShadow,
+                    transition: "all 0.35s ease",
                   }}
                 >
-                  Report
-                </button>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Link
+                      to={c.userId ? `/user/${c.userId._id}` : "#"}
+                      style={{
+                        marginRight: "10px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <Avatar
+                        src={c.userId?.profilePicture}
+                        size={30}
+                        frameId={c.userId?.equippedCosmetics?.frame}
+                      />
+                    </Link>
 
-                <ReactionBar
-                  wateredBy={c.wateredBy || []}
-                  burnedBy={c.burnedBy || []}
-                  userId={user?._id}
-                  theme={theme}
-                  small
-                  onReact={async (type) => {
-                    const res = await fetch(`${API_URL}/${id}/comments/${i}/react`, {
-                      method: "POST",
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({ type }),
-                    });
+                    <Link
+                      to={c.userId ? `/user/${c.userId._id}` : "#"}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "13px",
+                        color: theme.username,
+                        textDecoration: "none",
+                      }}
+                    >
+                      @{c.userId?.username || "anonymous"} {commentBadge ? commentBadge.icon : ""}
+                    </Link>
+                    <DisplayTitlePill titleId={commentEquipped.title} />
+                  </div>
 
-                    const data = await res.json();
+                  {c.text && (
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        color: commentTextColor,
+                        lineHeight: 1.65,
+                        margin: "5px 0 0",
+                      }}
+                    >
+                      {c.text}
+                    </p>
+                  )}
 
-                    setConfession((prev) => {
-                      const updated = [...prev.comments];
-                      updated[i] = {
-                        ...updated[i],
-                        wateredBy: data.wateredBy,
-                        burnedBy: data.burnedBy,
-                      };
-                      return { ...prev, comments: updated };
-                    });
-                  }}
-                />
-                     </div>
-      );
-    })
-  ) : (
+                  {c.image && (
+                    <img
+                      src={c.image}
+                      alt="comment"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "200px",
+                        borderRadius: "10px",
+                        marginTop: "8px",
+                      }}
+                    />
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => reportComment(c._id)}
+                    style={{
+                      marginTop: "10px",
+                      background: theme.reportBg,
+                      border: theme.reportBorder,
+                      color: theme.reportColor,
+                      borderRadius: "12px",
+                      padding: "5px 11px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontFamily: "Georgia, serif",
+                    }}
+                  >
+                    Report
+                  </button>
+
+                  <ReactionBar
+                    wateredBy={c.wateredBy || []}
+                    burnedBy={c.burnedBy || []}
+                    userId={user?._id}
+                    theme={theme}
+                    small
+                    onReact={async (type) => {
+                      if (!token) {
+                        window.cwToast?.(
+                          "You must be logged in to react.",
+                          "warning"
+                        ) || alert("You must be logged in to react.");
+                        return;
+                      }
+
+                      const res = await fetch(
+                        `${API_URL}/${id}/comments/${i}/react`,
+                        {
+                          method: "POST",
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({ type }),
+                        }
+                      );
+
+                      const data = await res.json();
+
+                      if (!res.ok) {
+                        window.cwToast?.(
+                          data.message || data.error || "Could not react.",
+                          "error"
+                        ) ||
+                          alert(
+                            data.message || data.error || "Could not react."
+                          );
+                        return;
+                      }
+
+                      setConfession((prev) => {
+                        const updated = [...prev.comments];
+                        updated[i] = {
+                          ...updated[i],
+                          wateredBy: data.wateredBy,
+                          burnedBy: data.burnedBy,
+                        };
+                        return { ...prev, comments: updated };
+                      });
+                    }}
+                  />
+                </div>
+              );
+            })
+          ) : (
             <div
               style={{
                 textAlign: "center",
@@ -789,7 +1014,7 @@ export default function ConfessionPage() {
                   border: "none",
                   outline: "none",
                   fontSize: "14px",
-                  color: theme.inputText,
+                  color: viewerHasPostTheme ? "rgba(240,255,235,0.95)" : theme.inputText,
                   background: "transparent",
                   fontFamily: "Georgia, serif",
                 }}
@@ -818,7 +1043,12 @@ export default function ConfessionPage() {
               <button
                 type="submit"
                 style={{
-                  background: theme.accent,
+                  background: viewerHasPostTheme
+  ? "rgba(110, 170, 255, 0.28)"
+  : theme.accent,
+border: viewerHasPostTheme
+  ? "1px solid rgba(150, 200, 255, 0.45)"
+  : "none",
                   border: "none",
                   borderRadius: "50px",
                   padding: "8px 20px",

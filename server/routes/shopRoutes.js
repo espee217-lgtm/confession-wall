@@ -213,8 +213,20 @@ router.post("/buy/:itemId", protect, async (req, res) => {
     }
 
     user.seeds = Math.max((user.seeds || 0) - item.price, 0);
-    user.ownedCosmetics.push({ itemId: item.id, purchasedAt: new Date() });
-    await user.save();
+
+user.ownedCosmetics.push({
+  itemId: item.id,
+  purchasedAt: new Date(),
+});
+
+// Auto-equip the cosmetic immediately after purchase
+const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];
+
+if (equipField) {
+  user.set(`equippedCosmetics.${equipField}`, item.id);
+}
+
+await user.save();
 
     res.json({
       message: `${item.name} unlocked!`,

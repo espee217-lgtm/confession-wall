@@ -544,4 +544,52 @@ router.post("/enter-site", adminProtect, async (req, res) => {
     res.status(500).json({ message: "Could not enter main site as admin" });
   }
 });
+// POST /api/admin/users/:id/give-seeds
+router.post("/users/:id/give-seeds", adminProtect, async (req, res) => {
+  try {
+    const { amount, message } = req.body;
+
+    const seedAmount = Number(amount);
+
+    if (!Number.isFinite(seedAmount) || seedAmount <= 0) {
+      return res.status(400).json({
+        message: "Seed amount must be a positive number.",
+      });
+    }
+
+    if (seedAmount > 10000) {
+      return res.status(400).json({
+        message: "Seed amount is too high. Max allowed is 10000.",
+      });
+    }
+
+    const targetUser = await User.findById(req.params.id).select("-password");
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    targetUser.seeds = (targetUser.seeds || 0) + seedAmount;
+    await targetUser.save();
+
+    const defaultMessage = `An admin gifted you ${seedAmount} Seeds 🌱`;
+
+    await createNotification({
+      userId: targetUser._id,
+      type: "admin_seed_gift",
+      message: message?.trim() || defaultMessage,
+      link: "/shop",
+    });
+
+    res.json({
+      message: `Gave ${seedAmount} Seeds to @${targetUser.username}.`,
+      user: targetUser,
+    });
+  } catch (err) {
+    console.error("Give seeds error:", err);
+    res.status(500).json({
+      message: "Could not give seeds right now.",
+    });
+  }
+});
 module.exports = { router, adminProtect };

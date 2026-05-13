@@ -47,11 +47,26 @@ const buildUserPayload = (user) => ({
   profilePicture: user.profilePicture,
   bio: user.bio,
   isAdmin: user.isAdmin,
+  role: user.role,
+  linkedAdminId: user.linkedAdminId,
   isSuspended: user.isSuspended,
   isBanned: user.isBanned,
   suspendReason: user.suspendReason,
   banReason: user.banReason,
   seeds: user.seeds || 0,
+  showSeedsOnProfile: user.showSeedsOnProfile || false,
+  ownedCosmetics: Array.isArray(user.ownedCosmetics)
+    ? user.ownedCosmetics
+    : [],
+
+  equippedCosmetics: user.equippedCosmetics || {
+    badge: "",
+    frame: "",
+    title: "",
+    postTheme: "",
+    reactionStyle: "",
+    visualEffect: "",
+  },
 });
 
 const createAuthTokens = (user) => {
@@ -762,22 +777,83 @@ router.get("/post-count", protect, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TOGGLE PUBLIC SEED VISIBILITY
+// PUT /api/auth/show-seeds
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.put("/show-seeds", protect, async (req, res) => {
+  try {
+    const { showSeedsOnProfile } = req.body;
+
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.showSeedsOnProfile = Boolean(showSeedsOnProfile);
+    await user.save();
+
+    res.json({
+      message: user.showSeedsOnProfile
+        ? "Seed balance is now visible on your public profile."
+        : "Seed balance is now hidden from your public profile.",
+      user: buildUserPayload(user),
+    });
+  } catch (err) {
+    console.error("Show seeds toggle error:", err.message);
+    res.status(500).json({
+      message: "Could not update seed visibility right now.",
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GET PUBLIC USER PROFILE
 // GET /api/auth/user/:id
 // ─────────────────────────────────────────────────────────────────────────────
 
 router.get("/user/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password -email");
+    const user = await User.findById(req.params.id).select(
+      "-password -email"
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    res.json({
+      _id: user._id,
+      username: user.username,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
+      createdAt: user.createdAt,
+
+      isAdmin: user.isAdmin,
+      role: user.role,
+
+      showSeedsOnProfile: user.showSeedsOnProfile || false,
+      seeds: user.showSeedsOnProfile ? user.seeds || 0 : undefined,
+
+      ownedCosmetics: Array.isArray(user.ownedCosmetics)
+        ? user.ownedCosmetics
+        : [],
+
+      equippedCosmetics: user.equippedCosmetics || {
+        badge: "",
+        frame: "",
+        title: "",
+        postTheme: "",
+        reactionStyle: "",
+        visualEffect: "",
+      },
+    });
   } catch (err) {
     console.error("Public user profile error:", err.message);
-    res.status(500).json({ message: "Could not load user profile right now." });
+    res.status(500).json({
+      message: "Could not load user profile right now.",
+    });
   }
 });
 

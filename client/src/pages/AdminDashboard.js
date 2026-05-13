@@ -165,7 +165,60 @@ export default function AdminDashboard() {
 
     setUsers((prev) => prev.filter((u) => u._id !== id));
   };
+    const giveSeedsToUser = async (id, username) => {
+  const rawAmount = window.prompt(
+    `How many Seeds do you want to give to @${username}?`,
+    "100"
+  );
 
+  if (rawAmount === null) return;
+
+  const amount = Number(rawAmount);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    window.cwToast?.("Enter a valid positive seed amount.", "error") ||
+      alert("Enter a valid positive seed amount.");
+    return;
+  }
+
+  const customMessage = window.prompt(
+    "Notification message for the user:",
+    `An admin gifted you ${amount} Seeds 🌱`
+  );
+
+  if (customMessage === null) return;
+
+  try {
+    const res = await fetch(`${API_URL}/users/${id}/give-seeds`, {
+      method: "POST",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount,
+        message: customMessage || `An admin gifted you ${amount} Seeds 🌱`,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not give seeds.", "error") ||
+        alert(data.message || "Could not give seeds.");
+      return;
+    }
+
+    updateUserInState(data.user);
+
+    window.cwToast?.(data.message || "Seeds given.", "success") ||
+      alert(data.message || "Seeds given.");
+  } catch (err) {
+    console.error(err);
+    window.cwToast?.("Something went wrong while giving seeds.", "error") ||
+      alert("Something went wrong while giving seeds.");
+  }
+};
     const updateUserInState = (updatedUser) => {
     setUsers((prev) =>
       prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
@@ -908,9 +961,16 @@ const safeBtnStyle = {
       <div>
         <strong>{u.username}</strong>
 
-        <div style={{ opacity: 0.5, fontSize: "0.85rem", marginTop: "4px" }}>
-          {u.email} · Joined {new Date(u.createdAt).toLocaleDateString()}
-        </div>
+        <div
+  style={{
+    marginTop: "6px",
+    color: "#9cffb2",
+    fontSize: "0.85rem",
+    fontWeight: 700,
+  }}
+>
+  🌱 Seeds: {u.seeds || 0}
+</div>
 
         <div style={{ marginTop: "8px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {u.isBanned && (
@@ -1004,7 +1064,17 @@ const safeBtnStyle = {
             Ban
           </button>
         )}
-
+        <button
+  onClick={() => giveSeedsToUser(u._id, u.username)}
+  style={{
+    ...safeBtnStyle,
+    color: "#b8ff9c",
+    borderColor: "rgba(180,255,120,0.5)",
+    background: "rgba(120,255,80,0.14)",
+  }}
+>
+  🌱 Give Seeds
+</button>
         <button onClick={() => deleteUser(u._id)} style={deleteBtnStyle}>
           Delete User
         </button>

@@ -63,7 +63,7 @@ router.get("/", async (req, res) => {
   try {
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role");
+      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
 
     res.json(confessions);
   } catch (err) {
@@ -76,7 +76,7 @@ router.get("/realm/thriving", async (req, res) => {
   try {
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role");
+      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
 
     const thriving = confessions.filter((p) => {
       const total = p.wateredBy.length + p.burnedBy.length;
@@ -95,7 +95,7 @@ router.get("/realm/scorched", async (req, res) => {
   try {
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role");
+      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
 
     const scorched = confessions.filter((p) => {
       const total = p.wateredBy.length + p.burnedBy.length;
@@ -132,7 +132,7 @@ router.get("/search", async (req, res) => {
     let confessions = await Confession.find(query)
       .sort({ createdAt: -1 })
       .limit(80)
-      .populate("userId", "username profilePicture isAdmin role");
+      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
 
     // Also allow searching by username after population.
     if (q) {
@@ -140,7 +140,7 @@ router.get("/search", async (req, res) => {
       const usernameMatches = await Confession.find()
         .sort({ createdAt: -1 })
         .limit(120)
-        .populate("userId", "username profilePicture isAdmin role");
+        .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
 
       const byUsername = usernameMatches.filter((post) =>
         String(post.userId?.username || "").toLowerCase().includes(lower)
@@ -178,8 +178,8 @@ router.get("/search", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const confession = await Confession.findById(req.params.id)
-      .populate("userId", "username profilePicture isAdmin role")
-      .populate("comments.userId", "username profilePicture isAdmin role");
+      .populate("userId", "username profilePicture isAdmin role equippedCosmetics")
+      .populate("comments.userId", "username profilePicture isAdmin role equippedCosmetics");
 
     if (!confession) {
       return res.status(404).json({ message: "Confession not found" });
@@ -219,7 +219,7 @@ router.post(
 
       const populated = await Confession.findById(saved._id).populate(
         "userId",
-        "username profilePicture isAdmin role"
+        "username profilePicture isAdmin role equippedCosmetics"
       );
 
       await createAdminLog({
@@ -330,8 +330,8 @@ router.post(
       });
 
       const updated = await Confession.findById(req.params.id)
-        .populate("userId", "username profilePicture isAdmin role")
-        .populate("comments.userId", "username profilePicture isAdmin role");
+        .populate("userId", "username profilePicture isAdmin role equippedCosmetics")
+        .populate("comments.userId", "username profilePicture isAdmin role equippedCosmetics");
 
       const responsePost = updated?.toObject ? updated.toObject() : updated;
       responsePost.seedReward = seedReward;

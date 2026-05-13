@@ -3,7 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 
-const API_URL = "https://confession-wall-hn63.onrender.com/api/confessions";
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  "http://localhost:5000/api/confessions";
 
 export default function BuddingLand() {
   const { user } = useAuth();

@@ -88,6 +88,11 @@ const userSchema = new mongoose.Schema(
       min: 0,
     },
 
+    showSeedsOnProfile: {
+  type: Boolean,
+  default: true,
+},
+
     seedDailyStats: {
       dateKey: { type: String, default: "" },
       loginRewards: { type: Number, default: 0 },

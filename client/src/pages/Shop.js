@@ -56,7 +56,7 @@ function ShopPreview({ item }) {
         <div className="shop-preview-post-line wide" />
         <div className="shop-preview-post-line" />
         <div className="shop-preview-post-actions">
-          <span>💧 12</span>
+          <span>🌱 12</span>
           <span>🔥 3</span>
         </div>
       </div>
@@ -79,9 +79,22 @@ function ShopPreview({ item }) {
   );
 }
 
+function normalizeOwnedCosmetics(ownedCosmetics) {
+  if (!Array.isArray(ownedCosmetics)) return [];
+
+  return ownedCosmetics.map((owned) => {
+    if (typeof owned === "string") {
+      return { itemId: owned };
+    }
+
+    return owned;
+  });
+}
+
 function Shop() {
   const navigate = useNavigate();
   const { user, token, updateUser, refreshUser } = useAuth();
+
   const [items, setItems] = useState([]);
   const [activeType, setActiveType] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -89,11 +102,27 @@ function Shop() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const ownedSet = useMemo(() => {
-    return new Set((user?.ownedCosmetics || []).map((item) => item.itemId));
-  }, [user?.ownedCosmetics]);
+  const [localEquipped, setLocalEquipped] = useState(
+    user?.equippedCosmetics || {}
+  );
 
-  const equipped = user?.equippedCosmetics || {};
+  const [localOwned, setLocalOwned] = useState(
+    normalizeOwnedCosmetics(user?.ownedCosmetics)
+  );
+
+  const [localSeeds, setLocalSeeds] = useState(user?.seeds || 0);
+
+  useEffect(() => {
+    setLocalEquipped(user?.equippedCosmetics || {});
+    setLocalOwned(normalizeOwnedCosmetics(user?.ownedCosmetics));
+    setLocalSeeds(user?.seeds || 0);
+  }, [user]);
+
+  const equipped = localEquipped;
+
+  const ownedSet = useMemo(() => {
+    return new Set(localOwned.map((item) => item.itemId));
+  }, [localOwned]);
 
   const filteredItems = useMemo(() => {
     if (activeType === "all") return items;
@@ -102,11 +131,29 @@ function Shop() {
 
   const typeCounts = useMemo(() => {
     const counts = { all: items.length };
+
     items.forEach((item) => {
       counts[item.type] = (counts[item.type] || 0) + 1;
     });
+
     return counts;
   }, [items]);
+
+  const syncUserState = async (newUser) => {
+    if (!newUser) return;
+
+    updateUser?.(newUser);
+
+    setLocalEquipped(newUser.equippedCosmetics || {});
+    setLocalOwned(normalizeOwnedCosmetics(newUser.ownedCosmetics));
+    setLocalSeeds(newUser.seeds || 0);
+
+    try {
+      await refreshUser?.();
+    } catch (err) {
+      console.warn("Could not refresh user after shop action:", err);
+    }
+  };
 
   useEffect(() => {
     if (!user || !token) {
@@ -117,6 +164,8 @@ function Shop() {
     const loadShop = async () => {
       try {
         setLoading(true);
+        setError("");
+
         const res = await fetch(`${API_BASE}/api/shop`);
         const data = await res.json();
 
@@ -125,7 +174,12 @@ function Shop() {
         }
 
         setItems(Array.isArray(data.items) ? data.items : []);
-        await refreshUser?.();
+
+        try {
+          await refreshUser?.();
+        } catch (err) {
+          console.warn("Could not refresh user while loading shop:", err);
+        }
       } catch (err) {
         setError(err.message || "Could not load shop.");
       } finally {
@@ -155,8 +209,9 @@ function Shop() {
         throw new Error(data.message || "Could not buy this cosmetic.");
       }
 
-      if (data.user) updateUser(data.user);
-      setMessage(data.message || "Cosmetic unlocked!");
+      await syncUserState(data.user);
+
+      setMessage(data.message || `${item.name} unlocked!`);
     } catch (err) {
       setError(err.message || "Could not buy this cosmetic.");
     } finally {
@@ -183,8 +238,9 @@ function Shop() {
         throw new Error(data.message || "Could not equip this cosmetic.");
       }
 
-      if (data.user) updateUser(data.user);
-      setMessage(data.message || "Cosmetic equipped!");
+      await syncUserState(data.user);
+
+      setMessage(data.message || `${item.name} equipped!`);
     } catch (err) {
       setError(err.message || "Could not equip this cosmetic.");
     } finally {
@@ -211,7 +267,8 @@ function Shop() {
         throw new Error(data.message || "Could not unequip this cosmetic.");
       }
 
-      if (data.user) updateUser(data.user);
+      await syncUserState(data.user);
+
       setMessage(data.message || "Cosmetic unequipped.");
     } catch (err) {
       setError(err.message || "Could not unequip this cosmetic.");
@@ -233,38 +290,47 @@ function Shop() {
           <p className="shop-kicker">Confession Wall Cosmetics</p>
           <h1>Forest Shop</h1>
           <p className="shop-subtitle">
-            Spend Seeds on profile badges, frames, display titles, and post themes.
-            Phase 1 keeps everything cosmetic only, so nobody gets unfair power.
+            Spend Seeds on profile badges, frames, display titles, and post
+            themes. Phase 1 keeps everything cosmetic only, so nobody gets
+            unfair power.
           </p>
         </div>
 
         <div className="shop-seeds-panel">
           <span>Available Seeds</span>
-          <strong>🌱 {user.seeds || 0}</strong>
+          <strong>🌱 {localSeeds || 0}</strong>
         </div>
       </section>
 
       <section className="shop-equipped-panel">
         <div>
           <h2>Equipped right now</h2>
-          <p>Your active cosmetics. More places will display these in Phase 2.</p>
+          <p>
+            Your active cosmetics. Frames, titles, badges, and post themes now
+            display across your profile and posts.
+          </p>
         </div>
 
         <div className="shop-equipped-grid">
           {["badge", "frame", "title", "postTheme"].map((type) => {
             const activeId = equipped[type];
             const activeItem = items.find((item) => item.id === activeId);
+
             return (
               <div className="shop-equipped-card" key={type}>
                 <span>{TYPE_LABELS[type]}</span>
-                <strong>{activeItem ? `${activeItem.icon} ${activeItem.name}` : "None"}</strong>
+
+                <strong>
+                  {activeItem ? `${activeItem.icon} ${activeItem.name}` : "None"}
+                </strong>
+
                 {activeItem && (
                   <button
                     type="button"
                     onClick={() => handleUnequip(type)}
                     disabled={busyItemId === type}
                   >
-                    Unequip
+                    {busyItemId === type ? "Removing..." : "Unequip"}
                   </button>
                 )}
               </div>
@@ -300,16 +366,23 @@ function Shop() {
           {filteredItems.map((item) => {
             const owned = ownedSet.has(item.id);
             const isEquipped = equipped[item.type] === item.id;
-            const canAfford = (user.seeds || 0) >= item.price;
+            const canAfford = (localSeeds || 0) >= item.price;
             const busy = busyItemId === item.id;
 
             return (
               <article className="shop-item-card" key={item.id}>
                 <div className="shop-item-topline">
-                  <span className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}>
+                  <span
+                    className={`shop-rarity ${
+                      item.rarity?.toLowerCase() || "common"
+                    }`}
+                  >
                     {item.rarity || "Common"}
                   </span>
-                  <span className="shop-item-type">{TYPE_LABELS[item.type] || item.type}</span>
+
+                  <span className="shop-item-type">
+                    {TYPE_LABELS[item.type] || item.type}
+                  </span>
                 </div>
 
                 <ShopPreview item={item} />
@@ -319,6 +392,7 @@ function Shop() {
                     <span>{item.icon}</span>
                     {item.name}
                   </h3>
+
                   <p>{item.description}</p>
                 </div>
 
@@ -326,7 +400,11 @@ function Shop() {
                   <div className="shop-price">🌱 {item.price}</div>
 
                   {isEquipped ? (
-                    <button type="button" className="shop-equipped-btn" disabled>
+                    <button
+                      type="button"
+                      className="shop-equipped-btn"
+                      disabled
+                    >
                       Equipped
                     </button>
                   ) : owned ? (
@@ -334,7 +412,7 @@ function Shop() {
                       type="button"
                       className="shop-equip-btn"
                       onClick={() => handleEquip(item)}
-                      disabled={busy}
+                      disabled={busy || Boolean(busyItemId)}
                     >
                       {busy ? "Equipping..." : "Equip"}
                     </button>
@@ -343,7 +421,7 @@ function Shop() {
                       type="button"
                       className="shop-buy-btn"
                       onClick={() => handleBuy(item)}
-                      disabled={busy || !canAfford}
+                      disabled={busy || Boolean(busyItemId) || !canAfford}
                       title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
                     >
                       {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}

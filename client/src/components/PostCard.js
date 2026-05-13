@@ -1,5 +1,12 @@
+import DisplayTitlePill from "./DisplayTitlePill";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
+import FramedAvatar from "./FramedAvatar";
+import {
+  getBadgeLabel,
+  getDisplayTitle,
+  getPostThemeStyle,
+} from "../utils/cosmetics";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
@@ -11,11 +18,26 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const isGrove = realm === "grove";
   const isScorched = realm === "scorched";
 
+  const username = post.userId?.username || "anonymous";
+  const profilePicture = post.userId?.profilePicture;
+
+  const equipped = post.userId?.equippedCosmetics || {};
+  const frameId =
+    equipped.frame ||
+    post.userId?.equippedFrame ||
+    post.userId?.frame ||
+    "";
+
+  const titleText = getDisplayTitle(equipped.title);
+  const badge = getBadgeLabel(equipped.badge);
+  const postThemeStyle = getPostThemeStyle(equipped.postTheme, realm);
+
   const reportPost = async (e) => {
     e.stopPropagation();
 
     if (!token) {
-      window.cwToast?.("You must be logged in to report.", "warning") || alert("You must be logged in to report.");
+      window.cwToast?.("You must be logged in to report.", "warning") ||
+        alert("You must be logged in to report.");
       return;
     }
 
@@ -39,14 +61,19 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       const data = await res.json();
 
       if (!res.ok) {
-        window.cwToast?.(data.message || data.error || "Could not submit report", "error") || alert(data.message || data.error || "Could not submit report");
+        window.cwToast?.(
+          data.message || data.error || "Could not submit report",
+          "error"
+        ) || alert(data.message || data.error || "Could not submit report");
         return;
       }
 
-      window.cwToast?.("Report submitted.", "success") || alert("Report submitted.");
+      window.cwToast?.("Report submitted.", "success") ||
+        alert("Report submitted.");
     } catch (err) {
       console.error(err);
-      window.cwToast?.("Something went wrong while reporting.", "error") || alert("Something went wrong while reporting.");
+      window.cwToast?.("Something went wrong while reporting.", "error") ||
+        alert("Something went wrong while reporting.");
     }
   };
 
@@ -83,38 +110,39 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             ? "groveBlink 0.45s ease-in-out 4"
             : "buddingBlink 0.45s ease-in-out 4"
           : "none",
+
+        ...postThemeStyle,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-        {(isGrove || isScorched) && (
-          <div
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "9px",
+          marginBottom: "10px",
+        }}
+      >
+        <FramedAvatar
+          src={profilePicture}
+          username={username}
+          frameId={frameId}
+          size={42}
+          placeholder={username?.[0]?.toUpperCase() || "?"}
+        />
+
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <span
             style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "50%",
-              background: isScorched ? "rgba(216,90,48,0.15)" : "rgba(29,158,117,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
               fontSize: "12px",
-              color: isScorched ? "#D85A30" : "#0F6E56",
-              fontWeight: 500,
-              flexShrink: 0,
+              color: isScorched ? "#D85A30" : isGrove ? "#1D9E75" : "#9be7c4",
+              fontWeight: 700,
             }}
           >
-            {post.userId?.username?.[0]?.toUpperCase() || "?"}
-          </div>
-        )}
+            @{username} {badge ? badge.icon : ""}
+          </span>
 
-        <span
-          style={{
-            fontSize: "12px",
-            color: isScorched ? "#D85A30" : isGrove ? "#1D9E75" : "#9be7c4",
-            fontWeight: 500,
-          }}
-        >
-          @{post.userId?.username || "anonymous"}
-        </span>
+          <DisplayTitlePill titleId={equipped.title} />
+        </div>
 
         <span
           style={{
@@ -131,7 +159,11 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       <p
         style={{
           fontSize: "14px",
-          color: isScorched ? "rgba(255,220,200,0.85)" : isGrove ? "#2c3e28" : "rgba(220,255,240,0.85)",
+          color: isScorched
+            ? "rgba(255,220,200,0.88)"
+            : isGrove
+            ? "#2c3e28"
+            : "rgba(220,255,240,0.9)",
           lineHeight: 1.65,
           margin: "0 0 12px",
           display: "-webkit-box",
