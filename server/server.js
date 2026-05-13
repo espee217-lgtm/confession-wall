@@ -18,6 +18,7 @@ const authRoutes = require("./routes/authRoutes");
 const triviaRoutes = require("./routes/triviaRoutes");
 const specialActivityRoutes = require("./routes/specialActivityRoutes");
 const giftRoutes = require("./routes/giftRoutes");
+const shopRoutes = require("./routes/shopRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
@@ -78,6 +79,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/trivia", triviaRoutes);
 app.use("/api/special-activity", specialActivityRoutes);
 app.use("/api/gift", giftRoutes);
+app.use("/api/shop", shopRoutes);
 app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {

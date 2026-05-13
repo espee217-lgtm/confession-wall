@@ -32,6 +32,7 @@ import Privacy from "./pages/Privacy";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
+import * as ShopModule from "./pages/Shop";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
 
@@ -46,6 +47,52 @@ const API_BASE =
   (window.location.hostname === "localhost"
     ? "http://localhost:5000"
     : "https://confession-wall-hn63.onrender.com");
+
+function ShopRoute() {
+  const Component = ShopModule.default || ShopModule.Shop;
+
+  if (!Component || typeof Component !== "function") {
+    console.error("Shop page import problem:", ShopModule);
+    return (
+      <main style={{ minHeight: "70vh", padding: "120px 24px", color: "#dfffd7" }}>
+        Shop page failed to load. Check client/src/pages/Shop.js export.
+      </main>
+    );
+  }
+
+  return <Component />;
+}
+
+function ShopButton() {
+  const navigate = useNavigate();
+
+  return (
+    <button
+      type="button"
+      className="nav-shop-btn"
+      onClick={() => navigate("/shop")}
+      title="Forest Shop"
+      aria-label="Open Forest Shop"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M6 8h12l-1 12H7L6 8Z" />
+        <path d="M9 8a3 3 0 0 1 6 0" />
+        <path d="M9 13h.01" />
+        <path d="M15 13h.01" />
+      </svg>
+    </button>
+  );
+}
 
 
 function SeedCounter() {
@@ -492,6 +539,7 @@ function Navbar() {
             minWidth: 0,
           }}
         >
+          {user && <ShopButton />}
           {user && <SeedCounter />}
 
           <Link
@@ -584,43 +632,29 @@ function Navbar() {
 
             <div
               onClick={() => navigate("/settings")}
-              style={{
-                cursor: "pointer",
-                padding: "3px",
-                borderRadius: "50%",
-                background:
-                  "linear-gradient(135deg, rgba(120,255,180,0.4), rgba(255,220,120,0.18))",
-                boxShadow: "0 0 18px rgba(120,255,180,0.35)",
-              }}
+              className={`nav-profile-wrap nav-frame-${user.equippedCosmetics?.frame || "none"}`}
+              title={user.equippedCosmetics?.title ? `Equipped title: ${user.equippedCosmetics.title}` : "Settings"}
             >
               {user.profilePicture ? (
                 <img
                   src={user.profilePicture}
                   alt="profile"
-                  style={{
-                    width: "42px",
-                    height: "42px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid rgba(255,255,255,0.75)",
-                  }}
+                  className="nav-profile-avatar"
                 />
               ) : (
-                <div
-                  style={{
-                    width: "42px",
-                    height: "42px",
-                    borderRadius: "50%",
-                    background: "rgba(255,255,255,0.25)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    color: "white",
-                  }}
-                >
+                <div className="nav-profile-avatar nav-profile-initial">
                   {user.username[0].toUpperCase()}
                 </div>
+              )}
+
+              {user.equippedCosmetics?.badge && (
+                <span className={`nav-profile-badge nav-badge-${user.equippedCosmetics.badge}`}>
+                  {user.equippedCosmetics.badge === "badge-moon-whisper"
+                    ? "🌙"
+                    : user.equippedCosmetics.badge === "badge-forest-crown"
+                    ? "👑"
+                    : "🌱"}
+                </span>
               )}
             </div>
           <NotificationBell />
@@ -701,6 +735,7 @@ function AppContent() {
         <Route path="/budding" element={<BuddingLand />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/shop" element={<ShopRoute />} />
         <Route path="/choose" element={<ChoicePage />} />
         <Route path="/reena" element={<ReenaPage />} />
         <Route path="/guidelines" element={<CommunityGuidelines />} />

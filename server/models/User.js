@@ -96,6 +96,25 @@ const userSchema = new mongoose.Schema(
       reactionRewards: { type: Number, default: 0 },
       acceptedReportRewards: { type: Number, default: 0 },
     },
+
+    ownedCosmetics: {
+      type: [
+        {
+          itemId: { type: String, required: true },
+          purchasedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+
+    equippedCosmetics: {
+      badge: { type: String, default: "" },
+      frame: { type: String, default: "" },
+      title: { type: String, default: "" },
+      postTheme: { type: String, default: "" },
+      reactionStyle: { type: String, default: "" },
+      visualEffect: { type: String, default: "" },
+    },
   },
   { timestamps: true }
 );
@@ -104,5 +123,6 @@ userSchema.index({ createdAt: -1 });
 userSchema.index({ isBanned: 1, isSuspended: 1 });
 userSchema.index({ role: 1, createdAt: -1 });
 userSchema.index({ seeds: -1 });
+userSchema.index({ "ownedCosmetics.itemId": 1 });
 
 module.exports = mongoose.model("User", userSchema);
