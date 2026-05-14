@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "../context/AdminAuthContext";
+import "../AppStyle.css";
 
 const BG_IMAGES = [
   "https://i.postimg.cc/RVLGkGGH/Lord-Krishna.jpg",  
@@ -66,7 +67,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+    <div className="cw-auth-page cw-admin-login-page" style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: `url(${BG_IMAGES[currentBg]})`,
@@ -85,7 +86,7 @@ export default function AdminLogin() {
         ))}
       </div>
 
-      <div style={{
+      <div className="cw-auth-card cw-admin-auth-card" style={{
         position: "relative", zIndex: 2,
         background: "rgba(255,255,255,0.10)",
         backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",

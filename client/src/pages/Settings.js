@@ -780,6 +780,7 @@ export default function Settings() {
 
   return (
     <div
+      className="cw-settings-page"
       style={{
         minHeight: "100vh",
         background: palette.pageBg,

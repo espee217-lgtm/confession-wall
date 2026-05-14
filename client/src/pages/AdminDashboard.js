@@ -496,6 +496,7 @@ const safeBtnStyle = {
 
   return (
     <div
+      className="cw-admin-dashboard"
       style={{
         minHeight: "100vh",
         background: "linear-gradient(135deg, #0f0f1a, #1a1a2e)",

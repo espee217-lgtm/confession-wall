@@ -61,7 +61,7 @@ export default function ThrivingGrove() {
   }, [targetPostId, loading, posts]);
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
+    <div className="cw-realm-page cw-grove-page" style={{ position: "relative", minHeight: "100vh" }}>
       <style>{`
         @keyframes groveBlink {
           0% {

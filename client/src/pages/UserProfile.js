@@ -98,7 +98,7 @@ export default function UserProfile() {
   const badgeItem = getCosmeticMeta(equipped.badge);
 
   return (
-    <div style={pageStyle}>
+    <div className="cw-user-profile-page" style={pageStyle}>
       <div style={forestGlowTopStyle} />
       <div style={forestGlowBottomStyle} />
       <div style={ambientLeafStyle}>✦</div>

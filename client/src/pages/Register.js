@@ -195,7 +195,7 @@ export default function Register() {
   };
 
   return (
-    <div style={{
+    <div className="cw-auth-page cw-register-page" style={{
       position: "fixed",
       inset: 0,
       display: "flex",
@@ -246,7 +246,7 @@ export default function Register() {
       </div>
 
       {/* Glassmorphism card */}
-      <div style={{
+      <div className="cw-auth-card" style={{
         position: "relative",
         zIndex: 2,
         background: "rgba(255, 255, 255, 0.12)",

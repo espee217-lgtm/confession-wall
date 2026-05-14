@@ -140,7 +140,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+    <div className="cw-auth-page cw-login-page" style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${BG_IMAGES[currentBg]})`, backgroundSize: "cover", backgroundPosition: "center", transition: "opacity 0.8s ease", opacity: fade ? 1 : 0, zIndex: 0 }} />
       <div style={{ position: "absolute", inset: 0, background: "rgba(0, 0, 0, 0.45)", zIndex: 1 }} />
 
@@ -150,7 +150,7 @@ export default function Login() {
         ))}
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, background: "rgba(255, 255, 255, 0.12)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255, 255, 255, 0.25)", borderRadius: "24px", padding: "2.5rem", width: "100%", maxWidth: "400px", margin: "0 1rem", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
+      <div className="cw-auth-card" style={{ position: "relative", zIndex: 2, background: "rgba(255, 255, 255, 0.12)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255, 255, 255, 0.25)", borderRadius: "24px", padding: "2.5rem", width: "100%", maxWidth: "400px", margin: "0 1rem", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}>
         <LogoTitle subtitle="Welcome back" />
 
         {error && (

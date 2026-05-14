@@ -62,7 +62,7 @@ export default function BuddingLand() {
   }, [targetPostId, loading, posts]);
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
+    <div className="cw-realm-page cw-budding-page" style={{ position: "relative", minHeight: "100vh" }}>
       <style>{`
         @keyframes buddingBlink {
           0% {

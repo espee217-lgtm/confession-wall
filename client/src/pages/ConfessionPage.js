@@ -589,7 +589,7 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
   }
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
+    <div className="cw-confession-page" style={{ position: "relative", minHeight: "100vh" }}>
       <video
         autoPlay
         loop
