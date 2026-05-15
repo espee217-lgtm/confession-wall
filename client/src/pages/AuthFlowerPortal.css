@@ -196,15 +196,16 @@
 }
 
 .auth-daisy-orbit {
-  --form-radius: clamp(255px, 29vw, 390px);
-  --decor-radius: clamp(130px, 16vw, 245px);
+  /* v3: the flower is the layout. The daisy core sits left-center and the active petal becomes the form. */
+  --form-radius: clamp(88px, 7.4vw, 128px);
+  --decor-radius: clamp(118px, 11.2vw, 178px);
   position: absolute;
   left: 50%;
-  top: 52%;
-  width: min(86vw, 1120px);
-  height: min(86vw, 1120px);
-  max-height: 88vh;
-  transform: translate(-52%, -50%);
+  top: 51%;
+  width: min(92vw, 1080px);
+  height: min(92vw, 920px);
+  max-height: 90vh;
+  transform: translate(-63%, -50%);
   display: grid;
   place-items: center;
   z-index: 5;
@@ -212,10 +213,12 @@
 
 .auth-daisy-glow {
   position: absolute;
-  inset: 18%;
+  inset: 17%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(231, 255, 135, 0.20), rgba(145, 220, 63, 0.08) 38%, transparent 72%);
-  filter: blur(30px);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 234, 130, 0.28), transparent 18%),
+    radial-gradient(circle, rgba(241, 255, 190, 0.24), rgba(145, 220, 63, 0.08) 42%, transparent 72%);
+  filter: blur(26px);
   animation: authPulse 5s ease-in-out infinite alternate;
 }
 
@@ -241,64 +244,91 @@
   transform-origin: 0 50%;
 }
 
+.auth-decor-petal::after,
+.auth-form-petal::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(99, 127, 44, 0.28), rgba(255,255,255,0.30), transparent);
+  transform: translateY(-50%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.auth-form-petal::after {
+  left: 8%;
+  right: 14%;
+  opacity: 0.35;
+}
+
 .auth-decor-petal {
-  width: clamp(190px, 20vw, 310px);
-  height: clamp(112px, 12vw, 170px);
+  width: clamp(178px, 17vw, 265px);
+  height: clamp(78px, 8vw, 116px);
   margin-left: 0;
-  margin-top: calc(clamp(112px, 12vw, 170px) / -2);
-  border-radius: 70% 30% 30% 70% / 55% 48% 52% 45%;
+  margin-top: calc(clamp(78px, 8vw, 116px) / -2);
+  border-radius: 100% 8% 8% 100% / 52% 48% 52% 48%;
   background:
-    radial-gradient(circle at 78% 42%, rgba(255,255,255,0.85), transparent 24%),
-    linear-gradient(90deg, rgba(255, 255, 226, 0.82), rgba(244, 232, 133, 0.50) 55%, rgba(96, 122, 38, 0.32));
-  border: 1px solid rgba(255,255,255,0.18);
-  box-shadow: inset 24px 0 44px rgba(255,255,255,0.22), 0 8px 28px rgba(0,0,0,0.20);
-  opacity: 0.46;
+    radial-gradient(ellipse at 74% 34%, rgba(255,255,255,0.92), transparent 18%),
+    radial-gradient(ellipse at 26% 50%, rgba(255, 248, 170, 0.36), transparent 48%),
+    linear-gradient(90deg, rgba(255,255,245,0.98), rgba(255, 249, 209, 0.92) 47%, rgba(220, 235, 174, 0.72) 100%);
+  border: 1px solid rgba(255,255,255,0.42);
+  box-shadow:
+    inset 18px 0 34px rgba(255,255,255,0.42),
+    inset -26px 0 36px rgba(117, 139, 54, 0.13),
+    0 10px 26px rgba(0,0,0,0.22);
+  opacity: 0.78;
   transition: transform 900ms cubic-bezier(.2,.9,.2,1), opacity 500ms ease;
   pointer-events: none;
 }
 
 .auth-form-petal {
-  width: clamp(410px, 43vw, 620px);
-  min-height: clamp(460px, 58vh, 650px);
-  margin-top: calc(clamp(460px, 58vh, 650px) / -2);
+  width: clamp(560px, 48vw, 760px);
+  min-height: clamp(390px, 59vh, 570px);
+  margin-top: calc(clamp(390px, 59vh, 570px) / -2);
   margin-left: 0;
-  border-radius: 66% 34% 34% 66% / 58% 42% 42% 58%;
+  border-radius: 100% 10% 10% 100% / 54% 46% 54% 46%;
   background:
-    radial-gradient(circle at 84% 45%, rgba(255,255,255,0.93), transparent 15%),
-    linear-gradient(90deg, rgba(255, 255, 235, 0.94), rgba(247, 236, 148, 0.78) 45%, rgba(126, 160, 54, 0.50) 100%);
-  border: 1px solid rgba(255,255,255,0.26);
+    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.95), transparent 16%),
+    radial-gradient(ellipse at 26% 50%, rgba(255, 238, 126, 0.23), transparent 45%),
+    linear-gradient(90deg, rgba(255,255,246,0.99), rgba(255, 249, 205, 0.95) 47%, rgba(219, 232, 147, 0.88) 100%);
+  border: 1px solid rgba(255,255,255,0.52);
   box-shadow:
-    inset 32px 0 65px rgba(255,255,255,0.30),
-    inset -28px 0 58px rgba(83, 99, 24, 0.18),
-    0 26px 80px rgba(0,0,0,0.32);
-  opacity: 0.54;
-  filter: saturate(0.78) blur(0.2px);
+    inset 28px 0 58px rgba(255,255,255,0.48),
+    inset -40px 0 70px rgba(98, 118, 35, 0.18),
+    0 26px 82px rgba(0,0,0,0.36);
+  opacity: 0.18;
+  filter: saturate(0.72) blur(0.3px);
   transition: opacity 450ms ease, filter 450ms ease, transform 900ms cubic-bezier(.2,.9,.2,1), box-shadow 450ms ease;
   pointer-events: none;
 }
 
 .auth-form-petal-register {
   background:
-    radial-gradient(circle at 84% 45%, rgba(255,255,255,0.93), transparent 15%),
-    linear-gradient(90deg, rgba(242, 255, 224, 0.95), rgba(188, 244, 111, 0.78) 45%, rgba(64, 143, 54, 0.50) 100%);
+    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.95), transparent 16%),
+    radial-gradient(ellipse at 28% 50%, rgba(190, 255, 126, 0.28), transparent 45%),
+    linear-gradient(90deg, rgba(250,255,241,0.99), rgba(228, 255, 183, 0.96) 47%, rgba(137, 213, 89, 0.84) 100%);
 }
 
 .auth-form-petal-admin {
   background:
-    radial-gradient(circle at 84% 45%, rgba(255,255,255,0.80), transparent 15%),
-    linear-gradient(90deg, rgba(220, 249, 255, 0.92), rgba(102, 171, 188, 0.76) 48%, rgba(13, 45, 54, 0.62) 100%);
+    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.85), transparent 16%),
+    radial-gradient(ellipse at 28% 50%, rgba(118, 218, 255, 0.20), transparent 45%),
+    linear-gradient(90deg, rgba(232, 255, 255, 0.97), rgba(171, 227, 232, 0.94) 48%, rgba(73, 137, 146, 0.84) 100%);
 }
 
 .auth-form-petal.is-active {
   opacity: 1;
-  filter: saturate(1.05) blur(0);
-  z-index: 10;
+  filter: saturate(1.08) blur(0);
+  z-index: 14;
   pointer-events: auto;
   box-shadow:
-    inset 36px 0 78px rgba(255,255,255,0.34),
-    inset -30px 0 64px rgba(83, 99, 24, 0.18),
-    0 0 34px rgba(218,255,113,0.28),
-    0 34px 98px rgba(0,0,0,0.44);
+    inset 38px 0 78px rgba(255,255,255,0.50),
+    inset -34px 0 72px rgba(83, 99, 24, 0.20),
+    0 0 36px rgba(246,255,174,0.30),
+    0 34px 100px rgba(0,0,0,0.48);
 }
 
 .auth-petal-upright {
@@ -308,7 +338,7 @@
   transition: transform 900ms cubic-bezier(.2,.9,.2,1);
   display: grid;
   place-items: center;
-  padding: clamp(26px, 3vw, 42px) clamp(38px, 5vw, 72px) clamp(26px, 3vw, 42px) clamp(52px, 6vw, 92px);
+  padding: clamp(24px, 3vw, 40px) clamp(40px, 5vw, 76px) clamp(24px, 3vw, 40px) clamp(88px, 9vw, 135px);
   box-sizing: border-box;
 }
 
@@ -349,7 +379,7 @@
 }
 
 .auth-form-shell {
-  width: min(100%, 440px);
+  width: min(100%, 430px);
   color: #122006;
   opacity: 0;
   transform: translateX(-10px) scale(0.96);
@@ -619,19 +649,19 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: clamp(180px, 18vw, 270px);
-  height: clamp(180px, 18vw, 270px);
+  width: clamp(168px, 16.5vw, 245px);
+  height: clamp(168px, 16.5vw, 245px);
   transform: translate(-50%, -50%);
   border-radius: 50%;
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at 40% 38%, #ffeaa4 0 22%, #d4a62c 42%, #69440d 72%, #211403 100%);
-  border: clamp(18px, 2.5vw, 38px) solid rgba(47, 37, 6, 0.78);
+    radial-gradient(circle at 38% 34%, #fff4bd 0 16%, #ffd951 30%, #c9941f 48%, #72470a 72%, #241605 100%);
+  border: clamp(16px, 2.2vw, 31px) solid rgba(58, 42, 5, 0.82);
   box-shadow:
-    inset 0 0 34px rgba(74, 47, 4, 0.56),
-    0 0 36px rgba(255, 230, 103, 0.36),
-    0 22px 60px rgba(0,0,0,0.44);
+    inset 0 0 34px rgba(74, 47, 4, 0.58),
+    0 0 38px rgba(255, 230, 103, 0.42),
+    0 22px 62px rgba(0,0,0,0.46);
   z-index: 30;
 }
 
@@ -694,14 +724,17 @@
 
 @media (max-width: 1180px) {
   .auth-daisy-orbit {
-    --form-radius: clamp(230px, 34vw, 340px);
-    width: min(96vw, 980px);
-    height: min(96vw, 980px);
-    transform: translate(-54%, -48%);
+    --form-radius: clamp(78px, 7vw, 108px);
+    --decor-radius: clamp(104px, 11vw, 150px);
+    width: min(98vw, 940px);
+    height: min(98vw, 820px);
+    transform: translate(-64%, -48%);
   }
 
   .auth-form-petal {
-    width: clamp(380px, 48vw, 560px);
+    width: clamp(510px, 54vw, 680px);
+    min-height: clamp(390px, 56vh, 540px);
+    margin-top: calc(clamp(390px, 56vh, 540px) / -2);
   }
 }
 

@@ -537,13 +537,13 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
       <section className="auth-daisy-orbit" aria-label="Daisy authentication portal">
         <div className="auth-daisy-glow" />
         <div className="auth-daisy-wheel" style={{ transform: `rotate(${wheelRotation}deg)` }}>
-          {Array.from({ length: 9 }).map((_, index) => {
-            const angle = index * 40 + 18;
+          {Array.from({ length: 18 }).map((_, index) => {
+            const angle = index * 20;
             return (
               <div
                 key={`decor-${index}`}
                 className="auth-decor-petal"
-                style={{ transform: `rotate(${angle}deg) translateX(var(--decor-radius)) rotate(${-angle - wheelRotation}deg)` }}
+                style={{ transform: `rotate(${angle}deg) translateX(var(--decor-radius))` }}
               />
             );
           })}
