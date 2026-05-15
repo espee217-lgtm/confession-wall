@@ -3,7 +3,7 @@ import {
   getBadgeLabel,
   getPostThemeStyle,
 } from "../utils/cosmetics";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -113,7 +113,28 @@ const styles = {
     fontSize: "16px",
   },
 };
-
+const COMMENT_EMOJI_GROUPS = [
+  {
+    label: "mood",
+    emojis: ["😭", "😂", "💀", "🥲", "😔", "🥹", "😳", "😤", "😩", "😌", "😎", "🤧"],
+  },
+  {
+    label: "love",
+    emojis: ["❤️", "🫶", "💕", "💖", "💗", "💘", "💔", "🥰", "😘", "🤍", "🖤", "💚"],
+  },
+  {
+    label: "chaos",
+    emojis: ["🔥", "✨", "👀", "🙏", "🙃", "🫠", "🤡", "😈", "😵‍💫", "🤭", "😮‍💨", "🫡"],
+  },
+  {
+    label: "forest",
+    emojis: ["🌱", "🌿", "🍃", "🌳", "🌸", "🌼", "🌙", "⭐", "🌧️", "🍂", "🪷", "🦋"],
+  },
+  {
+    label: "hands",
+    emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵"],
+  },
+];
 function normalizeFrameId(frameId) {
   if (!frameId) return "";
 
@@ -375,6 +396,8 @@ export default function ConfessionPage() {
   const [comment, setComment] = useState("");
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const commentInputRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/${id}`)
@@ -446,7 +469,8 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
   };
 
   const inputRowStyle = {
-    display: "flex",
+  position: "relative",
+  display: "flex",
     gap: "8px",
     alignItems: "center",
     marginTop: "20px",
@@ -459,7 +483,29 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
     WebkitBackdropFilter: "blur(14px)",
     ...viewerPostThemeStyle,
   };
+  const insertEmoji = (emoji) => {
+  const input = commentInputRef.current;
 
+  if (!input) {
+    setComment((prev) => `${prev}${emoji}`);
+    return;
+  }
+
+  const start = input.selectionStart ?? comment.length;
+  const end = input.selectionEnd ?? comment.length;
+
+  setComment((prev) => {
+    const before = prev.slice(0, start);
+    const after = prev.slice(end);
+    return `${before}${emoji}${after}`;
+  });
+
+  window.setTimeout(() => {
+    input.focus();
+    const nextPosition = start + emoji.length;
+    input.setSelectionRange(nextPosition, nextPosition);
+  }, 0);
+};
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setCommentImage(file);
@@ -1005,10 +1051,11 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
 
             <div style={inputRowStyle}>
               <input
-                type="text"
-                placeholder="leave a confession…"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
+  ref={commentInputRef}
+  type="text"
+  placeholder="leave a confession…"
+  value={comment}
+  onChange={(e) => setComment(e.target.value)}
                 style={{
                   flex: 1,
                   border: "none",
@@ -1019,7 +1066,108 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
                   fontFamily: "Georgia, serif",
                 }}
               />
+              <button
+  type="button"
+  onClick={() => setShowEmojiPicker((open) => !open)}
+  style={{
+    background: showEmojiPicker
+      ? "rgba(120,255,180,0.16)"
+      : "transparent",
+    border: showEmojiPicker
+      ? "1px solid rgba(120,255,180,0.28)"
+      : "1px solid transparent",
+    cursor: "pointer",
+    fontSize: "16px",
+    padding: "4px 8px",
+    borderRadius: "50%",
+    color: theme.accent,
+    lineHeight: 1,
+  }}
+  title="Add emoji"
+>
+  😊
+</button>
 
+{showEmojiPicker && (
+  <div
+    style={{
+      position: "absolute",
+      right: "82px",
+      bottom: "54px",
+      width: "280px",
+      maxWidth: "calc(100vw - 42px)",
+      padding: "12px",
+      borderRadius: "18px",
+      border: `1px solid ${theme.reactionBorder}`,
+      background:
+        realm === "grove"
+          ? "rgba(255,255,255,0.96)"
+          : "rgba(6, 22, 13, 0.96)",
+      boxShadow:
+        "0 18px 60px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)",
+      backdropFilter: "blur(18px)",
+      WebkitBackdropFilter: "blur(18px)",
+      zIndex: 20,
+    }}
+  >
+    {COMMENT_EMOJI_GROUPS.map((group) => (
+      <div key={group.label} style={{ marginBottom: "9px" }}>
+        <div
+          style={{
+            marginBottom: "6px",
+            fontSize: "9px",
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: theme.muted,
+            fontWeight: 700,
+          }}
+        >
+          {group.label}
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(6, 1fr)",
+            gap: "6px",
+          }}
+        >
+          {group.emojis.map((emoji) => (
+            <button
+              key={`${group.label}-${emoji}`}
+              type="button"
+              onClick={() => insertEmoji(emoji)}
+              style={{
+                width: "34px",
+                height: "34px",
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "12px",
+                border: `1px solid ${theme.reactionBorder}`,
+                background:
+                  realm === "grove"
+                    ? "rgba(245,255,240,0.78)"
+                    : "rgba(255,255,255,0.06)",
+                cursor: "pointer",
+                fontSize: "18px",
+                lineHeight: 1,
+                transition: "transform 0.15s ease, background 0.15s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px) scale(1.08)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+              }}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
               <label
                 style={{
                   background: "none",
