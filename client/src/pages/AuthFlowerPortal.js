@@ -18,9 +18,33 @@ const ADMIN_API_URL = process.env.REACT_APP_API_BASE
   : "https://confession-wall-hn63.onrender.com/api/admin";
 
 const PANELS = [
-  { key: "login", path: "/login", title: "Enter", label: "Login", glyph: "✦" },
-  { key: "register", path: "/register", title: "Bloom", label: "Register", glyph: "✿" },
-  { key: "admin", path: "/admin", title: "Guard", label: "Admin", glyph: "🛡" },
+  {
+    key: "login",
+    path: "/login",
+    title: "Enter",
+    label: "Login",
+    kicker: "Petal I · The entrance",
+    glyph: "✦",
+    angle: 0,
+  },
+  {
+    key: "register",
+    path: "/register",
+    title: "Bloom",
+    label: "Register",
+    kicker: "Petal II · The first seed",
+    glyph: "✿",
+    angle: 120,
+  },
+  {
+    key: "admin",
+    path: "/admin",
+    title: "Guard",
+    label: "Admin",
+    kicker: "Petal III · Keeper access",
+    glyph: "🛡",
+    angle: 240,
+  },
 ];
 
 function getPasswordError(password) {
@@ -32,91 +56,9 @@ function getPasswordError(password) {
   return "";
 }
 
-function DaisyIllustration({ activePanel }) {
-  const activeIndex = Math.max(0, PANELS.findIndex((panel) => panel.key === activePanel));
-
+function BrandSeal() {
   return (
-    <div className="auth-flower-art" aria-hidden="true" data-active={activePanel}>
-      <div className="auth-flower-halo" />
-      <svg className="auth-flower-svg" viewBox="0 0 820 820" role="img">
-        <defs>
-          <radialGradient id="petalFill" cx="50%" cy="38%" r="70%">
-            <stop offset="0%" stopColor="#fff8b9" />
-            <stop offset="48%" stopColor="#f2db74" />
-            <stop offset="100%" stopColor="#6a7f22" />
-          </radialGradient>
-          <radialGradient id="activePetalFill" cx="45%" cy="36%" r="75%">
-            <stop offset="0%" stopColor="#ffffff" />
-            <stop offset="35%" stopColor="#dcffc2" />
-            <stop offset="100%" stopColor="#4eb248" />
-          </radialGradient>
-          <radialGradient id="adminPetalFill" cx="45%" cy="36%" r="75%">
-            <stop offset="0%" stopColor="#d9f7ff" />
-            <stop offset="48%" stopColor="#5c9fb1" />
-            <stop offset="100%" stopColor="#0d3540" />
-          </radialGradient>
-          <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="12" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <g className="auth-flower-petals" style={{ transform: `rotate(${-activeIndex * 34}deg)`, transformOrigin: "410px 410px" }}>
-          {Array.from({ length: 11 }).map((_, index) => {
-            const isAuthPetal = index === 0 || index === 1 || index === 2;
-            const isActive = index === activeIndex;
-            const fill = index === 2 ? "url(#adminPetalFill)" : isActive ? "url(#activePetalFill)" : "url(#petalFill)";
-            return (
-              <ellipse
-                key={index}
-                className={`auth-flower-petal ${isAuthPetal ? "auth-flower-auth-petal" : ""} ${isActive ? "is-active" : ""}`}
-                cx="410"
-                cy="168"
-                rx={index === 2 ? "88" : "96"}
-                ry="176"
-                fill={fill}
-                opacity={isAuthPetal ? 0.95 : 0.62}
-                filter={isActive ? "url(#softGlow)" : "none"}
-                transform={`rotate(${index * 34} 410 410)`}
-              />
-            );
-          })}
-        </g>
-
-        <circle cx="410" cy="410" r="138" fill="#2b2207" opacity="0.9" />
-        <circle cx="410" cy="410" r="112" fill="#d4a62c" opacity="0.96" />
-        <circle cx="410" cy="410" r="78" fill="#8c5d12" opacity="0.55" />
-        <g opacity="0.7">
-          {Array.from({ length: 32 }).map((_, index) => {
-            const angle = (Math.PI * 2 * index) / 32;
-            const radius = index % 2 ? 58 : 82;
-            return (
-              <circle
-                key={index}
-                cx={410 + Math.cos(angle) * radius}
-                cy={410 + Math.sin(angle) * radius}
-                r={index % 2 ? 5 : 4}
-                fill="#3b2809"
-              />
-            );
-          })}
-        </g>
-      </svg>
-      <div className="auth-flower-label">
-        <span>{PANELS[activeIndex]?.glyph}</span>
-        <strong>{PANELS[activeIndex]?.title}</strong>
-        <small>{PANELS[activeIndex]?.label} petal</small>
-      </div>
-    </div>
-  );
-}
-
-function BrandMark() {
-  return (
-    <div className="auth-brand-mark">
+    <div className="auth-brand-seal" aria-label="Confession Wall">
       <span>C</span>
       <div>
         <strong>Confession Wall</strong>
@@ -131,7 +73,7 @@ function ErrorMessage({ children }) {
   return <div className="auth-error-message">{children}</div>;
 }
 
-function LoginPetal({ scrollToPanel }) {
+function LoginForm({ scrollToPanel }) {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
@@ -172,44 +114,42 @@ function LoginPetal({ scrollToPanel }) {
   };
 
   return (
-    <section className="auth-scroll-section" data-panel="login">
-      <div className="auth-petal-card auth-login-card">
-        <div className="auth-petal-kicker">Petal I · The entrance</div>
-        <h1>Enter the Wall</h1>
-        <p className="auth-petal-subtitle">Return to your hidden grove and continue where your confessions left off.</p>
+    <div className="auth-form-shell auth-form-login">
+      <div className="auth-petal-kicker">Petal I · The entrance</div>
+      <h1>Enter the Wall</h1>
+      <p className="auth-petal-subtitle">Return to your hidden grove and continue where your confessions left off.</p>
 
-        <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage>{error}</ErrorMessage>
 
-        <form onSubmit={handleSubmit} className="auth-form-stack">
-          <label className="auth-field">
-            <span>Email address</span>
-            <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
-          </label>
+      <form onSubmit={handleSubmit} className="auth-form-stack">
+        <label className="auth-field">
+          <span>Email address</span>
+          <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
+        </label>
 
-          <label className="auth-field">
-            <span>Password</span>
-            <input type="password" name="password" placeholder="Your secret key" value={form.password} onChange={handleChange} required />
-          </label>
+        <label className="auth-field">
+          <span>Password</span>
+          <input type="password" name="password" placeholder="Your secret key" value={form.password} onChange={handleChange} required />
+        </label>
 
-          <div className="auth-link-row auth-link-row-right">
-            <Link to="/forgot-password">Forgot password?</Link>
-          </div>
-
-          <button className="auth-primary-btn" type="submit" disabled={loading}>
-            {loading ? "Opening gate..." : "Enter the grove →"}
-          </button>
-        </form>
-
-        <div className="auth-bottom-actions">
-          <button type="button" onClick={() => scrollToPanel("register")}>New here? Bloom an account</button>
-          <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
+        <div className="auth-link-row auth-link-row-right">
+          <Link to="/forgot-password">Forgot password?</Link>
         </div>
+
+        <button className="auth-primary-btn" type="submit" disabled={loading}>
+          {loading ? "Opening gate..." : "Enter the grove →"}
+        </button>
+      </form>
+
+      <div className="auth-bottom-actions">
+        <button type="button" onClick={() => scrollToPanel("register")}>New here? Bloom account</button>
+        <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
       </div>
-    </section>
+    </div>
   );
 }
 
-function RegisterPetal({ scrollToPanel }) {
+function RegisterForm({ scrollToPanel }) {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ username: "", email: "", password: "" });
@@ -343,95 +283,93 @@ function RegisterPetal({ scrollToPanel }) {
   };
 
   return (
-    <section className="auth-scroll-section" data-panel="register">
-      <div className="auth-petal-card auth-register-card">
-        <div className="auth-petal-kicker">Petal II · The first seed</div>
-        <h1>{step === 1 ? "Bloom an Account" : "Verify the Bloom"}</h1>
-        <p className="auth-petal-subtitle">
-          {step === 1
-            ? "Create your anonymous identity, earn Seeds, and unlock your first forest cosmetics."
-            : "Enter the OTP sent to your email so your account can take root."}
-        </p>
+    <div className="auth-form-shell auth-form-register">
+      <div className="auth-petal-kicker">Petal II · The first seed</div>
+      <h1>{step === 1 ? "Bloom an Account" : "Verify the Bloom"}</h1>
+      <p className="auth-petal-subtitle">
+        {step === 1
+          ? "Create your anonymous identity, earn Seeds, and unlock your first forest cosmetics."
+          : "Enter the OTP sent to your email so your account can take root."}
+      </p>
 
-        <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage>{error}</ErrorMessage>
 
-        {step === 1 && (
-          <form onSubmit={handleSendOtp} className="auth-form-stack">
-            <div className="auth-avatar-upload">
-              <div className="auth-avatar-preview">
-                {preview ? <img src={preview} alt="profile preview" /> : <span>🌱</span>}
-              </div>
-              <label>
-                Upload Photo
-                <input type="file" accept="image/*" onChange={handleImage} />
-              </label>
+      {step === 1 && (
+        <form onSubmit={handleSendOtp} className="auth-form-stack">
+          <div className="auth-avatar-upload">
+            <div className="auth-avatar-preview">
+              {preview ? <img src={preview} alt="profile preview" /> : <span>🌱</span>}
             </div>
-
-            <label className="auth-field">
-              <span>Username</span>
-              <input type="text" name="username" placeholder="forestname" value={form.username} onChange={handleChange} required />
+            <label>
+              Upload Photo
+              <input type="file" accept="image/*" onChange={handleImage} />
             </label>
+          </div>
 
-            <label className="auth-field">
-              <span>Email address</span>
-              <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
-            </label>
+          <label className="auth-field">
+            <span>Username</span>
+            <input type="text" name="username" placeholder="forestname" value={form.username} onChange={handleChange} required />
+          </label>
 
-            <label className="auth-field">
-              <span>Password</span>
-              <input type="password" name="password" placeholder="8+ chars with symbol" value={form.password} onChange={handleChange} required />
-            </label>
+          <label className="auth-field">
+            <span>Email address</span>
+            <input type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
+          </label>
 
-            <p className="auth-password-note">Use 8+ characters with uppercase, lowercase, number, and special character.</p>
+          <label className="auth-field">
+            <span>Password</span>
+            <input type="password" name="password" placeholder="8+ chars with symbol" value={form.password} onChange={handleChange} required />
+          </label>
 
-            <button className="auth-primary-btn" type="submit" disabled={loading}>
-              {loading ? "Sending OTP..." : "Send OTP →"}
+          <p className="auth-password-note">Use 8+ characters with uppercase, lowercase, number, and special character.</p>
+
+          <button className="auth-primary-btn" type="submit" disabled={loading}>
+            {loading ? "Sending OTP..." : "Send OTP →"}
+          </button>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={handleVerifyAndRegister} className="auth-form-stack">
+          <div className="auth-otp-note">
+            <span>Code sent to</span>
+            <strong>{form.email}</strong>
+          </div>
+
+          <label className="auth-field auth-otp-field">
+            <span>6-digit OTP</span>
+            <input
+              type="text"
+              placeholder="000000"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              autoFocus
+            />
+          </label>
+
+          <button className="auth-primary-btn" type="submit" disabled={loading || otp.length !== 6}>
+            {loading ? "Creating account..." : "Create Account"}
+          </button>
+
+          <div className="auth-link-row">
+            <button type="button" onClick={() => { setStep(1); setOtp(""); setError(""); }}>← Change details</button>
+            <button type="button" onClick={handleResend} disabled={resendTimer > 0}>
+              {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
             </button>
-          </form>
-        )}
+          </div>
+        </form>
+      )}
 
-        {step === 2 && (
-          <form onSubmit={handleVerifyAndRegister} className="auth-form-stack">
-            <div className="auth-otp-note">
-              <span>Code sent to</span>
-              <strong>{form.email}</strong>
-            </div>
-
-            <label className="auth-field auth-otp-field">
-              <span>6-digit OTP</span>
-              <input
-                type="text"
-                placeholder="000000"
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                autoFocus
-              />
-            </label>
-
-            <button className="auth-primary-btn" type="submit" disabled={loading || otp.length !== 6}>
-              {loading ? "Creating account..." : "Create Account"}
-            </button>
-
-            <div className="auth-link-row">
-              <button type="button" onClick={() => { setStep(1); setOtp(""); setError(""); }}>← Change details</button>
-              <button type="button" onClick={handleResend} disabled={resendTimer > 0}>
-                {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        <div className="auth-bottom-actions">
-          <button type="button" onClick={() => scrollToPanel("login")}>Already rooted? Login</button>
-          <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
-        </div>
+      <div className="auth-bottom-actions">
+        <button type="button" onClick={() => scrollToPanel("login")}>Already rooted? Login</button>
+        <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
       </div>
-    </section>
+    </div>
   );
 }
 
-function AdminPetal({ scrollToPanel }) {
+function AdminForm({ scrollToPanel }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -464,90 +402,125 @@ function AdminPetal({ scrollToPanel }) {
   };
 
   return (
-    <section className="auth-scroll-section" data-panel="admin">
-      <div className="auth-petal-card auth-admin-card">
-        <div className="auth-petal-kicker">Petal III · Keeper access</div>
-        <h1>Keeper Gate</h1>
-        <p className="auth-petal-subtitle">A guarded portal for moderation, reports, logs, and wall safety.</p>
+    <div className="auth-form-shell auth-form-admin">
+      <div className="auth-petal-kicker">Petal III · Keeper access</div>
+      <h1>Keeper Gate</h1>
+      <p className="auth-petal-subtitle">A guarded portal for moderation, reports, logs, and wall safety.</p>
 
-        <ErrorMessage>{error}</ErrorMessage>
+      <ErrorMessage>{error}</ErrorMessage>
 
-        <form onSubmit={handleSubmit} className="auth-form-stack">
-          <label className="auth-field">
-            <span>Admin username</span>
-            <input type="text" placeholder="keeper name" value={username} onChange={(e) => setUsername(e.target.value)} required />
-          </label>
+      <form onSubmit={handleSubmit} className="auth-form-stack">
+        <label className="auth-field">
+          <span>Admin username</span>
+          <input type="text" placeholder="keeper name" value={username} onChange={(e) => setUsername(e.target.value)} required />
+        </label>
 
-          <label className="auth-field">
-            <span>Password</span>
-            <input type="password" placeholder="restricted key" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </label>
+        <label className="auth-field">
+          <span>Password</span>
+          <input type="password" placeholder="restricted key" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </label>
 
-          <button className="auth-primary-btn auth-admin-btn" type="submit" disabled={loading}>
-            {loading ? "Checking gate..." : "Enter admin dashboard"}
-          </button>
-        </form>
+        <button className="auth-primary-btn auth-admin-btn" type="submit" disabled={loading}>
+          {loading ? "Checking gate..." : "Enter admin dashboard"}
+        </button>
+      </form>
 
-        <div className="auth-bottom-actions">
-          <button type="button" onClick={() => scrollToPanel("login")}>Back to user login</button>
-          <button type="button" onClick={() => scrollToPanel("register")}>Create user account</button>
-        </div>
+      <div className="auth-bottom-actions">
+        <button type="button" onClick={() => scrollToPanel("login")}>Back to user login</button>
+        <button type="button" onClick={() => scrollToPanel("register")}>Create user account</button>
       </div>
-    </section>
+    </div>
   );
 }
 
+function PetalContent({ panelKey, scrollToPanel }) {
+  if (panelKey === "login") return <LoginForm scrollToPanel={scrollToPanel} />;
+  if (panelKey === "register") return <RegisterForm scrollToPanel={scrollToPanel} />;
+  return <AdminForm scrollToPanel={scrollToPanel} />;
+}
+
 export default function AuthFlowerPortal({ initialPanel = "login" }) {
-  const scrollerRef = useRef(null);
-  const sectionRefs = useRef({});
+  const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState(initialPanel);
+  const wheelLock = useRef(false);
+  const touchStart = useRef(null);
 
   const panelSet = useMemo(() => new Set(PANELS.map((panel) => panel.key)), []);
+  const activeIndex = Math.max(0, PANELS.findIndex((panel) => panel.key === activePanel));
+  const activeMeta = PANELS[activeIndex] || PANELS[0];
+  const wheelRotation = -activeMeta.angle;
 
-  const scrollToPanel = (panelKey) => {
+  const scrollToPanel = (panelKey, shouldNavigate = true) => {
     if (!panelSet.has(panelKey)) return;
     setActivePanel(panelKey);
-    sectionRefs.current[panelKey]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const panel = PANELS.find((item) => item.key === panelKey);
+    if (shouldNavigate && panel?.path && window.location.pathname !== panel.path) {
+      navigate(panel.path, { replace: true });
+    }
+  };
+
+  const movePanel = (direction) => {
+    const nextIndex = (activeIndex + direction + PANELS.length) % PANELS.length;
+    scrollToPanel(PANELS[nextIndex].key);
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => scrollToPanel(initialPanel), 50);
-    return () => clearTimeout(timer);
+    scrollToPanel(initialPanel, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPanel]);
 
-  useEffect(() => {
-    const root = scrollerRef.current;
-    if (!root) return undefined;
+  const handleWheel = (event) => {
+    if (Math.abs(event.deltaY) < 18 || wheelLock.current) return;
+    wheelLock.current = true;
+    movePanel(event.deltaY > 0 ? 1 : -1);
+    window.setTimeout(() => {
+      wheelLock.current = false;
+    }, 760);
+  };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        const panel = visible?.target?.dataset?.panel;
-        if (panel) setActivePanel(panel);
-      },
-      { root, threshold: [0.45, 0.65, 0.85] }
-    );
+  const handleKeyDown = (event) => {
+    if (["ArrowDown", "PageDown", " "].includes(event.key)) {
+      event.preventDefault();
+      movePanel(1);
+    }
+    if (["ArrowUp", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      movePanel(-1);
+    }
+  };
 
-    Object.values(sectionRefs.current).forEach((section) => section && observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
+  const handleTouchStart = (event) => {
+    touchStart.current = event.touches?.[0]?.clientY ?? null;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (touchStart.current == null) return;
+    const endY = event.changedTouches?.[0]?.clientY ?? touchStart.current;
+    const diff = touchStart.current - endY;
+    touchStart.current = null;
+    if (Math.abs(diff) > 55) movePanel(diff > 0 ? 1 : -1);
+  };
 
   return (
-    <main className="auth-flower-page">
+    <main
+      className="auth-flower-page auth-flower-wheel-page"
+      data-active={activePanel}
+      onWheel={handleWheel}
+      onKeyDown={handleKeyDown}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      tabIndex={-1}
+    >
       <div className="auth-forest-bg" />
       <div className="auth-mist auth-mist-one" />
       <div className="auth-mist auth-mist-two" />
       <div className="auth-fireflies" aria-hidden="true">
-        {Array.from({ length: 18 }).map((_, index) => <span key={index} />)}
+        {Array.from({ length: 20 }).map((_, index) => <span key={index} />)}
       </div>
 
-      <BrandMark />
-      <DaisyIllustration activePanel={activePanel} />
+      <BrandSeal />
 
-      <nav className="auth-petal-nav" aria-label="Authentication petal navigation">
+      <nav className="auth-petal-nav" aria-label="Authentication petals">
         {PANELS.map((panel) => (
           <button
             key={panel.key}
@@ -561,18 +534,54 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
         ))}
       </nav>
 
-      <div className="auth-scroll-hint">Scroll the daisy petals</div>
+      <section className="auth-daisy-orbit" aria-label="Daisy authentication portal">
+        <div className="auth-daisy-glow" />
+        <div className="auth-daisy-wheel" style={{ transform: `rotate(${wheelRotation}deg)` }}>
+          {Array.from({ length: 9 }).map((_, index) => {
+            const angle = index * 40 + 18;
+            return (
+              <div
+                key={`decor-${index}`}
+                className="auth-decor-petal"
+                style={{ transform: `rotate(${angle}deg) translateX(var(--decor-radius)) rotate(${-angle - wheelRotation}deg)` }}
+              />
+            );
+          })}
 
-      <div className="auth-scroll-stage" ref={scrollerRef}>
-        <div ref={(node) => { sectionRefs.current.login = node; }}>
-          <LoginPetal scrollToPanel={scrollToPanel} />
+          {PANELS.map((panel) => {
+            const isActive = activePanel === panel.key;
+            return (
+              <article
+                key={panel.key}
+                className={`auth-form-petal auth-form-petal-${panel.key} ${isActive ? "is-active" : ""}`}
+                style={{ transform: `rotate(${panel.angle}deg) translateX(var(--form-radius))` }}
+                aria-hidden={!isActive}
+              >
+                <div className="auth-petal-upright" style={{ transform: `rotate(${-panel.angle - wheelRotation}deg)` }}>
+                  <div className="auth-inactive-petal-label">
+                    <span>{panel.glyph}</span>
+                    <strong>{panel.title}</strong>
+                    <small>{panel.label}</small>
+                  </div>
+                  <PetalContent panelKey={panel.key} scrollToPanel={scrollToPanel} />
+                </div>
+              </article>
+            );
+          })}
+
+          <div className="auth-daisy-center">
+            <div className="auth-daisy-center-inner">
+              <span>{activeMeta.glyph}</span>
+              <strong>{activeMeta.title}</strong>
+              <small>{activeMeta.label} petal</small>
+            </div>
+          </div>
         </div>
-        <div ref={(node) => { sectionRefs.current.register = node; }}>
-          <RegisterPetal scrollToPanel={scrollToPanel} />
-        </div>
-        <div ref={(node) => { sectionRefs.current.admin = node; }}>
-          <AdminPetal scrollToPanel={scrollToPanel} />
-        </div>
+      </section>
+
+      <div className="auth-scroll-hint">
+        <span>Scroll</span>
+        <strong>rotate the daisy</strong>
       </div>
     </main>
   );
