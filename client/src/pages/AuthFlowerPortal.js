@@ -442,10 +442,12 @@ function PetalContent({ panelKey, scrollToPanel }) {
 export default function AuthFlowerPortal({ initialPanel = "login" }) {
   const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState(initialPanel);
+  const [isRotating, setIsRotating] = useState(false);
   const wheelLock = useRef(false);
   const wheelDelta = useRef(0);
   const wheelResetTimer = useRef(null);
   const touchStart = useRef(null);
+  const pageRef = useRef(null);
 
   const panelSet = useMemo(() => new Set(PANELS.map((panel) => panel.key)), []);
   const activeIndex = Math.max(0, PANELS.findIndex((panel) => panel.key === activePanel));
@@ -477,33 +479,39 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
     };
   }, []);
 
-  const handleWheel = (event) => {
-    event.preventDefault();
+ const handleWheel = (event) => {
+  if (window.matchMedia("(max-width: 820px)").matches) return;
 
-    if (wheelLock.current) return;
+  event.preventDefault();
 
-    wheelDelta.current += event.deltaY;
+  if (wheelLock.current) return;
 
-    if (wheelResetTimer.current) {
-      window.clearTimeout(wheelResetTimer.current);
-    }
+  const delta = event.deltaY;
 
-    wheelResetTimer.current = window.setTimeout(() => {
-      wheelDelta.current = 0;
-    }, 160);
+  if (Math.abs(delta) < 22) return;
 
-    if (Math.abs(wheelDelta.current) < 64) return;
+  wheelLock.current = true;
+  wheelDelta.current = 0;
+  setIsRotating(true);
 
-    const direction = wheelDelta.current > 0 ? 1 : -1;
-    wheelDelta.current = 0;
-    wheelLock.current = true;
-    movePanel(direction);
+  movePanel(delta > 0 ? 1 : -1);
 
-    window.setTimeout(() => {
-      wheelLock.current = false;
-    }, 520);
+  window.setTimeout(() => {
+    wheelLock.current = false;
+    setIsRotating(false);
+  }, 2400);
+};
+useEffect(() => {
+  const page = pageRef.current;
+  if (!page) return;
+
+  page.addEventListener("wheel", handleWheel, { passive: false });
+
+  return () => {
+    page.removeEventListener("wheel", handleWheel);
   };
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [activePanel]);
   const handleKeyDown = (event) => {
     if (["ArrowDown", "PageDown", " "].includes(event.key)) {
       event.preventDefault();
@@ -529,9 +537,9 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
 
   return (
     <main
-      className="auth-flower-page auth-flower-wheel-page"
-      data-active={activePanel}
-      onWheel={handleWheel}
+  ref={pageRef}
+  className={`auth-flower-page auth-flower-wheel-page ${isRotating ? "is-rotating" : ""}`}
+  data-active={activePanel}
       onKeyDown={handleKeyDown}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -543,6 +551,9 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
       <div className="auth-fireflies" aria-hidden="true">
         {Array.from({ length: 20 }).map((_, index) => <span key={index} />)}
       </div>
+      <div className="auth-seed-dust" aria-hidden="true">
+       {Array.from({ length: 18 }).map((_, index) => <span key={index} />)}
+      </div>
 
       <BrandSeal />
 
@@ -551,6 +562,7 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
           <button
             key={panel.key}
             type="button"
+            data-panel={panel.key}
             className={activePanel === panel.key ? "is-active" : ""}
             onClick={() => scrollToPanel(panel.key)}
           >
@@ -604,6 +616,35 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
           </div>
         </div>
       </section>
+            <div className="auth-mobile-daisy-dial" aria-label="Mobile daisy mode selector">
+        <span className="auth-mobile-daisy-extra auth-mobile-daisy-extra-left" aria-hidden="true" />
+        <span className="auth-mobile-daisy-extra auth-mobile-daisy-extra-right" aria-hidden="true" />
+
+        {PANELS.map((panel) => (
+          <button
+            key={`mobile-${panel.key}`}
+            type="button"
+            className={`auth-mobile-daisy-petal auth-mobile-daisy-petal-${panel.key} ${
+              activePanel === panel.key ? "is-active" : ""
+            }`}
+            onClick={() => scrollToPanel(panel.key)}
+            aria-label={`Switch to ${panel.label}`}
+          >
+            <span>{panel.glyph}</span>
+            <strong>{panel.label}</strong>
+          </button>
+        ))}
+
+        <button
+          type="button"
+          className="auth-mobile-daisy-center"
+          onClick={() => movePanel(1)}
+          aria-label="Rotate to next auth petal"
+        >
+          <span>ROTATE</span>
+          <strong>TO BLOOM</strong>
+        </button>
+      </div>
 
       <div className="auth-scroll-hint">
         <span>Scroll</span>
