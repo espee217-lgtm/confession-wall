@@ -492,7 +492,7 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
       wheelDelta.current = 0;
     }, 160);
 
-    if (Math.abs(wheelDelta.current) < 86) return;
+    if (Math.abs(wheelDelta.current) < 64) return;
 
     const direction = wheelDelta.current > 0 ? 1 : -1;
     wheelDelta.current = 0;
@@ -501,7 +501,7 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
 
     window.setTimeout(() => {
       wheelLock.current = false;
-    }, 720);
+    }, 520);
   };
 
   const handleKeyDown = (event) => {

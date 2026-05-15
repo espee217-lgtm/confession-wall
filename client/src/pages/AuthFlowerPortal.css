@@ -233,12 +233,29 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  transition: transform 950ms cubic-bezier(.16,.88,.18,1);
+  transition: transform 1300ms cubic-bezier(.12,.86,.16,1);
   transform-origin: 50% 50%;
   will-change: transform;
 }
 
 .auth-decor-petal,
+
+.auth-decor-petal::before {
+  content: "";
+  position: absolute;
+  left: 13%;
+  top: 16%;
+  width: 72%;
+  height: 68%;
+  border-radius: inherit;
+  background:
+    linear-gradient(10deg, transparent 0 46%, rgba(119, 139, 73, 0.16) 48%, transparent 51%),
+    linear-gradient(-10deg, transparent 0 46%, rgba(255, 255, 255, 0.28) 49%, transparent 53%),
+    radial-gradient(ellipse at 72% 26%, rgba(255,255,255,0.42), transparent 24%);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
 .auth-form-petal {
   position: absolute;
   left: 50%;
@@ -271,18 +288,36 @@
   height: clamp(78px, 8vw, 116px);
   margin-left: 0;
   margin-top: calc(clamp(78px, 8vw, 116px) / -2);
-  border-radius: 100% 8% 8% 100% / 52% 48% 52% 48%;
+  border-radius: 92% 52% 52% 92% / 58% 46% 54% 42%;
   background:
-    radial-gradient(ellipse at 74% 34%, rgba(255,255,255,0.92), transparent 18%),
-    radial-gradient(ellipse at 26% 50%, rgba(255, 248, 170, 0.36), transparent 48%),
-    linear-gradient(90deg, rgba(255,255,245,0.98), rgba(255, 249, 209, 0.92) 47%, rgba(220, 235, 174, 0.72) 100%);
-  border: 1px solid rgba(255,255,255,0.42);
+    radial-gradient(ellipse at 62% 24%, rgba(255,255,255,0.96), transparent 12%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.58), transparent 28%),
+    radial-gradient(ellipse at 18% 50%, rgba(255, 238, 122, 0.22), transparent 46%),
+    linear-gradient(90deg, rgba(252,255,237,0.99), rgba(255, 254, 226, 0.94) 43%, rgba(218, 230, 181, 0.76) 100%);
+  border: 1px solid rgba(255,255,255,0.48);
   box-shadow:
-    inset 18px 0 34px rgba(255,255,255,0.42),
-    inset -26px 0 36px rgba(117, 139, 54, 0.13),
-    0 10px 26px rgba(0,0,0,0.22);
+    inset 28px 0 34px rgba(255,255,255,0.42),
+    inset -22px 0 38px rgba(82, 103, 35, 0.16),
+    0 9px 24px rgba(0,0,0,0.24);
+  opacity: 0.86;
+  transition: transform 1300ms cubic-bezier(.12,.86,.16,1), opacity 620ms ease;
+  pointer-events: none;
+}
+
+
+.auth-decor-petal::before {
+  content: "";
+  position: absolute;
+  left: 13%;
+  top: 16%;
+  width: 72%;
+  height: 68%;
+  border-radius: inherit;
+  background:
+    linear-gradient(10deg, transparent 0 46%, rgba(119, 139, 73, 0.16) 48%, transparent 51%),
+    linear-gradient(-10deg, transparent 0 46%, rgba(255, 255, 255, 0.28) 49%, transparent 53%),
+    radial-gradient(ellipse at 72% 26%, rgba(255,255,255,0.42), transparent 24%);
   opacity: 0.78;
-  transition: transform 950ms cubic-bezier(.16,.88,.18,1), opacity 520ms ease;
   pointer-events: none;
 }
 
@@ -291,11 +326,12 @@
   min-height: clamp(500px, 66vh, 660px);
   margin-top: calc(clamp(500px, 66vh, 660px) / -2);
   margin-left: 0;
-  border-radius: 100% 16% 16% 100% / 58% 42% 42% 58%;
+  border-radius: 92% 18% 22% 92% / 62% 38% 42% 58%;
   background:
-    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.95), transparent 16%),
-    radial-gradient(ellipse at 26% 50%, rgba(255, 238, 126, 0.23), transparent 45%),
-    linear-gradient(90deg, rgba(255,255,246,0.99), rgba(255, 249, 205, 0.95) 47%, rgba(219, 232, 147, 0.88) 100%);
+    radial-gradient(ellipse at 70% 31%, rgba(255,255,255,0.96), transparent 14%),
+    radial-gradient(ellipse at 48% 53%, rgba(255,255,255,0.34), transparent 31%),
+    radial-gradient(ellipse at 20% 50%, rgba(255, 238, 126, 0.24), transparent 45%),
+    linear-gradient(90deg, rgba(255,255,244,0.99), rgba(255, 251, 211, 0.96) 47%, rgba(222, 234, 151, 0.90) 100%);
   border: 1px solid rgba(255,255,255,0.52);
   box-shadow:
     inset 28px 0 58px rgba(255,255,255,0.48),
@@ -303,7 +339,7 @@
     0 26px 82px rgba(0,0,0,0.36);
   opacity: 0.18;
   filter: saturate(0.72) blur(0.3px);
-  transition: opacity 520ms ease, filter 520ms ease, transform 950ms cubic-bezier(.16,.88,.18,1), box-shadow 520ms ease;
+  transition: opacity 620ms ease, filter 620ms ease, transform 1300ms cubic-bezier(.12,.86,.16,1), box-shadow 620ms ease;
   will-change: transform, opacity;
   pointer-events: none;
   overflow: hidden;
@@ -311,14 +347,16 @@
 
 .auth-form-petal-register {
   background:
-    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.95), transparent 16%),
-    radial-gradient(ellipse at 28% 50%, rgba(190, 255, 126, 0.28), transparent 45%),
-    linear-gradient(90deg, rgba(250,255,241,0.99), rgba(228, 255, 183, 0.96) 47%, rgba(137, 213, 89, 0.84) 100%);
+    radial-gradient(ellipse at 70% 31%, rgba(255,255,255,0.96), transparent 14%),
+    radial-gradient(ellipse at 48% 53%, rgba(255,255,255,0.32), transparent 31%),
+    radial-gradient(ellipse at 25% 50%, rgba(190, 255, 126, 0.27), transparent 45%),
+    linear-gradient(90deg, rgba(250,255,241,0.99), rgba(229, 255, 184, 0.96) 48%, rgba(139, 216, 88, 0.86) 100%);
 }
 
 .auth-form-petal-admin {
   background:
-    radial-gradient(ellipse at 73% 33%, rgba(255,255,255,0.85), transparent 16%),
+    radial-gradient(ellipse at 70% 31%, rgba(255,255,255,0.85), transparent 14%),
+    radial-gradient(ellipse at 48% 53%, rgba(255,255,255,0.25), transparent 31%),
     radial-gradient(ellipse at 28% 50%, rgba(118, 218, 255, 0.20), transparent 45%),
     linear-gradient(90deg, rgba(232, 255, 255, 0.97), rgba(171, 227, 232, 0.94) 48%, rgba(73, 137, 146, 0.84) 100%);
 }
@@ -339,10 +377,10 @@
   width: 100%;
   min-height: inherit;
   transform-origin: 50% 50%;
-  transition: transform 950ms cubic-bezier(.16,.88,.18,1);
+  transition: transform 1300ms cubic-bezier(.12,.86,.16,1);
   display: grid;
   place-items: center;
-  padding: clamp(18px, 2.2vw, 28px) clamp(105px, 8vw, 150px) clamp(28px, 3.2vw, 46px) clamp(165px, 12vw, 220px);
+  padding: clamp(30px, 4vh, 50px) clamp(110px, 8.5vw, 160px) clamp(36px, 4vh, 56px) clamp(170px, 12vw, 225px);
   box-sizing: border-box;
 }
 
@@ -383,22 +421,40 @@
 }
 
 .auth-form-shell {
-  width: min(100%, 440px);
-  max-height: min(78vh, 560px);
+  width: min(100%, 430px);
+  max-height: min(76vh, 540px);
   color: #122006;
   opacity: 0;
-  transform: translateX(-10px) translateY(-10px) scale(0.96);
+  transform: translateX(-10px) translateY(12px) scale(0.96);
   transition: opacity 260ms ease, transform 360ms ease;
 }
 
 .auth-form-petal.is-active .auth-form-shell {
   opacity: 1;
-  transform: translateX(0) translateY(-10px) scale(1);
+  transform: translateX(0) translateY(18px) scale(1);
+}
+
+.auth-form-login,
+.auth-form-register {
+  transform-origin: center;
 }
 
 .auth-form-admin {
   color: #061b22;
 }
+
+.auth-form-petal.is-active .auth-form-admin {
+  transform: translateX(0) translateY(-2px) scale(1);
+}
+
+.auth-form-petal.is-active .auth-form-login {
+  transform: translateX(0) translateY(32px) scale(0.96);
+}
+
+.auth-form-petal.is-active .auth-form-register {
+  transform: translateX(0) translateY(34px) scale(0.91);
+}
+
 
 .auth-petal-kicker {
   color: rgba(43, 74, 12, 0.82);
@@ -417,7 +473,7 @@
 .auth-form-shell h1 {
   margin: 0;
   color: #213a0b;
-  font-size: clamp(28px, 3.1vw, 44px);
+  font-size: clamp(27px, 2.75vw, 40px);
   line-height: 0.95;
   letter-spacing: 0.035em;
   text-shadow: 0 2px 0 rgba(255,255,255,0.38);
@@ -428,7 +484,7 @@
 }
 
 .auth-petal-subtitle {
-  margin: 9px 0 14px;
+  margin: 7px 0 12px;
   max-width: 390px;
   color: rgba(21, 35, 6, 0.78);
   font-size: 13px;
@@ -756,7 +812,7 @@
 }
 
 
-/* v5 fit pass: keep every form fully inside the active petal and make rotation feel less jumpy. */
+/* v6 fit pass: login/register sit deeper in the petal, admin remains centered, and daisy petals have more natural highlights. */
 .auth-form-login .auth-bottom-actions,
 .auth-form-admin .auth-bottom-actions {
   margin-top: 12px;
@@ -767,7 +823,8 @@
 }
 
 .auth-form-register h1 {
-  font-size: clamp(25px, 2.75vw, 38px);
+  font-size: clamp(23px, 2.35vw, 34px);
+  letter-spacing: 0.025em;
 }
 
 .auth-form-register .auth-petal-kicker {
@@ -784,6 +841,17 @@
   font-size: clamp(28px, 3.15vw, 44px);
 }
 
+.auth-form-login h1 {
+  font-size: clamp(28px, 2.7vw, 40px);
+}
+
+.auth-form-login .auth-petal-kicker,
+.auth-form-register .auth-petal-kicker {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+}
+
+
 .auth-form-admin .auth-form-stack {
   gap: 10px;
 }
@@ -791,6 +859,24 @@
 @media (min-width: 1181px) {
   .auth-form-petal.is-active .auth-petal-upright {
     transform-origin: 50% 50%;
+  }
+}
+
+
+
+@media (min-width: 1181px) {
+  .auth-form-login,
+  .auth-form-register {
+    margin-top: clamp(24px, 3.4vh, 42px);
+  }
+
+  .auth-form-login .auth-petal-subtitle,
+  .auth-form-register .auth-petal-subtitle {
+    max-width: 360px;
+  }
+
+  .auth-form-register .auth-form-stack {
+    gap: 6px;
   }
 }
 
@@ -804,7 +890,24 @@
     left: clamp(-390px, -24vw, -230px);
   }
 
-  .auth-form-petal {
+  
+.auth-decor-petal::before {
+  content: "";
+  position: absolute;
+  left: 13%;
+  top: 16%;
+  width: 72%;
+  height: 68%;
+  border-radius: inherit;
+  background:
+    linear-gradient(10deg, transparent 0 46%, rgba(119, 139, 73, 0.16) 48%, transparent 51%),
+    linear-gradient(-10deg, transparent 0 46%, rgba(255, 255, 255, 0.28) 49%, transparent 53%),
+    radial-gradient(ellipse at 72% 26%, rgba(255,255,255,0.42), transparent 24%);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.auth-form-petal {
     width: clamp(730px, 72vw, 950px);
     min-height: clamp(500px, 64vh, 620px);
     margin-top: calc(clamp(500px, 64vh, 620px) / -2);
@@ -865,7 +968,24 @@
     display: none;
   }
 
-  .auth-form-petal {
+  
+.auth-decor-petal::before {
+  content: "";
+  position: absolute;
+  left: 13%;
+  top: 16%;
+  width: 72%;
+  height: 68%;
+  border-radius: inherit;
+  background:
+    linear-gradient(10deg, transparent 0 46%, rgba(119, 139, 73, 0.16) 48%, transparent 51%),
+    linear-gradient(-10deg, transparent 0 46%, rgba(255, 255, 255, 0.28) 49%, transparent 53%),
+    radial-gradient(ellipse at 72% 26%, rgba(255,255,255,0.42), transparent 24%);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.auth-form-petal {
     position: relative;
     left: auto;
     top: auto;
