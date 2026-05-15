@@ -10,6 +10,134 @@ const API_BASE =
 
 const API_URL = `${API_BASE}/api/confessions`;
 const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
+const POST_EMOJI_GROUPS = [
+  {
+    label: "mood",
+    emojis: ["😭", "😂", "💀", "🥲", "😔", "🥹", "😳", "😤", "😩", "😌", "😎", "🤧", "😐", "😶", "😬", "🙄"],
+  },
+  {
+    label: "love",
+    emojis: ["❤️", "🫶", "💕", "💖", "💗", "💘", "💔", "🥰", "😘", "🤍", "🖤", "💚", "💛", "💜", "💙", "🩷"],
+  },
+  {
+    label: "chaos",
+    emojis: ["🔥", "✨", "👀", "🙏", "🙃", "🫠", "🤡", "😈", "😵‍💫", "🤭", "😮‍💨", "🫡", "💅", "🚩", "🫢", "😱"],
+  },
+  {
+    label: "forest",
+    emojis: ["🌱", "🌿", "🍃", "🌳", "🌸", "🌼", "🌙", "⭐", "🌧️", "🍂", "🪷", "🦋", "🌻", "🍀", "🌾", "🕊️"],
+  },
+  {
+    label: "hands",
+    emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵", "🙏", "💪", "🫱", "🫲"],
+  },
+];
+
+function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
+  return (
+    <div data-ui="true" style={{ position: "relative", display: "inline-flex" }}>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        title="Add emoji"
+        style={{
+          width: compact ? "36px" : "38px",
+          height: compact ? "36px" : "38px",
+          display: "grid",
+          placeItems: "center",
+          borderRadius: "999px",
+          border: open
+            ? "1px solid rgba(190,255,130,0.38)"
+            : "1px solid rgba(255,255,220,0.15)",
+          background: open
+            ? "rgba(170,255,100,0.14)"
+            : "rgba(255,255,220,0.04)",
+          color: "rgba(255,255,220,0.78)",
+          cursor: "pointer",
+          fontSize: "17px",
+          boxShadow: open ? "0 0 22px rgba(170,255,100,0.16)" : "none",
+        }}
+      >
+        😊
+      </button>
+
+      {open && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: "absolute",
+            left: compact ? "50%" : "0",
+            bottom: "48px",
+            transform: compact ? "translateX(-50%)" : "none",
+            width: compact ? "min(330px, calc(100vw - 28px))" : "min(360px, calc(100vw - 42px))",
+            maxHeight: compact ? "300px" : "330px",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            padding: "12px 8px 12px 12px",
+            borderRadius: "18px",
+            border: "1px solid rgba(170,255,130,0.18)",
+            background: "rgba(5,18,8,0.97)",
+            boxShadow:
+              "0 18px 60px rgba(0,0,0,0.48), 0 0 30px rgba(135,255,100,0.10), inset 0 1px 0 rgba(255,255,255,0.06)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            zIndex: 99999,
+          }}
+        >
+          {POST_EMOJI_GROUPS.map((group) => (
+            <div key={group.label} style={{ marginBottom: "10px" }}>
+              <div
+                style={{
+                  marginBottom: "6px",
+                  fontSize: "9px",
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: "rgba(215,255,185,0.65)",
+                  fontWeight: 800,
+                }}
+              >
+                {group.label}
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: compact ? "repeat(7, 1fr)" : "repeat(8, 1fr)",
+                  gap: "5px",
+                }}
+              >
+                {group.emojis.map((emoji) => (
+                  <button
+                    key={`${group.label}-${emoji}`}
+                    type="button"
+                    onClick={() => onPick(emoji)}
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      display: "grid",
+                      placeItems: "center",
+                      borderRadius: "11px",
+                      border: "1px solid rgba(170,255,130,0.14)",
+                      background: "rgba(255,255,255,0.06)",
+                      cursor: "pointer",
+                      fontSize: "17px",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ConfessionFeed({ confessions, onCardClick }) {
   const [offset, setOffset] = useState(0);
@@ -319,6 +447,10 @@ function MobileHomePage({
   loading,
   handleImageChange,
   handleSubmit,
+  showPostEmojiPicker,
+  setShowPostEmojiPicker,
+  postInputRef,
+  insertPostEmoji,
 }) {
   const visiblePosts = freshPosts.slice(0, 8);
 
@@ -427,11 +559,12 @@ function MobileHomePage({
             <p className="mobile-compose-kicker">✦ plant a confession</p>
             <h2>What do you need to confess?</h2>
             <textarea
-              placeholder="write it here..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              autoFocus
-            />
+  ref={postInputRef}
+  placeholder="write it here..."
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  autoFocus
+/>
 
             {imagePreview && (
               <div className="mobile-compose-preview">
@@ -449,8 +582,15 @@ function MobileHomePage({
             )}
 
             <div className="mobile-compose-actions">
-              <label>
-                ⌘ image
+  <EmojiPickerButton
+    open={showPostEmojiPicker}
+    setOpen={setShowPostEmojiPicker}
+    onPick={insertPostEmoji}
+    compact
+  />
+
+  <label>
+    ⌘ image
                 <input type="file" accept="image/*" onChange={handleImageChange} />
               </label>
               <button type="button" onClick={handleSubmit} disabled={loading || !message.trim()}>
@@ -654,7 +794,9 @@ const freshPosts = confessions
   const [showTutorial, setShowTutorial] = useState(false);
 const [tutorialStep, setTutorialStep] = useState(0);
   const [message, setMessage] = useState("");
-  const [image, setImage] = useState(null);
+const [showPostEmojiPicker, setShowPostEmojiPicker] = useState(false);
+const postInputRef = useRef(null);
+const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [muted, setMuted] = useState(true);
@@ -724,7 +866,29 @@ useEffect(() => {
   document.addEventListener('visibilitychange', handleVisibility);
   return () => document.removeEventListener('visibilitychange', handleVisibility);
 }, [muted]);
+  const insertPostEmoji = (emoji) => {
+  const input = postInputRef.current;
 
+  if (!input) {
+    setMessage((prev) => `${prev}${emoji}`);
+    return;
+  }
+
+  const start = input.selectionStart ?? message.length;
+  const end = input.selectionEnd ?? message.length;
+
+  setMessage((prev) => {
+    const before = prev.slice(0, start);
+    const after = prev.slice(end);
+    return `${before}${emoji}${after}`;
+  });
+
+  window.setTimeout(() => {
+    input.focus();
+    const nextPosition = start + emoji.length;
+    input.setSelectionRange(nextPosition, nextPosition);
+  }, 0);
+};
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
@@ -773,6 +937,7 @@ useEffect(() => {
       setImage(null);
       setImagePreview(null);
       setShowCompose(false);
+      setShowPostEmojiPicker(false);
     } catch (err) {
       console.error(err);
       window.cwToast?.("Could not post — is the backend running?", "error") || alert("Could not post — is the backend running?");
@@ -784,21 +949,25 @@ useEffect(() => {
   if (isMobile) {
     return (
       <MobileHomePage
-        user={user}
-        freshPosts={freshPosts}
-        navigate={navigate}
-        showCompose={showCompose}
-        setShowCompose={setShowCompose}
-        message={message}
-        setMessage={setMessage}
-        image={image}
-        setImage={setImage}
-        imagePreview={imagePreview}
-        setImagePreview={setImagePreview}
-        loading={loading}
-        handleImageChange={handleImageChange}
-        handleSubmit={handleSubmit}
-      />
+  user={user}
+  freshPosts={freshPosts}
+  navigate={navigate}
+  showCompose={showCompose}
+  setShowCompose={setShowCompose}
+  message={message}
+  setMessage={setMessage}
+  image={image}
+  setImage={setImage}
+  imagePreview={imagePreview}
+  setImagePreview={setImagePreview}
+  loading={loading}
+  handleImageChange={handleImageChange}
+  handleSubmit={handleSubmit}
+  showPostEmojiPicker={showPostEmojiPicker}
+  setShowPostEmojiPicker={setShowPostEmojiPicker}
+  postInputRef={postInputRef}
+  insertPostEmoji={insertPostEmoji}
+/>
     );
   }
 
@@ -859,6 +1028,37 @@ useEffect(() => {
     onProfile={() => navigate("/settings")}
   />
 </div>
+<button
+  data-ui="true"
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    setShowCompose(true);
+  }}
+  title="Plant a confession"
+  style={{
+    position: "absolute",
+    left: "50%",
+    top: "43%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 95,
+    width: "54px",
+    height: "54px",
+    borderRadius: "999px",
+    border: "1px solid rgba(230,255,165,0.42)",
+    background:
+      "radial-gradient(circle at 35% 28%, rgba(255,255,220,0.95), transparent 18%), linear-gradient(135deg, rgba(218,255,123,0.96), rgba(85,190,49,0.72))",
+    color: "#102404",
+    fontSize: "34px",
+    fontWeight: 900,
+    lineHeight: 1,
+    cursor: "pointer",
+    boxShadow:
+      "0 0 22px rgba(195,255,100,0.45), 0 0 55px rgba(120,255,80,0.22), 0 16px 42px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.65)",
+  }}
+>
+  +
+</button>
 
       <SpiritNavigation
         onLeftClick={() => navigate("/grove")}
@@ -982,10 +1182,11 @@ useEffect(() => {
             </div>
 
             <textarea
-              placeholder="what do you need to confess?"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              autoFocus
+  ref={postInputRef}
+  placeholder="what do you need to confess?"
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  autoFocus
               style={{
                 width: "100%",
                 height: "120px",
@@ -1051,40 +1252,70 @@ useEffect(() => {
               </div>
             )}
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px" }}>
-              <label
-                style={{
-                  color: "rgba(255,255,220,0.5)",
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  letterSpacing: "0.08em",
-                  border: "1px solid rgba(255,255,220,0.15)",
-                  borderRadius: "20px",
-                  padding: "7px 16px",
-                }}
-              >
-                ⌘ attach image
-                <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
-              </label>
+            <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "10px",
+    marginTop: "16px",
+  }}
+>
+  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <EmojiPickerButton
+      open={showPostEmojiPicker}
+      setOpen={setShowPostEmojiPicker}
+      onPick={insertPostEmoji}
+    />
 
-              <button
-                onClick={handleSubmit}
-                disabled={loading || !message.trim()}
-                style={{
-                  background: message.trim() ? "rgba(255,238,136,0.12)" : "rgba(255,255,220,0.04)",
-                  border: `1px solid ${message.trim() ? "rgba(255,238,136,0.5)" : "rgba(255,255,220,0.1)"}`,
-                  borderRadius: "20px",
-                  padding: "8px 24px",
-                  color: message.trim() ? "rgba(255,238,136,0.9)" : "rgba(255,255,220,0.3)",
-                  fontSize: "13px",
-                  cursor: message.trim() ? "pointer" : "default",
-                  fontFamily: "Georgia, serif",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                {loading ? "planting…" : "bloom →"}
-              </button>
-            </div>
+    <label
+      style={{
+        color: "rgba(255,255,220,0.5)",
+        fontSize: "12px",
+        cursor: "pointer",
+        letterSpacing: "0.08em",
+        border: "1px solid rgba(255,255,220,0.15)",
+        borderRadius: "20px",
+        padding: "7px 16px",
+      }}
+    >
+      ⌘ attach image
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        style={{ display: "none" }}
+      />
+    </label>
+  </div>
+
+  <button
+    onClick={handleSubmit}
+    disabled={loading || !message.trim()}
+    style={{
+      background: message.trim()
+        ? "rgba(255,238,136,0.12)"
+        : "rgba(255,255,220,0.04)",
+      border: `1px solid ${
+        message.trim()
+          ? "rgba(255,238,136,0.5)"
+          : "rgba(255,255,220,0.1)"
+      }`,
+      borderRadius: "20px",
+      padding: "8px 24px",
+      color: message.trim()
+        ? "rgba(255,238,136,0.9)"
+        : "rgba(255,255,220,0.3)",
+      fontSize: "13px",
+      cursor: message.trim() ? "pointer" : "default",
+      fontFamily: "Georgia, serif",
+      letterSpacing: "0.08em",
+      flexShrink: 0,
+    }}
+  >
+    {loading ? "planting…" : "bloom →"}
+  </button>
+</div>
           </div>
         </div>
       )}
