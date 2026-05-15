@@ -1091,15 +1091,18 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
 {showEmojiPicker && (
   <div
     style={{
-      position: "absolute",
-      right: "82px",
-      bottom: "54px",
-      width: "280px",
-      maxWidth: "calc(100vw - 42px)",
-      padding: "12px",
-      borderRadius: "18px",
-      border: `1px solid ${theme.reactionBorder}`,
-      background:
+  position: "absolute",
+  right: "72px",
+  bottom: "52px",
+  width: "min(360px, calc(100vw - 36px))",
+  maxHeight: "min(330px, calc(100vh - 190px))",
+  overflowY: "auto",
+  overscrollBehavior: "contain",
+  padding: "12px",
+  paddingRight: "8px",
+  borderRadius: "18px",
+  border: `1px solid ${theme.reactionBorder}`,
+  background:
         realm === "grove"
           ? "rgba(255,255,255,0.96)"
           : "rgba(6, 22, 13, 0.96)",
@@ -1128,8 +1131,8 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(6, 1fr)",
-            gap: "6px",
+            gridTemplateColumns: "repeat(8, 1fr)",
+gap: "5px",
           }}
         >
           {group.emojis.map((emoji) => (
@@ -1138,8 +1141,8 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
               type="button"
               onClick={() => insertEmoji(emoji)}
               style={{
-                width: "34px",
-                height: "34px",
+                width: "30px",
+                height: "30px",
                 display: "grid",
                 placeItems: "center",
                 borderRadius: "12px",
@@ -1149,7 +1152,7 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
                     ? "rgba(245,255,240,0.78)"
                     : "rgba(255,255,255,0.06)",
                 cursor: "pointer",
-                fontSize: "18px",
+                fontSize: "17px",
                 lineHeight: 1,
                 transition: "transform 0.15s ease, background 0.15s ease",
               }}
