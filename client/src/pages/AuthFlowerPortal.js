@@ -443,6 +443,8 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
   const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState(initialPanel);
   const wheelLock = useRef(false);
+  const wheelDelta = useRef(0);
+  const wheelResetTimer = useRef(null);
   const touchStart = useRef(null);
 
   const panelSet = useMemo(() => new Set(PANELS.map((panel) => panel.key)), []);
@@ -469,14 +471,37 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPanel]);
 
+  useEffect(() => {
+    return () => {
+      if (wheelResetTimer.current) window.clearTimeout(wheelResetTimer.current);
+    };
+  }, []);
+
   const handleWheel = (event) => {
     event.preventDefault();
-    if (Math.abs(event.deltaY) < 28 || wheelLock.current) return;
+
+    if (wheelLock.current) return;
+
+    wheelDelta.current += event.deltaY;
+
+    if (wheelResetTimer.current) {
+      window.clearTimeout(wheelResetTimer.current);
+    }
+
+    wheelResetTimer.current = window.setTimeout(() => {
+      wheelDelta.current = 0;
+    }, 160);
+
+    if (Math.abs(wheelDelta.current) < 86) return;
+
+    const direction = wheelDelta.current > 0 ? 1 : -1;
+    wheelDelta.current = 0;
     wheelLock.current = true;
-    movePanel(event.deltaY > 0 ? 1 : -1);
+    movePanel(direction);
+
     window.setTimeout(() => {
       wheelLock.current = false;
-    }, 1180);
+    }, 720);
   };
 
   const handleKeyDown = (event) => {
