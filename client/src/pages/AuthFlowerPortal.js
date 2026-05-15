@@ -470,12 +470,13 @@ export default function AuthFlowerPortal({ initialPanel = "login" }) {
   }, [initialPanel]);
 
   const handleWheel = (event) => {
-    if (Math.abs(event.deltaY) < 18 || wheelLock.current) return;
+    event.preventDefault();
+    if (Math.abs(event.deltaY) < 28 || wheelLock.current) return;
     wheelLock.current = true;
     movePanel(event.deltaY > 0 ? 1 : -1);
     window.setTimeout(() => {
       wheelLock.current = false;
-    }, 760);
+    }, 1180);
   };
 
   const handleKeyDown = (event) => {
