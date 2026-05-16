@@ -2082,3 +2082,10 @@ a.chip {
     border-radius: 18px !important;
   }
 }
+/* ===== Hide mobile bottom nav on desktop/tablet ===== */
+@media (min-width: 721px) {
+  .mobile-bottom-nav,
+  .mobile-home-bottom-nav {
+    display: none !important;
+  }
+}
