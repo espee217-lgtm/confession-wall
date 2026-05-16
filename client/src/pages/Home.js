@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
@@ -34,8 +35,25 @@ const POST_EMOJI_GROUPS = [
 ];
 
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
+  const handlePick = (emoji) => {
+    onPick(emoji);
+
+    // Phone: choose one emoji, then close tray.
+    // Desktop: keep tray open for faster multi-emoji posting.
+    if (compact) {
+      setOpen(false);
+    }
+  };
+
   return (
-    <div data-ui="true" style={{ position: "relative", display: "inline-flex" }}>
+    <div
+      data-ui="true"
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        overflow: "visible",
+      }}
+    >
       <button
         type="button"
         onClick={(e) => {
@@ -44,59 +62,119 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
         }}
         title="Add emoji"
         style={{
-          width: compact ? "36px" : "38px",
-          height: compact ? "36px" : "38px",
+          width: compact ? "36px" : "42px",
+          height: compact ? "36px" : "42px",
           display: "grid",
           placeItems: "center",
+          padding: 0,
+          textAlign: "center",
+          lineHeight: 1,
           borderRadius: "999px",
           border: open
-            ? "1px solid rgba(190,255,130,0.38)"
-            : "1px solid rgba(255,255,220,0.15)",
+            ? "1px solid rgba(190,255,130,0.45)"
+            : "1px solid rgba(255,255,220,0.18)",
           background: open
-            ? "rgba(170,255,100,0.14)"
-            : "rgba(255,255,220,0.04)",
-          color: "rgba(255,255,220,0.78)",
+            ? "rgba(170,255,100,0.16)"
+            : "rgba(255,255,220,0.05)",
+          color: "rgba(255,255,220,0.82)",
           cursor: "pointer",
-          fontSize: "17px",
-          boxShadow: open ? "0 0 22px rgba(170,255,100,0.16)" : "none",
+          fontSize: compact ? "17px" : "19px",
+          boxShadow: open ? "0 0 22px rgba(170,255,100,0.18)" : "none",
+          flexShrink: 0,
         }}
       >
-        😊
+        <span
+          style={{
+            display: "block",
+            transform: compact ? "translateX(0)" : "translateX(-7px)",
+            lineHeight: 1,
+          }}
+        >
+          😊
+        </span>
       </button>
 
       {open && (
         <div
+          data-ui="true"
           onClick={(e) => e.stopPropagation()}
           style={{
-            position: "absolute",
-            left: compact ? "50%" : "0",
-            bottom: "48px",
-            transform: compact ? "translateX(-50%)" : "none",
-            width: compact ? "min(330px, calc(100vw - 28px))" : "min(360px, calc(100vw - 42px))",
-            maxHeight: compact ? "300px" : "330px",
+            position: compact ? "absolute" : "fixed",
+            left: compact ? "0" : "calc(50% + 275px)",
+            bottom: compact ? "48px" : "auto",
+            top: compact ? "auto" : "50%",
+            transform: compact ? "none" : "translateY(-50%)",
+            width: compact ? "236px" : "360px",
+            maxWidth: compact ? "calc(100vw - 48px)" : "360px",
+            maxHeight: compact ? "210px" : "390px",
             overflowY: "auto",
-            overscrollBehavior: "contain",
-            padding: "12px 8px 12px 12px",
-            borderRadius: "18px",
-            border: "1px solid rgba(170,255,130,0.18)",
-            background: "rgba(5,18,8,0.97)",
+            overflowX: "hidden",
+            boxSizing: "border-box",
+            padding: compact ? "10px" : "14px",
+            borderRadius: compact ? "18px" : "22px",
+            border: "1px solid rgba(170,255,130,0.22)",
+            background:
+              "linear-gradient(180deg, rgba(8,28,10,0.98), rgba(3,13,5,0.98))",
             boxShadow:
-              "0 18px 60px rgba(0,0,0,0.48), 0 0 30px rgba(135,255,100,0.10), inset 0 1px 0 rgba(255,255,255,0.06)",
-            backdropFilter: "blur(18px)",
-            WebkitBackdropFilter: "blur(18px)",
-            zIndex: 99999,
+              "0 24px 90px rgba(0,0,0,0.72), 0 0 42px rgba(135,255,100,0.13), inset 0 1px 0 rgba(255,255,255,0.07)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            zIndex: 999999,
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(190,255,130,0.35) transparent",
           }}
         >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "8px",
+              paddingBottom: "7px",
+              borderBottom: "1px solid rgba(170,255,130,0.12)",
+            }}
+          >
+            <strong
+              style={{
+                color: "rgba(235,255,200,0.9)",
+                fontSize: compact ? "9px" : "11px",
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              🌿 choose
+            </strong>
+
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,220,0.14)",
+                background: "rgba(255,255,220,0.05)",
+                color: "rgba(255,255,220,0.65)",
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+
           {POST_EMOJI_GROUPS.map((group) => (
-            <div key={group.label} style={{ marginBottom: "10px" }}>
+            <div key={group.label} style={{ marginBottom: compact ? "9px" : "12px" }}>
               <div
                 style={{
                   marginBottom: "6px",
-                  fontSize: "9px",
-                  letterSpacing: "0.16em",
+                  fontSize: "8.5px",
+                  letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  color: "rgba(215,255,185,0.65)",
+                  color: "rgba(215,255,185,0.58)",
                   fontWeight: 800,
+                  fontFamily: "Georgia, serif",
                 }}
               >
                 {group.label}
@@ -105,26 +183,31 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: compact ? "repeat(7, 1fr)" : "repeat(8, 1fr)",
-                  gap: "5px",
+                  gridTemplateColumns: compact
+                    ? "repeat(5, 34px)"
+                    : "repeat(8, 36px)",
+                  gap: compact ? "7px" : "8px",
+                  justifyContent: "center",
+                  justifyItems: "center",
                 }}
               >
                 {group.emojis.map((emoji) => (
                   <button
                     key={`${group.label}-${emoji}`}
                     type="button"
-                    onClick={() => onPick(emoji)}
+                    onClick={() => handlePick(emoji)}
                     style={{
-                      width: "30px",
-                      height: "30px",
+                      width: compact ? "34px" : "36px",
+                      height: compact ? "34px" : "36px",
                       display: "grid",
                       placeItems: "center",
-                      borderRadius: "11px",
-                      border: "1px solid rgba(170,255,130,0.14)",
+                      borderRadius: compact ? "12px" : "13px",
+                      border: "1px solid rgba(170,255,130,0.16)",
                       background: "rgba(255,255,255,0.06)",
                       cursor: "pointer",
-                      fontSize: "17px",
+                      fontSize: compact ? "17px" : "18px",
                       lineHeight: 1,
+                      padding: 0,
                     }}
                   >
                     {emoji}
@@ -537,13 +620,7 @@ function MobileHomePage({
         )}
       </section>
 
-      <nav className="mobile-home-bottom-nav" aria-label="Mobile home navigation">
-        <button type="button" onClick={() => navigate("/")} className="active">🏠<span>Home</span></button>
-        <button type="button" onClick={() => navigate("/search")}>🔎<span>Search</span></button>
-        <button type="button" onClick={() => setShowCompose(true)} className="confess">🌿<span>Confess</span></button>
-        <button type="button" onClick={() => navigate("/activity")}>🔔<span>Activity</span></button>
-        <button type="button" onClick={() => navigate("/settings")}>👤<span>Profile</span></button>
-      </nav>
+      <MobileBottomNav onConfess={() => setShowCompose(true)} />
 
       {showCompose && (
         <div
@@ -555,7 +632,17 @@ function MobileHomePage({
           }}
         >
           <div className="mobile-compose-card">
-            <button type="button" className="mobile-compose-close" onClick={() => setShowCompose(false)}>✕</button>
+            <button
+  type="button"
+  className="mobile-compose-close"
+  onClick={() => setShowCompose(false)}
+  style={{
+    top: "-5px",
+    right: "-4px",
+  }}
+>
+  ✕
+</button>
             <p className="mobile-compose-kicker">✦ plant a confession</p>
             <h2>What do you need to confess?</h2>
             <textarea
@@ -570,18 +657,26 @@ function MobileHomePage({
               <div className="mobile-compose-preview">
                 <img src={imagePreview} alt="preview" />
                 <button
-                  type="button"
-                  onClick={() => {
-                    setImage(null);
-                    setImagePreview(null);
-                  }}
-                >
-                  ✕
-                </button>
+  type="button"
+  onClick={() => {
+    setImage(null);
+    setImagePreview(null);
+  }}
+>
+  <span
+    style={{
+      display: "block",
+      transform: "translateX(-5px) translateY(-5px)",
+      lineHeight: 1,
+    }}
+  >
+    ✕
+  </span>
+</button>
               </div>
             )}
 
-            <div className="mobile-compose-actions">
+            <div className="mobile-compose-actions" style={{ overflow: "visible" }}>
   <EmojiPickerButton
     open={showPostEmojiPicker}
     setOpen={setShowPostEmojiPicker}
@@ -1028,37 +1123,126 @@ useEffect(() => {
     onProfile={() => navigate("/settings")}
   />
 </div>
-<button
+<div
   data-ui="true"
-  type="button"
-  onClick={(e) => {
-    e.stopPropagation();
-    setShowCompose(true);
-  }}
-  title="Plant a confession"
   style={{
     position: "absolute",
+    top: "-5px",
     left: "50%",
-    top: "43%",
-    transform: "translate(-50%, -50%)",
-    zIndex: 95,
-    width: "54px",
-    height: "54px",
-    borderRadius: "999px",
-    border: "1px solid rgba(230,255,165,0.42)",
-    background:
-      "radial-gradient(circle at 35% 28%, rgba(255,255,220,0.95), transparent 18%), linear-gradient(135deg, rgba(218,255,123,0.96), rgba(85,190,49,0.72))",
-    color: "#102404",
-    fontSize: "34px",
-    fontWeight: 900,
-    lineHeight: 1,
-    cursor: "pointer",
-    boxShadow:
-      "0 0 22px rgba(195,255,100,0.45), 0 0 55px rgba(120,255,80,0.22), 0 16px 42px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.65)",
+    transform: "translateX(-50%)",
+    zIndex: 140,
+    pointerEvents: "auto",
   }}
 >
-  +
-</button>
+  <button
+    type="button"
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowPostEmojiPicker(false);
+      setShowCompose(true);
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = "translateY(-2px) scale(1.035)";
+      e.currentTarget.style.boxShadow =
+        "0 0 28px rgba(173,255,109,0.34), 0 14px 36px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,220,0.18)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "translateY(0) scale(1)";
+      e.currentTarget.style.boxShadow =
+        "0 0 18px rgba(126,255,87,0.16), 0 10px 28px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,220,0.10)";
+    }}
+    style={{
+      position: "relative",
+      minWidth: "250px",
+      height: "38px",
+      padding: "0 34px",
+      borderRadius: "0 0 20px 20px",
+      border: "1px solid rgba(176,255,120,0.26)",
+      borderTop: "none",
+      background:
+        "linear-gradient(180deg, rgba(12,44,16,0.94), rgba(5,20,8,0.90))",
+      color: "rgba(236,255,198,0.94)",
+      cursor: "pointer",
+      fontFamily: "Georgia, serif",
+      letterSpacing: "0.18em",
+      textTransform: "uppercase",
+      fontWeight: 900,
+      boxShadow:
+        "0 0 18px rgba(126,255,87,0.16), 0 10px 28px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,220,0.10)",
+      backdropFilter: "blur(14px)",
+      WebkitBackdropFilter: "blur(14px)",
+      transition: "transform 0.22s ease, box-shadow 0.22s ease",
+      overflow: "hidden",
+    }}
+  >
+    <span
+      style={{
+        position: "absolute",
+        left: "14px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        fontSize: "17px",
+        opacity: 0.9,
+      }}
+    >
+      🌿
+    </span>
+
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        fontSize: "13px",
+        lineHeight: 1,
+      }}
+    >
+      <span style={{ opacity: 0.78 }}>✦</span>
+      Confess
+      <span style={{ opacity: 0.78 }}>✦</span>
+    </span>
+
+    <span
+      style={{
+        display: "block",
+        marginTop: "4px",
+        fontSize: "8px",
+        letterSpacing: "0.14em",
+        textTransform: "lowercase",
+        fontWeight: 600,
+        color: "rgba(205,255,165,0.56)",
+      }}
+    >
+      plant a secret
+    </span>
+
+    <span
+      style={{
+        position: "absolute",
+        right: "14px",
+        top: "50%",
+        transform: "translateY(-50%) scaleX(-1)",
+        fontSize: "17px",
+        opacity: 0.9,
+      }}
+    >
+      🌿
+    </span>
+
+    <span
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: "1px",
+        background:
+          "linear-gradient(90deg, transparent, rgba(210,255,145,0.65), transparent)",
+      }}
+    />
+  </button>
+</div>
 
       <SpiritNavigation
         onLeftClick={() => navigate("/grove")}
@@ -1254,14 +1438,22 @@ useEffect(() => {
 
             <div
   style={{
-    display: "flex",
-    justifyContent: "space-between",
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
     alignItems: "center",
-    gap: "10px",
+    gap: "14px",
     marginTop: "16px",
   }}
 >
-  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+  <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    flex: 1,
+  }}
+>
     <EmojiPickerButton
       open={showPostEmojiPicker}
       setOpen={setShowPostEmojiPicker}
