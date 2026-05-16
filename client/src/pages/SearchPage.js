@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import PostCard from "../components/PostCard";
 
@@ -146,6 +147,7 @@ export default function SearchPage() {
           );
         })}
       </section>
+      <MobileBottomNav />
     </main>
   );
 }

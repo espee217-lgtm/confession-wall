@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -152,6 +153,7 @@ export default function ActivityPage() {
           </button>
         ))}
       </section>
+      <MobileBottomNav />
     </main>
   );
 }

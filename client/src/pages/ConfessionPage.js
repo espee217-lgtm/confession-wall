@@ -1,4 +1,5 @@
 import DisplayTitlePill from "../components/DisplayTitlePill";
+import MobileBottomNav from "../components/MobileBottomNav";
 import {
   getBadgeLabel,
   getPostThemeStyle,
@@ -397,7 +398,27 @@ export default function ConfessionPage() {
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
   const commentInputRef = useRef(null);
+
+  const COMMENT_MOBILE_BREAKPOINT = 720;
+  const [isPhoneLayout, setIsPhoneLayout] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= COMMENT_MOBILE_BREAKPOINT;
+  });
+
+  useEffect(() => {
+    const syncPhoneLayout = () => {
+      setIsPhoneLayout(window.innerWidth <= COMMENT_MOBILE_BREAKPOINT);
+    };
+
+    syncPhoneLayout();
+    window.addEventListener("resize", syncPhoneLayout);
+
+    return () => {
+      window.removeEventListener("resize", syncPhoneLayout);
+    };
+  }, []);
 
   useEffect(() => {
     fetch(`${API_URL}/${id}`)
@@ -416,6 +437,25 @@ export default function ConfessionPage() {
       }, 250);
     }
   }, [targetCommentId, confession]);
+  useEffect(() => {
+  if (!showEmojiPicker) return;
+
+  const closeEmojiPickerOnOutsideClick = (e) => {
+    if (emojiPickerRef.current && emojiPickerRef.current.contains(e.target)) {
+      return;
+    }
+
+    setShowEmojiPicker(false);
+  };
+
+  document.addEventListener("mousedown", closeEmojiPickerOnOutsideClick);
+  document.addEventListener("touchstart", closeEmojiPickerOnOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", closeEmojiPickerOnOutsideClick);
+    document.removeEventListener("touchstart", closeEmojiPickerOnOutsideClick);
+  };
+}, [showEmojiPicker]);
 
   const watered = confession?.wateredBy?.length || 0;
   const burned = confession?.burnedBy?.length || 0;
@@ -434,6 +474,26 @@ const authorBadge = getBadgeLabel(authorEquipped.badge);
 const viewerEquipped = user?.equippedCosmetics || {};
 const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
 const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
+
+// 📎 COMMENT IMAGE PIN PLACEMENT CONTROLS
+// Change only these 4 values later.
+// X controls left/right: negative = left, positive = right.
+// Y controls up/down: negative = up, positive = down.
+const COMMENT_IMAGE_PIN_DESKTOP_X = 0;
+const COMMENT_IMAGE_PIN_DESKTOP_Y = 4;
+
+const COMMENT_IMAGE_PIN_PHONE_X = -18;
+const COMMENT_IMAGE_PIN_PHONE_Y = 4;
+
+const activeCommentPinPosition = isPhoneLayout
+  ? {
+      x: COMMENT_IMAGE_PIN_PHONE_X,
+      y: COMMENT_IMAGE_PIN_PHONE_Y,
+    }
+  : {
+      x: COMMENT_IMAGE_PIN_DESKTOP_X,
+      y: COMMENT_IMAGE_PIN_DESKTOP_Y,
+    };
 
   let bgVideo = "/forest3.mp4";
 
@@ -1006,7 +1066,7 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
             </div>
           )}
 
-          <form onSubmit={handleCommentSubmit}>
+         <form onSubmit={handleCommentSubmit}>
             {commentPreview && (
               <div
                 style={{
@@ -1049,129 +1109,169 @@ const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
               </div>
             )}
 
-            <div style={inputRowStyle}>
+            <div className="comment-input-row" style={inputRowStyle}>
               <input
-  ref={commentInputRef}
-  type="text"
-  placeholder="leave a confession…"
-  value={comment}
-  onChange={(e) => setComment(e.target.value)}
+                ref={commentInputRef}
+                type="text"
+                placeholder="leave a confession…"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
                 style={{
                   flex: 1,
                   border: "none",
                   outline: "none",
                   fontSize: "14px",
-                  color: viewerHasPostTheme ? "rgba(240,255,235,0.95)" : theme.inputText,
+                  color: viewerHasPostTheme
+                    ? "rgba(240,255,235,0.95)"
+                    : theme.inputText,
                   background: "transparent",
                   fontFamily: "Georgia, serif",
                 }}
               />
-              <button
-  type="button"
-  onClick={() => setShowEmojiPicker((open) => !open)}
+
+              <div ref={emojiPickerRef} style={{ position: "relative", flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker((open) => !open)}
+                  style={{
+                    background: showEmojiPicker
+                      ? "rgba(120,255,180,0.16)"
+                      : "transparent",
+                    border: showEmojiPicker
+                      ? "1px solid rgba(120,255,180,0.28)"
+                      : "1px solid transparent",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                    padding: "4px 8px",
+                    borderRadius: "50%",
+                    color: theme.accent,
+                    lineHeight: 1,
+                  }}
+                  title="Add emoji"
+                >
+                  😊
+                </button>
+
+                {showEmojiPicker && (
+                  <div
+                    style={{
+                      position: isPhoneLayout ? "fixed" : "absolute",
+
+                      // Phone tray escapes all parent clipping.
+                      left: isPhoneLayout ? "50%" : "auto",
+                      right: isPhoneLayout ? "auto" : "0px",
+                      bottom: isPhoneLayout ? "118px" : "44px",
+                      transform: isPhoneLayout ? "translateX(-50%)" : "none",
+
+                      width: isPhoneLayout
+                        ? "min(310px, calc(100vw - 28px))"
+                        : "min(360px, calc(100vw - 36px))",
+                      maxWidth: isPhoneLayout ? "calc(100vw - 28px)" : "360px",
+                      maxHeight: isPhoneLayout
+                        ? "230px"
+                        : "min(330px, calc(100vh - 190px))",
+
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      overscrollBehavior: "contain",
+                      padding: "12px",
+                      paddingRight: "8px",
+                      borderRadius: "18px",
+                      border: `1px solid ${theme.reactionBorder}`,
+                      background:
+                        realm === "grove"
+                          ? "rgba(255,255,255,0.96)"
+                          : "rgba(6, 22, 13, 0.96)",
+                      boxShadow:
+                        "0 18px 60px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)",
+                      backdropFilter: "blur(18px)",
+                      WebkitBackdropFilter: "blur(18px)",
+                      zIndex: 999999,
+                    }}
+                  >
+                    {COMMENT_EMOJI_GROUPS.map((group) => (
+                      <div key={group.label} style={{ marginBottom: "9px" }}>
+                        <div
+                          style={{
+                            marginBottom: "6px",
+                            fontSize: "9px",
+                            letterSpacing: "0.16em",
+                            textTransform: "uppercase",
+                            color: theme.muted,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {group.label}
+                        </div>
+
+                       <div
   style={{
-    background: showEmojiPicker
-      ? "rgba(120,255,180,0.16)"
-      : "transparent",
-    border: showEmojiPicker
-      ? "1px solid rgba(120,255,180,0.28)"
-      : "1px solid transparent",
-    cursor: "pointer",
-    fontSize: "16px",
-    padding: "4px 8px",
-    borderRadius: "50%",
-    color: theme.accent,
-    lineHeight: 1,
+    display: "grid",
+    gridTemplateColumns: isPhoneLayout
+      ? "repeat(5, 34px)"
+      : "repeat(8, 34px)",
+    gap: isPhoneLayout ? "7px" : "8px",
+    justifyContent: "center",
+    justifyItems: "center",
+    alignItems: "center",
+    width: "fit-content",
+    margin: "0 auto",
   }}
-  title="Add emoji"
 >
-  😊
-</button>
+                          {group.emojis.map((emoji) => (
+                            <button
+                              key={`${group.label}-${emoji}`}
+                              type="button"
+                              onClick={() => {
+                                insertEmoji(emoji);
 
-{showEmojiPicker && (
-  <div
-    style={{
-  position: "absolute",
-  right: "72px",
-  bottom: "52px",
-  width: "min(360px, calc(100vw - 36px))",
-  maxHeight: "min(330px, calc(100vh - 190px))",
-  overflowY: "auto",
-  overscrollBehavior: "contain",
-  padding: "12px",
-  paddingRight: "8px",
-  borderRadius: "18px",
-  border: `1px solid ${theme.reactionBorder}`,
-  background:
-        realm === "grove"
-          ? "rgba(255,255,255,0.96)"
-          : "rgba(6, 22, 13, 0.96)",
-      boxShadow:
-        "0 18px 60px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.08)",
-      backdropFilter: "blur(18px)",
-      WebkitBackdropFilter: "blur(18px)",
-      zIndex: 20,
-    }}
-  >
-    {COMMENT_EMOJI_GROUPS.map((group) => (
-      <div key={group.label} style={{ marginBottom: "9px" }}>
-        <div
-          style={{
-            marginBottom: "6px",
-            fontSize: "9px",
-            letterSpacing: "0.16em",
-            textTransform: "uppercase",
-            color: theme.muted,
-            fontWeight: 700,
-          }}
-        >
-          {group.label}
-        </div>
+                                if (isPhoneLayout) {
+                                  setShowEmojiPicker(false);
+                                }
+                              }}
+                              style={{
+                                width: isPhoneLayout ? "34px" : "32px",
+                                height: isPhoneLayout ? "34px" : "32px",
+                                transform: isPhoneLayout
+                                ? "translateX(-4px)"
+                                : "translateX(-8px)",
+                                display: "grid",
+                                placeItems: "center",
+                                borderRadius: "12px",
+                                border: `1px solid ${theme.reactionBorder}`,
+                                background:
+                                  realm === "grove"
+                                    ? "rgba(245,255,240,0.78)"
+                                    : "rgba(255,255,255,0.06)",
+                                cursor: "pointer",
+                                fontSize: isPhoneLayout ? "18px" : "17px",
+                                lineHeight: 1,
+                                transition:
+                                  "transform 0.15s ease, background 0.15s ease",
+                              }}
+                              onMouseEnter={(e) => {
+  e.currentTarget.style.transform = isPhoneLayout
+    ? "translateX(-4px) translateY(-2px) scale(1.08)"
+    : "translateX(-8px) translateY(-2px) scale(1.08)";
+}}
+onMouseLeave={(e) => {
+  e.currentTarget.style.transform = isPhoneLayout
+    ? "translateX(-4px)"
+    : "translateX(-8px)";
+}}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(8, 1fr)",
-gap: "5px",
-          }}
-        >
-          {group.emojis.map((emoji) => (
-            <button
-              key={`${group.label}-${emoji}`}
-              type="button"
-              onClick={() => insertEmoji(emoji)}
-              style={{
-                width: "30px",
-                height: "30px",
-                display: "grid",
-                placeItems: "center",
-                borderRadius: "12px",
-                border: `1px solid ${theme.reactionBorder}`,
-                background:
-                  realm === "grove"
-                    ? "rgba(245,255,240,0.78)"
-                    : "rgba(255,255,255,0.06)",
-                cursor: "pointer",
-                fontSize: "17px",
-                lineHeight: 1,
-                transition: "transform 0.15s ease, background 0.15s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px) scale(1.08)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "none";
-              }}
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
-    ))}
-  </div>
-)}
               <label
+                className="comment-image-pin"
                 style={{
                   background: "none",
                   border: "none",
@@ -1180,6 +1280,16 @@ gap: "5px",
                   padding: "4px 8px",
                   borderRadius: "50%",
                   color: theme.accent,
+
+                  // Uses the separate desktop/phone controls above.
+                  position: "relative",
+                  left: `${activeCommentPinPosition.x}px`,
+                  top: `${activeCommentPinPosition.y}px`,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: isPhoneLayout ? "translateX(-6px)" : "translateX(-10px)",
+                  flexShrink: 0,
                 }}
               >
                 📎
@@ -1195,12 +1305,11 @@ gap: "5px",
                 type="submit"
                 style={{
                   background: viewerHasPostTheme
-  ? "rgba(110, 170, 255, 0.28)"
-  : theme.accent,
-border: viewerHasPostTheme
-  ? "1px solid rgba(150, 200, 255, 0.45)"
-  : "none",
-                  border: "none",
+                    ? "rgba(110, 170, 255, 0.28)"
+                    : theme.accent,
+                  border: viewerHasPostTheme
+                    ? "1px solid rgba(150, 200, 255, 0.45)"
+                    : "none",
                   borderRadius: "50px",
                   padding: "8px 20px",
                   color: realm === "scorched" ? "#1d0704" : "white",
@@ -1218,6 +1327,7 @@ border: viewerHasPostTheme
           </form>
         </div>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }

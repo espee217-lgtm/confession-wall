@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function MobileBottomNav({ onConfess }) {
   const navigate = useNavigate();
@@ -7,8 +7,17 @@ export default function MobileBottomNav({ onConfess }) {
 
   const isActive = (path) => location.pathname === path;
 
+  const goConfess = () => {
+    if (onConfess) {
+      onConfess();
+      return;
+    }
+
+    navigate("/?compose=true");
+  };
+
   return (
-    <nav className="mobile-home-bottom-nav" aria-label="Mobile navigation">
+    <nav className="mobile-home-bottom-nav" aria-label="Mobile bottom navigation">
       <button
         type="button"
         onClick={() => navigate("/")}
@@ -27,14 +36,7 @@ export default function MobileBottomNav({ onConfess }) {
         <span>Shop</span>
       </button>
 
-      <button
-        type="button"
-        onClick={() => {
-          if (onConfess) onConfess();
-          else navigate("/");
-        }}
-        className="confess"
-      >
+      <button type="button" onClick={goConfess} className="confess">
         🌿
         <span>Confess</span>
       </button>
@@ -51,7 +53,11 @@ export default function MobileBottomNav({ onConfess }) {
       <button
         type="button"
         onClick={() => navigate("/settings")}
-        className={isActive("/settings") ? "active" : ""}
+        className={
+          isActive("/settings") || location.pathname.startsWith("/profile/")
+            ? "active"
+            : ""
+        }
       >
         👤
         <span>Profile</span>

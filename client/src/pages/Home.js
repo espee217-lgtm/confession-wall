@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
 
@@ -86,7 +86,7 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
         <span
           style={{
             display: "block",
-            transform: compact ? "translateX(0)" : "translateX(-7px)",
+            transform: compact ? "translateX(0)" : "translateX(0px)",
             lineHeight: 1,
           }}
         >
@@ -865,6 +865,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
 export default function Home() {
   const { user, token, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [confessions, setConfessions] = useState([]);
   const grovePosts = confessions.filter(
@@ -918,6 +919,15 @@ useEffect(() => {
     setShowTutorial(true);
   }
 }, []);
+
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+
+  if (params.get("compose") === "true") {
+    setShowCompose(true);
+    navigate("/", { replace: true });
+  }
+}, [location.search, navigate]);
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -1127,7 +1137,7 @@ useEffect(() => {
   data-ui="true"
   style={{
     position: "absolute",
-    top: "-5px",
+    top: "-10px",
     left: "50%",
     transform: "translateX(-50%)",
     zIndex: 140,
@@ -1449,7 +1459,7 @@ useEffect(() => {
   style={{
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: "10px",
     flex: 1,
   }}

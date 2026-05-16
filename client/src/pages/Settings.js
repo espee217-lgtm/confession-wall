@@ -1,4 +1,5 @@
 import DisplayTitlePill from "../components/DisplayTitlePill";
+import MobileBottomNav from "../components/MobileBottomNav";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -1444,6 +1445,7 @@ export default function Settings() {
           </Section>
         </div>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }

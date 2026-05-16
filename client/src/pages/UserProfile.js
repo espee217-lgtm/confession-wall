@@ -1,4 +1,5 @@
 import DisplayTitlePill from "../components/DisplayTitlePill";
+import MobileBottomNav from "../components/MobileBottomNav";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
@@ -23,6 +24,7 @@ function CosmeticChip({ item, fallback }) {
         <div style={cosmeticChipLabelStyle}>{fallback}</div>
         <strong style={cosmeticChipValueStyle}>{item?.name || "None"}</strong>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }
