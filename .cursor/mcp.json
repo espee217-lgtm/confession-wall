@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "obsidian": {
+      "url": "http://127.0.0.1:27123/mcp",
+      "headers": {
+        "Authorization": "Bearer 33bfedbfbcd391995601bde17aec44f6c842153007fad6509cec0f5d4ccc921b"
+      }
+    }
+  }
+}
