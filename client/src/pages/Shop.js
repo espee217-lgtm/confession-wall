@@ -3,6 +3,7 @@ import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Shop.css";
+import { getCosmeticAnimationClass } from "../utils/cosmetics";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -42,18 +43,119 @@ function ShopIconSvg() {
   );
 }
 
+function CosmeticFxLayers({ item }) {
+  const id = item.id;
+
+  if (id === "badge-petal-storm") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className="cw-fx-petal" />
+        ))}
+      </div>
+    );
+  }
+
+  if (id === "badge-ember-core") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span
+            key={i}
+            className="cw-fx-ember"
+            style={{ left: `${18 + i * 11}%`, animationDelay: `${i * 0.35}s` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (id === "badge-void-sigil") {
+    return <div className="cw-cosmetic-fx-layer cw-fx-smoke" aria-hidden="true" />;
+  }
+
+  if (id === "frame-thornfire") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <svg className="cw-fx-vine-svg" viewBox="0 0 40 60" aria-hidden="true">
+          <path d="M4 55 C4 35, 18 28, 22 12 C24 6, 20 4, 18 8" />
+        </svg>
+        <span className="cw-fx-ember-glow" />
+      </div>
+    );
+  }
+
+  if (id === "frame-celestial") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span
+            key={i}
+            className="cw-fx-orbit-star"
+            style={{ animationDelay: `${-i * 1.15}s` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (id === "post-theme-scorched-parchment") {
+    const spots = [12, 28, 45, 62, 78, 22, 55];
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {spots.map((left, i) => (
+          <span
+            key={i}
+            className="cw-fx-ember"
+            style={{ left: `${left}%`, animationDelay: `${i * 0.4}s` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  if (id === "post-theme-starbound-card") {
+    const stars = [
+      [8, 15], [22, 35], [40, 20], [58, 45], [72, 18], [85, 32],
+      [15, 55], [35, 70], [55, 62], [78, 58],
+    ];
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {stars.map(([left, top], i) => (
+          <span
+            key={i}
+            className="cw-fx-star"
+            style={{
+              left: `${left}%`,
+              top: `${top}%`,
+              animationDelay: `${i * 0.35}s`,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+}
+
 function ShopPreview({ item }) {
+  const animClass =
+    item.previewClass || getCosmeticAnimationClass(item.id) || "";
+
   if (item.type === "frame") {
     return (
-      <div className={`shop-preview-frame ${item.previewClass || ""}`}>
-        <div className="shop-preview-avatar">A</div>
+      <div className={`shop-preview-frame ${animClass}`}>
+        <div className={`shop-preview-avatar ${animClass}`}>A</div>
+        <CosmeticFxLayers item={item} />
       </div>
     );
   }
 
   if (item.type === "postTheme") {
     return (
-      <div className={`shop-preview-post ${item.previewClass || ""}`}>
+      <div className={`shop-preview-post ${animClass}`}>
+        <CosmeticFxLayers item={item} />
         <div className="shop-preview-post-line wide" />
         <div className="shop-preview-post-line" />
         <div className="shop-preview-post-actions">
@@ -66,16 +168,19 @@ function ShopPreview({ item }) {
 
   if (item.type === "title") {
     return (
-      <div className={`shop-preview-title ${item.previewClass || ""}`}>
+      <div className="shop-preview-title">
         <span className="shop-preview-name">Anonymous</span>
-        <span className="shop-preview-title-text">{item.name}</span>
+        <span className={`shop-preview-title-text ${animClass}`}>{item.name}</span>
       </div>
     );
   }
 
   return (
-    <div className={`shop-preview-badge ${item.previewClass || ""}`}>
-      <span>{item.icon}</span>
+    <div className={`shop-preview-badge ${animClass}`}>
+      <div className="cw-cosmetic-stage">
+        <CosmeticFxLayers item={item} />
+        <span className="cw-cosmetic-icon">{item.icon}</span>
+      </div>
     </div>
   );
 }

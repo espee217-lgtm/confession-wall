@@ -1,4 +1,5 @@
 import React from "react";
+import { getCosmeticAnimationClass } from "../utils/cosmetics";
 
 function normalizeFrameId(frameId) {
   if (!frameId) return "";
@@ -20,6 +21,12 @@ function normalizeFrameId(frameId) {
     ember_root_frame: "frame-ember-root",
     emberRootFrame: "frame-ember-root",
     "frame-ember-root": "frame-ember-root",
+    "frame-moonveil": "frame-moonveil",
+    frame_moonveil: "frame-moonveil",
+    "frame-thornfire": "frame-thornfire",
+    frame_thornfire: "frame-thornfire",
+    "frame-celestial": "frame-celestial",
+    frame_celestial: "frame-celestial",
   };
 
   return aliases[value] || value;
@@ -74,13 +81,41 @@ export default function FramedAvatar({
 }) {
   const normalized = normalizeFrameId(frameId);
   const hasFrame = Boolean(normalized);
-  const frameStyle = getFrameStyle(normalized);
+  const animClass = getCosmeticAnimationClass(normalized);
+  const frameStyle = animClass
+    ? {
+        padding: "4px",
+        background: "transparent",
+        boxShadow: "none",
+      }
+    : getFrameStyle(normalized);
 
   const fallback = placeholder || username?.[0]?.toUpperCase?.() || "🌿";
+
+  const frameFx =
+    normalized === "frame-thornfire" ? (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <svg className="cw-fx-vine-svg" viewBox="0 0 40 60" aria-hidden="true">
+          <path d="M4 55 C4 35, 18 28, 22 12 C24 6, 20 4, 18 8" />
+        </svg>
+        <span className="cw-fx-ember-glow" />
+      </div>
+    ) : normalized === "frame-celestial" ? (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span
+            key={i}
+            className="cw-fx-orbit-star"
+            style={{ animationDelay: `${-i * 1.15}s` }}
+          />
+        ))}
+      </div>
+    ) : null;
 
   return (
     <div
       title={normalized || ""}
+      className={animClass || undefined}
       style={{
         width: size,
         height: size,
@@ -98,6 +133,7 @@ export default function FramedAvatar({
         ...frameStyle,
       }}
     >
+      {frameFx}
       {src ? (
         <img
           src={src}

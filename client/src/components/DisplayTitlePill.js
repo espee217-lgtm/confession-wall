@@ -1,5 +1,9 @@
 import React from "react";
-import { getDisplayTitle, getCosmeticIcon } from "../utils/cosmetics";
+import {
+  getCosmeticAnimationClass,
+  getDisplayTitle,
+  getCosmeticIcon,
+} from "../utils/cosmetics";
 
 export default function DisplayTitlePill({ titleId, size = "small" }) {
   const title = getDisplayTitle(titleId);
@@ -8,9 +12,11 @@ export default function DisplayTitlePill({ titleId, size = "small" }) {
 
   const icon = getCosmeticIcon(titleId) || "✦";
   const isBig = size === "big";
+  const animClass = getCosmeticAnimationClass(titleId);
 
   return (
     <span
+      className={animClass || undefined}
       style={{
         display: "inline-flex",
         alignItems: "center",

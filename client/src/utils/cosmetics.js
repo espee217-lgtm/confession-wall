@@ -62,7 +62,86 @@ export const COSMETIC_META = {
     name: "Scorched Ember Card",
     type: "postTheme",
   },
+
+  "badge-petal-storm": {
+    icon: "🌸",
+    name: "Petal Storm",
+    type: "badge",
+    animationClass: "cw-cosmetic-badge-petal-storm",
+  },
+  "badge-ember-core": {
+    icon: "🔥",
+    name: "Ember Core",
+    type: "badge",
+    animationClass: "cw-cosmetic-badge-ember-core",
+  },
+  "badge-void-sigil": {
+    icon: "⚫",
+    name: "Void Sigil",
+    type: "badge",
+    animationClass: "cw-cosmetic-badge-void-sigil",
+  },
+  "frame-moonveil": {
+    icon: "🌙",
+    name: "Moonveil Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-moonveil",
+  },
+  "frame-thornfire": {
+    icon: "🥀",
+    name: "Thornfire Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-thornfire",
+  },
+  "frame-celestial": {
+    icon: "✨",
+    name: "Celestial Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-celestial",
+  },
+  "title-whisper-grove": {
+    icon: "🌿",
+    name: "Whisper of the Grove",
+    type: "title",
+    animationClass: "cw-cosmetic-title-whisper-grove",
+  },
+  "title-ashen-voice": {
+    icon: "💨",
+    name: "Ashen Voice",
+    type: "title",
+    animationClass: "cw-cosmetic-title-ashen-voice",
+  },
+  "title-eternal-bloom": {
+    icon: "🌺",
+    name: "Eternal Bloom",
+    type: "title",
+    animationClass: "cw-cosmetic-title-eternal-bloom",
+  },
+  "post-theme-dewdrop-card": {
+    icon: "💧",
+    name: "Dewdrop Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-dewdrop",
+  },
+  "post-theme-scorched-parchment": {
+    icon: "📜",
+    name: "Scorched Parchment Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-scorched-parchment",
+  },
+  "post-theme-starbound-card": {
+    icon: "🌠",
+    name: "Starbound Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-starbound",
+  },
 };
+
+/** Shared CSS animation class for shop previews and equipped cosmetics */
+export function getCosmeticAnimationClass(cosmeticId) {
+  if (!cosmeticId) return "";
+  return getCosmeticMeta(cosmeticId)?.animationClass || "";
+}
 
 export function getCosmeticMeta(id) {
   if (!id) return null;
@@ -117,6 +196,42 @@ export function getPostThemeStyle(postThemeId, realm = "budding") {
       border: "1px solid rgba(255, 106, 72, 0.48)",
       boxShadow:
         "0 0 24px rgba(255, 82, 45, 0.25), inset 0 1px 0 rgba(255,170,120,0.08)",
+    };
+  }
+
+  if (postThemeId === "post-theme-dewdrop-card") {
+    return {
+      background:
+        "linear-gradient(135deg, rgba(18, 42, 28, 0.92), rgba(8, 24, 16, 0.9))",
+      border: "1px solid rgba(140, 220, 165, 0.42)",
+      boxShadow:
+        "0 0 20px rgba(120, 210, 150, 0.2), inset 0 1px 0 rgba(220,255,235,0.08)",
+      position: "relative",
+      overflow: "hidden",
+    };
+  }
+
+  if (postThemeId === "post-theme-scorched-parchment") {
+    return {
+      background:
+        "linear-gradient(135deg, rgba(58, 18, 12, 0.95), rgba(22, 8, 6, 0.93))",
+      border: "1px solid rgba(180, 70, 45, 0.5)",
+      boxShadow:
+        "0 0 22px rgba(200, 60, 30, 0.22), inset 0 1px 0 rgba(255,150,100,0.06)",
+      position: "relative",
+      overflow: "hidden",
+    };
+  }
+
+  if (postThemeId === "post-theme-starbound-card") {
+    return {
+      background:
+        "linear-gradient(135deg, rgba(6, 8, 22, 0.97), rgba(2, 4, 12, 0.96))",
+      border: "1px solid rgba(100, 90, 200, 0.48)",
+      boxShadow:
+        "0 0 26px rgba(70, 60, 180, 0.28), inset 0 1px 0 rgba(180,190,255,0.06)",
+      position: "relative",
+      overflow: "hidden",
     };
   }
 

@@ -265,6 +265,12 @@
   background: rgba(255, 190, 80, 0.13);
 }
 
+.shop-rarity.legendary {
+  color: #ffe566;
+  background: rgba(255, 215, 80, 0.16);
+  box-shadow: 0 0 12px rgba(255, 200, 80, 0.12);
+}
+
 .shop-preview-badge,
 .shop-preview-frame,
 .shop-preview-title,

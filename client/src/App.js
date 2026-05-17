@@ -37,6 +37,7 @@ import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
 
 import { useAuth } from "./context/AuthContext";
+import { getCosmeticAnimationClass, getCosmeticIcon } from "./utils/cosmetics";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
@@ -632,7 +633,13 @@ function Navbar() {
 
             <div
               onClick={() => navigate("/settings")}
-              className={`nav-profile-wrap nav-frame-${user.equippedCosmetics?.frame || "none"}`}
+              className={[
+                "nav-profile-wrap",
+                `nav-frame-${user.equippedCosmetics?.frame || "none"}`,
+                getCosmeticAnimationClass(user.equippedCosmetics?.frame),
+              ]
+                .filter(Boolean)
+                .join(" ")}
               title={user.equippedCosmetics?.title ? `Equipped title: ${user.equippedCosmetics.title}` : "Settings"}
             >
               {user.profilePicture ? (
@@ -648,12 +655,16 @@ function Navbar() {
               )}
 
               {user.equippedCosmetics?.badge && (
-                <span className={`nav-profile-badge nav-badge-${user.equippedCosmetics.badge}`}>
-                  {user.equippedCosmetics.badge === "badge-moon-whisper"
-                    ? "🌙"
-                    : user.equippedCosmetics.badge === "badge-forest-crown"
-                    ? "👑"
-                    : "🌱"}
+                <span
+                  className={[
+                    "nav-profile-badge",
+                    `nav-badge-${user.equippedCosmetics.badge}`,
+                    getCosmeticAnimationClass(user.equippedCosmetics.badge),
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  {getCosmeticIcon(user.equippedCosmetics.badge) || "🌱"}
                 </span>
               )}
             </div>
