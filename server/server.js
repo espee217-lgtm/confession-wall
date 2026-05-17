@@ -31,6 +31,7 @@ const allowedOrigins = new Set(
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://confession-wall-ooqkkrirq-espee217-lgtms-projects.vercel.app",
+    "https://confession-wall-325.pages.dev",
     process.env.CLIENT_URL,
     process.env.CORS_ORIGIN,
   ].filter(Boolean)
@@ -49,12 +50,29 @@ const isAllowedVercelPreview = (origin) => {
     return false;
   }
 };
+const isAllowedCloudflarePagesPreview = (origin) => {
+  try {
+    const url = new URL(origin);
+
+    return (
+      url.protocol === "https:" &&
+      url.hostname.endsWith(".pages.dev") &&
+      url.hostname.includes("confession-wall")
+    );
+  } catch {
+    return false;
+  }
+};
 
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
+    if (
+      allowedOrigins.has(origin) ||
+      isAllowedVercelPreview(origin) ||
+      isAllowedCloudflarePagesPreview(origin)
+    ) {
       return callback(null, true);
     }
 
@@ -117,7 +135,11 @@ const io = new Server(server, {
     origin(origin, callback) {
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.has(origin) || isAllowedVercelPreview(origin)) {
+      if (
+        allowedOrigins.has(origin) ||
+        isAllowedVercelPreview(origin) ||
+        isAllowedCloudflarePagesPreview(origin)
+      ) {
         return callback(null, true);
       }
 
