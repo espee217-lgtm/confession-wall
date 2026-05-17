@@ -152,6 +152,12 @@ export default function DaisyScene({ confessions = [], onPostClick, onCompose, o
   const confRef = useRef(confessions);
   useEffect(() => { confRef.current = confessions; }, [confessions]);
 
+  // Keep callbacks fresh — the main effect has [] deps so these would otherwise be stale closures
+  const onPostClickRef = useRef(onPostClick);
+  const onComposeRef   = useRef(onCompose);
+  useEffect(() => { onPostClickRef.current = onPostClick; }, [onPostClick]);
+  useEffect(() => { onComposeRef.current   = onCompose;   }, [onCompose]);
+
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
@@ -454,8 +460,12 @@ setTimeout(showAutoTooltip, 700);
       const hit = raycast();
       if (!hit) return;
       const { role, confIdx } = hit.userData;
-      if (role === "compose") { s.fistClickTime = performance.now(); onCompose?.(); }
-      else if (role === "post") { const c = confRef.current[confIdx]; if (c) onPostClick?.(c._id); }
+      if (role === "compose") { s.fistClickTime = performance.now(); onComposeRef.current?.(); }
+      else if (role === "post") {
+        const c = confRef.current[confIdx];
+        if (c) onPostClickRef.current?.(c._id);
+        else   onPostClickRef.current?.(); // flower exists but no confession yet → open /budding
+      }
     };
 
     const onTouchEnd = (e) => {
@@ -464,8 +474,12 @@ setTimeout(showAutoTooltip, 700);
       const hit = raycast();
       if (!hit) return;
       const { role, confIdx } = hit.userData;
-      if (role === "compose") { s.fistClickTime = performance.now(); onCompose?.(); }
-      else if (role === "post") { const c = confRef.current[confIdx]; if (c) onPostClick?.(c._id); }
+      if (role === "compose") { s.fistClickTime = performance.now(); onComposeRef.current?.(); }
+      else if (role === "post") {
+        const c = confRef.current[confIdx];
+        if (c) onPostClickRef.current?.(c._id);
+        else   onPostClickRef.current?.();
+      }
     };
 
     renderer.domElement.addEventListener("mousemove", onMouseMove);

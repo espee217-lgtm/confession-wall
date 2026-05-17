@@ -754,18 +754,19 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
   };
 
   useEffect(() => {
-    const handlePointerDown = (e) => {
+    const handleSpiritClick = (e) => {
       if (e.target.closest('[data-ui="true"]')) return;
   
       if (isOpaqueAt(leftImgRef.current, e)) {
-        e.preventDefault();
+        // stopPropagation prevents DaisyScene's click handler from also firing.
+        // No preventDefault() — that was suppressing the click event entirely,
+        // breaking daisy flower navigation.
         e.stopPropagation();
         onLeftClick();
         return;
       }
 
       if (isOpaqueAt(rightImgRef.current, e)) {
-        e.preventDefault();
         e.stopPropagation();
         onRightClick();
       }
@@ -774,10 +775,12 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
   setLeftHover(isOpaqueAt(leftImgRef.current, e));
   setRightHover(isOpaqueAt(rightImgRef.current, e));
 };
-    window.addEventListener("pointerdown", handlePointerDown, true);
+    // Use click (capture) instead of pointerdown so we don't suppress
+    // the click event that DaisyScene depends on for flower navigation.
+    window.addEventListener("click", handleSpiritClick, true);
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
-  window.removeEventListener("pointerdown", handlePointerDown, true);
+  window.removeEventListener("click", handleSpiritClick, true);
   window.removeEventListener("mousemove", handleMouseMove);
 };
   }, [onLeftClick, onRightClick]);
@@ -1128,7 +1131,7 @@ useEffect(() => {
   <DaisyScene
     confessions={freshPosts}
     user={user}
-    onPostClick={(id) => navigate(`/budding?post=${id}`)}
+    onPostClick={(id) => id ? navigate(`/budding?post=${id}`) : navigate("/budding")}
     onCompose={() => setShowCompose(true)}
     onProfile={() => navigate("/settings")}
   />
