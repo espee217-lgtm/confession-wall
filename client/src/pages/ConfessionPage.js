@@ -7,6 +7,7 @@ import {
   getPostThemeStyle,
 } from "../utils/cosmetics";
 import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -1055,12 +1056,13 @@ const activeCommentPinPosition = isPhoneLayout
                   😊
                 </button>
 
-                {showEmojiPicker && (
+                {showEmojiPicker && (() => {
+                  const trayEl = (
                   <div
                     style={{
+                      // On mobile: fixed to viewport via portal (escapes backdrop-filter ancestors).
+                      // On desktop: absolute, positioned relative to emojiPickerRef.
                       position: isPhoneLayout ? "fixed" : "absolute",
-
-                      // Phone tray escapes all parent clipping.
                       left: isPhoneLayout ? "50%" : "auto",
                       right: isPhoneLayout ? "auto" : "0px",
                       bottom: isPhoneLayout ? "118px" : "44px",
@@ -1170,7 +1172,11 @@ onMouseLeave={(e) => {
                       </div>
                     ))}
                   </div>
-                )}
+                  );
+                  return isPhoneLayout
+                    ? ReactDOM.createPortal(trayEl, document.body)
+                    : trayEl;
+                })()}
               </div>
 
               <label
