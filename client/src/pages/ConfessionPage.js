@@ -285,7 +285,9 @@ export default function ConfessionPage() {
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiTrayPosition, setEmojiTrayPosition] = useState({ left: 14, bottom: 118 });
   const emojiPickerRef = useRef(null);
+  const emojiTrayRef = useRef(null);
   const commentInputRef = useRef(null);
 
   const COMMENT_MOBILE_BREAKPOINT = 720;
@@ -328,9 +330,12 @@ export default function ConfessionPage() {
   if (!showEmojiPicker) return;
 
   const closeEmojiPickerOnOutsideClick = (e) => {
-    if (emojiPickerRef.current && emojiPickerRef.current.contains(e.target)) {
-      return;
-    }
+    const clickedPickerButton =
+      emojiPickerRef.current && emojiPickerRef.current.contains(e.target);
+    const clickedEmojiTray =
+      emojiTrayRef.current && emojiTrayRef.current.contains(e.target);
+
+    if (clickedPickerButton || clickedEmojiTray) return;
 
     setShowEmojiPicker(false);
   };
@@ -453,6 +458,26 @@ const activeCommentPinPosition = isPhoneLayout
     input.setSelectionRange(nextPosition, nextPosition);
   }, 0);
 };
+  const toggleEmojiPicker = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const phone = window.innerWidth <= COMMENT_MOBILE_BREAKPOINT;
+    const trayWidth = phone
+      ? Math.min(310, window.innerWidth - 28)
+      : Math.min(360, window.innerWidth - 36);
+
+    const desktopLeft = Math.min(
+      Math.max(rect.right - trayWidth, 14),
+      window.innerWidth - trayWidth - 14
+    );
+
+    setEmojiTrayPosition({
+      left: phone ? window.innerWidth / 2 : desktopLeft,
+      bottom: phone ? 118 : Math.max(window.innerHeight - rect.top + 12, 72),
+    });
+
+    setShowEmojiPicker((open) => !open);
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setCommentImage(file);
@@ -1036,7 +1061,7 @@ const activeCommentPinPosition = isPhoneLayout
               <div ref={emojiPickerRef} style={{ position: "relative", flexShrink: 0 }}>
                 <button
                   type="button"
-                  onClick={() => setShowEmojiPicker((open) => !open)}
+                  onClick={toggleEmojiPicker}
                   style={{
                     background: showEmojiPicker
                       ? "rgba(120,255,180,0.16)"
@@ -1059,13 +1084,16 @@ const activeCommentPinPosition = isPhoneLayout
                 {showEmojiPicker && (() => {
                   const trayEl = (
                   <div
+                    ref={emojiTrayRef}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     style={{
-                      // On mobile: fixed to viewport via portal (escapes backdrop-filter ancestors).
-                      // On desktop: absolute, positioned relative to emojiPickerRef.
-                      position: isPhoneLayout ? "fixed" : "absolute",
-                      left: isPhoneLayout ? "50%" : "auto",
-                      right: isPhoneLayout ? "auto" : "0px",
-                      bottom: isPhoneLayout ? "118px" : "44px",
+                      // Always portal to body so desktop is not clipped by the rounded input row
+                      // and mobile stays above the bottom nav.
+                      position: "fixed",
+                      left: isPhoneLayout ? "50%" : `${emojiTrayPosition.left}px`,
+                      right: "auto",
+                      bottom: `${emojiTrayPosition.bottom}px`,
                       transform: isPhoneLayout ? "translateX(-50%)" : "none",
 
                       width: isPhoneLayout
@@ -1111,15 +1139,12 @@ const activeCommentPinPosition = isPhoneLayout
 
                        <div
   style={{
-    display: "grid",
-    gridTemplateColumns: isPhoneLayout
-      ? "repeat(5, 34px)"
-      : "repeat(8, 34px)",
+    display: "flex",
+    flexWrap: "wrap",
     gap: isPhoneLayout ? "7px" : "8px",
     justifyContent: "center",
-    justifyItems: "center",
     alignItems: "center",
-    width: "fit-content",
+    width: "100%",
     margin: "0 auto",
   }}
 >
@@ -1137,9 +1162,7 @@ const activeCommentPinPosition = isPhoneLayout
                               style={{
                                 width: isPhoneLayout ? "34px" : "32px",
                                 height: isPhoneLayout ? "34px" : "32px",
-                                transform: isPhoneLayout
-                                ? "translateX(-4px)"
-                                : "translateX(-8px)",
+                                transform: "translateY(0) scale(1)",
                                 display: "grid",
                                 placeItems: "center",
                                 borderRadius: "12px",
@@ -1155,14 +1178,10 @@ const activeCommentPinPosition = isPhoneLayout
                                   "transform 0.15s ease, background 0.15s ease",
                               }}
                               onMouseEnter={(e) => {
-  e.currentTarget.style.transform = isPhoneLayout
-    ? "translateX(-4px) translateY(-2px) scale(1.08)"
-    : "translateX(-8px) translateY(-2px) scale(1.08)";
+  e.currentTarget.style.transform = "translateY(-2px) scale(1.08)";
 }}
 onMouseLeave={(e) => {
-  e.currentTarget.style.transform = isPhoneLayout
-    ? "translateX(-4px)"
-    : "translateX(-8px)";
+  e.currentTarget.style.transform = "translateY(0) scale(1)";
 }}
                             >
                               {emoji}
@@ -1173,9 +1192,8 @@ onMouseLeave={(e) => {
                     ))}
                   </div>
                   );
-                  return isPhoneLayout
-                    ? ReactDOM.createPortal(trayEl, document.body)
-                    : trayEl;
+
+                  return ReactDOM.createPortal(trayEl, document.body);
                 })()}
               </div>
 
