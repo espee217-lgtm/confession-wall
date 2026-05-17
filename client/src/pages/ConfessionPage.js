@@ -1,7 +1,9 @@
 import DisplayTitlePill from "../components/DisplayTitlePill";
+import FramedAvatar from "../components/FramedAvatar";
+import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import MobileBottomNav from "../components/MobileBottomNav";
 import {
-  getBadgeLabel,
+  getCosmeticAnimationClass,
   getPostThemeStyle,
 } from "../utils/cosmetics";
 import React, { useEffect, useRef, useState } from "react";
@@ -136,122 +138,6 @@ const COMMENT_EMOJI_GROUPS = [
     emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵"],
   },
 ];
-function normalizeFrameId(frameId) {
-  if (!frameId) return "";
-
-  const value = String(frameId).trim();
-
-  const aliases = {
-    "vine-glow-frame": "frame-vine-glow",
-    vine_glow_frame: "frame-vine-glow",
-    vineGlowFrame: "frame-vine-glow",
-    "frame-vine-glow": "frame-vine-glow",
-
-    "golden-leaf-frame": "frame-golden-leaf",
-    golden_leaf_frame: "frame-golden-leaf",
-    goldenLeafFrame: "frame-golden-leaf",
-    "frame-golden-leaf": "frame-golden-leaf",
-
-    "ember-root-frame": "frame-ember-root",
-    ember_root_frame: "frame-ember-root",
-    emberRootFrame: "frame-ember-root",
-    "frame-ember-root": "frame-ember-root",
-  };
-
-  return aliases[value] || value;
-}
-
-function getFrameStyle(frameId) {
-  const normalized = normalizeFrameId(frameId);
-
-  if (normalized === "frame-vine-glow") {
-    return {
-      padding: "3px",
-      background:
-        "linear-gradient(135deg, rgba(120,255,140,0.95), rgba(28,120,45,0.45))",
-      boxShadow:
-        "0 0 12px rgba(120,255,130,0.9), 0 0 25px rgba(120,255,130,0.35)",
-    };
-  }
-
-  if (normalized === "frame-golden-leaf") {
-    return {
-      padding: "3px",
-      background:
-        "linear-gradient(135deg, rgba(255,224,118,0.95), rgba(150,105,20,0.45))",
-      boxShadow:
-        "0 0 12px rgba(255,210,90,0.9), 0 0 25px rgba(255,210,90,0.35)",
-    };
-  }
-
-  if (normalized === "frame-ember-root") {
-    return {
-      padding: "3px",
-      background:
-        "linear-gradient(135deg, rgba(255,110,70,0.95), rgba(120,20,12,0.5))",
-      boxShadow:
-        "0 0 12px rgba(255,85,45,0.9), 0 0 25px rgba(255,85,45,0.35)",
-    };
-  }
-
-  return {
-    padding: "0px",
-    background: "transparent",
-    boxShadow: "none",
-  };
-}
-
-function Avatar({ src, size = 38, frameId = "" }) {
-  const frameStyle = getFrameStyle(frameId);
-  const hasFrame = !!normalizeFrameId(frameId);
-
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        minWidth: size,
-        minHeight: size,
-        borderRadius: "50%",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        overflow: "visible",
-        ...frameStyle,
-      }}
-    >
-      {src ? (
-        <img
-          src={src}
-          alt="avatar"
-          style={{
-            ...styles.avatar,
-            width: "100%",
-            height: "100%",
-            border: hasFrame
-              ? "2px solid rgba(4, 18, 8, 0.9)"
-              : "2px solid rgba(100,180,80,0.3)",
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            ...styles.avatarPlaceholder,
-            width: "100%",
-            height: "100%",
-            border: hasFrame
-              ? "2px solid rgba(4, 18, 8, 0.9)"
-              : "2px solid rgba(100,180,80,0.3)",
-          }}
-        >
-          🌿
-        </div>
-      )}
-    </div>
-  );
-}
-
 function realmStatus(wateredBy = [], burnedBy = []) {
   const total = wateredBy.length + burnedBy.length;
 
@@ -470,7 +356,7 @@ export default function ConfessionPage() {
   const theme = realmThemes[realm] || realmThemes.grove;
   const authorEquipped = confession?.userId?.equippedCosmetics || {};
 const authorPostThemeStyle = getPostThemeStyle(authorEquipped.postTheme, realm);
-const authorBadge = getBadgeLabel(authorEquipped.badge);
+const authorPostThemeClass = getCosmeticAnimationClass(authorEquipped.postTheme);
 const viewerEquipped = user?.equippedCosmetics || {};
 const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
 const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
@@ -749,7 +635,11 @@ const activeCommentPinPosition = isPhoneLayout
             ← back
           </Link>
 
-          <div style={cardStyle}>
+          <div
+            style={cardStyle}
+            className={authorPostThemeClass || undefined}
+          >
+            <PostThemeFxLayers themeId={authorEquipped.postTheme} />
             <div style={styles.avatarRow}>
               <Link
                 to={confession.userId ? `/user/${confession.userId._id}` : "#"}
@@ -759,9 +649,12 @@ const activeCommentPinPosition = isPhoneLayout
                   textDecoration: "none",
                 }}
               >
-                <Avatar
+                <FramedAvatar
                   src={confession.userId?.profilePicture}
+                  username={confession.userId?.username || "?"}
                   frameId={confession.userId?.equippedCosmetics?.frame}
+                  size={38}
+                  placeholder="🌿"
                 />
               </Link>
 
@@ -786,7 +679,7 @@ const activeCommentPinPosition = isPhoneLayout
     }}
   >
     @{confession.userId?.username || "anonymous"}{" "}
-    {authorBadge ? authorBadge.icon : ""}
+    <AnimatedBadge badgeId={authorEquipped.badge} size="sm" />
   </Link>
 
   <DisplayTitlePill titleId={authorEquipped.title} />
@@ -898,7 +791,9 @@ const activeCommentPinPosition = isPhoneLayout
     commentEquipped.postTheme,
     realm
   );
-  const commentBadge = getBadgeLabel(commentEquipped.badge);
+  const commentPostThemeClass = getCosmeticAnimationClass(
+    commentEquipped.postTheme
+  );
   const commentHasTheme = Boolean(commentEquipped.postTheme);
 
   const commentTextColor = commentHasTheme
@@ -909,6 +804,7 @@ const activeCommentPinPosition = isPhoneLayout
                 <div
                   key={c._id || i}
                   id={`comment-${c._id}`}
+                  className={commentPostThemeClass || undefined}
                   style={{
   ...commentCardStyle,
   ...commentPostThemeStyle,
@@ -923,6 +819,7 @@ const activeCommentPinPosition = isPhoneLayout
                     transition: "all 0.35s ease",
                   }}
                 >
+                  <PostThemeFxLayers themeId={commentEquipped.postTheme} />
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <Link
                       to={c.userId ? `/user/${c.userId._id}` : "#"}
@@ -933,10 +830,12 @@ const activeCommentPinPosition = isPhoneLayout
                         textDecoration: "none",
                       }}
                     >
-                      <Avatar
+                      <FramedAvatar
                         src={c.userId?.profilePicture}
+                        username={c.userId?.username || "?"}
                         size={30}
                         frameId={c.userId?.equippedCosmetics?.frame}
+                        placeholder="🌿"
                       />
                     </Link>
 
@@ -947,9 +846,13 @@ const activeCommentPinPosition = isPhoneLayout
                         fontSize: "13px",
                         color: theme.username,
                         textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
                       }}
                     >
-                      @{c.userId?.username || "anonymous"} {commentBadge ? commentBadge.icon : ""}
+                      @{c.userId?.username || "anonymous"}
+                      <AnimatedBadge badgeId={commentEquipped.badge} size="sm" />
                     </Link>
                     <DisplayTitlePill titleId={commentEquipped.title} />
                   </div>

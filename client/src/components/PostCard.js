@@ -2,8 +2,8 @@ import DisplayTitlePill from "./DisplayTitlePill";
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "./FramedAvatar";
+import { AnimatedBadge, PostThemeFxLayers } from "./CosmeticFx";
 import {
-  getBadgeLabel,
   getCosmeticAnimationClass,
   getDisplayTitle,
   getPostThemeStyle,
@@ -30,10 +30,8 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     "";
 
   const titleText = getDisplayTitle(equipped.title);
-  const badge = getBadgeLabel(equipped.badge);
   const postThemeStyle = getPostThemeStyle(equipped.postTheme, realm);
   const postThemeClass = getCosmeticAnimationClass(equipped.postTheme);
-  const badgeAnimClass = getCosmeticAnimationClass(equipped.badge);
 
   const reportPost = async (e) => {
     e.stopPropagation();
@@ -80,36 +78,6 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     }
   };
 
-  const postFx =
-    equipped.postTheme === "post-theme-scorched-parchment" ? (
-      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
-        {[12, 28, 45, 62, 78].map((left, i) => (
-          <span
-            key={i}
-            className="cw-fx-ember"
-            style={{ left: `${left}%`, animationDelay: `${i * 0.4}s` }}
-          />
-        ))}
-      </div>
-    ) : equipped.postTheme === "post-theme-starbound-card" ? (
-      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
-        {[
-          [8, 15], [22, 35], [40, 20], [58, 45], [72, 18],
-          [85, 32], [15, 55], [35, 70], [55, 62], [78, 58],
-        ].map(([left, top], i) => (
-          <span
-            key={i}
-            className="cw-fx-star"
-            style={{
-              left: `${left}%`,
-              top: `${top}%`,
-              animationDelay: `${i * 0.35}s`,
-            }}
-          />
-        ))}
-      </div>
-    ) : null;
-
   return (
     <div
       id={`post-${post._id}`}
@@ -148,7 +116,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         ...postThemeStyle,
       }}
     >
-      {postFx}
+      <PostThemeFxLayers themeId={equipped.postTheme} />
       <div
         style={{
           display: "flex",
@@ -173,21 +141,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
               fontWeight: 700,
             }}
           >
-            @{username}{" "}
-            {badge ? (
-              <span
-                className={[
-                  "cw-equipped-badge-inline",
-                  badgeAnimClass,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                {badge.icon}
-              </span>
-            ) : (
-              ""
-            )}
+            @{username} <AnimatedBadge badgeId={equipped.badge} size="sm" />
           </span>
 
           <DisplayTitlePill titleId={equipped.title} />

@@ -90,6 +90,33 @@
   50% { box-shadow: 0 0 26px rgba(90, 80, 220, 0.45), inset 0 0 28px rgba(50, 40, 120, 0.25); }
 }
 
+@keyframes cw-dew-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+@keyframes cw-dew-fall {
+  0% { opacity: 0; transform: translateY(-8px) scale(0.7); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(28px) scale(0.4); }
+}
+
+@keyframes cw-heat-haze {
+  0%, 100% { filter: blur(0px) brightness(1); }
+  50% { filter: blur(1.2px) brightness(1.08); }
+}
+
+@keyframes cw-galaxy-glow {
+  0%, 100% { opacity: 0.35; transform: translate(-50%, -50%) scale(0.9); }
+  50% { opacity: 0.65; transform: translate(-50%, -50%) scale(1.15); }
+}
+
+@keyframes cw-gold-sweep {
+  0% { transform: translateX(-130%) skewX(-14deg); opacity: 0; }
+  20% { opacity: 0.7; }
+  100% { transform: translateX(230%) skewX(-14deg); opacity: 0; }
+}
+
 /* ── Stage (shop + equipped containers) ─────────────────────── */
 
 .cw-cosmetic-stage {
@@ -116,6 +143,7 @@
 /* ── BADGE: Petal Storm ─────────────────────────────────────── */
 
 .cw-cosmetic-badge-petal-storm .cw-cosmetic-icon,
+.cw-animated-badge.cw-cosmetic-badge-petal-storm .cw-cosmetic-icon,
 .shop-preview-badge.cw-cosmetic-badge-petal-storm > .cw-cosmetic-stage > .cw-cosmetic-icon,
 .nav-profile-badge.cw-cosmetic-badge-petal-storm {
   animation: cw-pink-pulse 2.4s ease-in-out infinite;
@@ -149,6 +177,7 @@
 }
 
 .cw-cosmetic-badge-ember-core .cw-cosmetic-icon::before,
+.cw-animated-badge.cw-cosmetic-badge-ember-core .cw-cosmetic-icon::before,
 .shop-preview-badge.cw-cosmetic-badge-ember-core .cw-cosmetic-icon::before,
 .nav-profile-badge.cw-cosmetic-badge-ember-core::before {
   content: "";
@@ -178,6 +207,7 @@
 /* ── BADGE: Void Sigil ──────────────────────────────────────── */
 
 .cw-cosmetic-badge-void-sigil .cw-cosmetic-icon,
+.cw-animated-badge.cw-cosmetic-badge-void-sigil .cw-cosmetic-icon,
 .shop-preview-badge.cw-cosmetic-badge-void-sigil > .cw-cosmetic-stage > .cw-cosmetic-icon,
 .nav-profile-badge.cw-cosmetic-badge-void-sigil {
   animation: cw-void-glow 3s ease-in-out infinite, cw-void-glitch 5s steps(1) infinite;
@@ -496,4 +526,205 @@
 .nav-profile-wrap.cw-cosmetic-frame-celestial::before {
   background: conic-gradient(from 0deg, #1a0a3a, #0d1a4a, #3d2e08, #1a0a3a);
   animation: cw-moon-border-spin 8s linear infinite;
+}
+
+/* ── Animated badge sizes (equipped) ────────────────────────── */
+
+.cw-animated-badge {
+  display: inline-flex;
+  vertical-align: middle;
+  overflow: visible;
+}
+
+.cw-badge-sm .cw-cosmetic-stage {
+  width: 28px;
+  height: 28px;
+}
+
+.cw-badge-sm .cw-cosmetic-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 20, 8, 0.74);
+  border: 1px solid rgba(180, 255, 150, 0.24);
+}
+
+.cw-badge-md .cw-cosmetic-stage {
+  width: 34px;
+  height: 34px;
+}
+
+.cw-badge-md .cw-cosmetic-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 20px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 20, 8, 0.74);
+  border: 1px solid rgba(180, 255, 150, 0.24);
+}
+
+.cw-badge-lg .cw-cosmetic-stage {
+  width: 44px;
+  height: 44px;
+}
+
+.cw-badge-lg .cw-cosmetic-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 26px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 20, 8, 0.74);
+  border: 1px solid rgba(180, 255, 150, 0.24);
+}
+
+/* ── POST THEMES: rich backgrounds (shop + equipped) ───────── */
+
+.cw-cosmetic-post-dewdrop,
+.shop-preview-post.cw-cosmetic-post-dewdrop {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(140, 220, 200, 0.22), transparent 42%),
+    radial-gradient(circle at 80% 100%, rgba(60, 140, 100, 0.35), transparent 50%),
+    linear-gradient(145deg, #0a2818 0%, #061a10 45%, #0d3220 100%) !important;
+  animation: cw-dew-breathe 4s ease-in-out infinite;
+}
+
+.cw-cosmetic-post-dewdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(180, 255, 230, 0.08) 0%,
+    transparent 40%,
+    rgba(120, 200, 255, 0.06) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cw-fx-dewdrop {
+  position: absolute;
+  top: -6px;
+  width: 5px;
+  height: 8px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(180deg, rgba(220, 255, 255, 0.95), rgba(120, 200, 255, 0.4));
+  animation: cw-dew-fall 3.2s ease-in infinite;
+  opacity: 0.85;
+}
+
+.shop-preview-post.cw-cosmetic-post-dewdrop .shop-preview-post-line,
+.cw-cosmetic-post-dewdrop .shop-preview-post-line {
+  background: rgba(160, 235, 210, 0.42) !important;
+}
+
+.cw-cosmetic-post-scorched-parchment,
+.shop-preview-post.cw-cosmetic-post-scorched-parchment {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(120, 30, 10, 0.55), transparent 55%),
+    repeating-linear-gradient(
+      92deg,
+      rgba(255, 200, 140, 0.03) 0px,
+      rgba(255, 200, 140, 0.03) 2px,
+      transparent 2px,
+      transparent 6px
+    ),
+    linear-gradient(155deg, #3a1208 0%, #1a0604 55%, #0a0202 100%) !important;
+  animation: cw-heat-haze 3.5s ease-in-out infinite;
+}
+
+.cw-cosmetic-post-scorched-parchment::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.shop-preview-post.cw-cosmetic-post-scorched-parchment .shop-preview-post-line,
+.cw-cosmetic-post-scorched-parchment .shop-preview-post-line {
+  background: rgba(255, 180, 100, 0.38) !important;
+}
+
+.cw-cosmetic-post-starbound,
+.shop-preview-post.cw-cosmetic-post-starbound {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(60, 50, 140, 0.45), transparent 55%),
+    linear-gradient(160deg, #030308 0%, #0a0820 40%, #050510 100%) !important;
+  animation: cw-indigo-edge-pulse 3.5s ease-in-out infinite;
+}
+
+.cw-cosmetic-post-starbound::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgba(255, 220, 140, 0.12),
+    rgba(255, 240, 200, 0.28),
+    transparent
+  );
+  animation: cw-gold-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cw-cosmetic-post-starbound::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70%;
+  height: 55%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(90, 70, 200, 0.35), transparent 70%);
+  animation: cw-galaxy-glow 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.shop-preview-post.cw-cosmetic-post-starbound .shop-preview-post-line,
+.cw-cosmetic-post-starbound .shop-preview-post-line {
+  background: rgba(200, 210, 255, 0.4) !important;
+}
+
+.shop-preview-post.cw-cosmetic-post-dewdrop .shop-preview-post-line,
+.shop-preview-post.cw-cosmetic-post-scorched-parchment .shop-preview-post-line,
+.shop-preview-post.cw-cosmetic-post-starbound .shop-preview-post-line {
+  position: relative;
+  z-index: 2;
+}
+
+.shop-preview-post.cw-cosmetic-post-dewdrop .shop-preview-post-actions,
+.shop-preview-post.cw-cosmetic-post-scorched-parchment .shop-preview-post-actions,
+.shop-preview-post.cw-cosmetic-post-starbound .shop-preview-post-actions {
+  position: relative;
+  z-index: 2;
+}
+
+/* Equipped post cards — keep theme content above FX */
+.cw-cosmetic-post-dewdrop > *:not(.cw-cosmetic-fx-layer),
+.cw-cosmetic-post-scorched-parchment > *:not(.cw-cosmetic-fx-layer),
+.cw-cosmetic-post-starbound > *:not(.cw-cosmetic-fx-layer) {
+  position: relative;
+  z-index: 2;
 }

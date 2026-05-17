@@ -1,10 +1,10 @@
+import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import MobileBottomNav from "../components/MobileBottomNav";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
 import {
-  getBadgeLabel,
   getDisplayTitle,
   getCosmeticMeta,
   getPostThemeStyle,
@@ -91,7 +91,6 @@ export default function UserProfile() {
   }
 
   const equipped = profile.equippedCosmetics || {};
-  const badge = getBadgeLabel(equipped.badge);
   const displayTitle = getDisplayTitle(equipped.title);
 
   const frameItem = getCosmeticMeta(equipped.frame);
@@ -135,7 +134,7 @@ export default function UserProfile() {
 >
   <h2 style={{ ...usernameStyle, margin: 0 }}>
     {profile.username}{" "}
-    {badge && <span style={badgeInlineStyle}>{badge.icon}</span>}
+    <AnimatedBadge badgeId={equipped.badge} size="lg" />
   </h2>
 
   <DisplayTitlePill titleId={equipped.title} size="big" />

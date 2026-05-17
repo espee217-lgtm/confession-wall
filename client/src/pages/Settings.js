@@ -1,3 +1,4 @@
+import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import MobileBottomNav from "../components/MobileBottomNav";
 import React, { useState, useEffect } from "react";
@@ -907,7 +908,7 @@ export default function Settings() {
                   }}
                 >
                   {username || user?.username}{" "}
-                  {badge && <span>{badge.icon}</span>}
+                  <AnimatedBadge badgeId={equipped.badge} size="md" />
                 </h3>
 
                 <div
@@ -1021,7 +1022,8 @@ export default function Settings() {
 
                 <div>
                   <strong style={{ color: "#dfffe5", fontSize: "12px" }}>
-                    @{username || user?.username} {badge?.icon || ""}
+                    @{username || user?.username}{" "}
+                    <AnimatedBadge badgeId={equipped.badge} size="sm" />
                   </strong>
 
                   <div style={{ marginTop: "4px" }}>
