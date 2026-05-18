@@ -299,8 +299,9 @@ const SHOP_ITEMS = [
   {
     id: "visual-effect-cursed-violet-aura",
     type: "visualEffect",
-    name: "Cursed Violet Aura",
-    description: "A restless violet aura that flickers like forbidden energy.",
+    name: "Lightning Violet Aura",
+    description:
+      "A violet lightning aura that crackles around your profile like charged forest magic.",
     price: 320,
     icon: "\uD83D\uDD2E",
     rarity: "Legendary",

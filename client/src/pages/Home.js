@@ -4,10 +4,19 @@ import MobileBottomNav from "../components/MobileBottomNav";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
-import { getCosmeticMeta } from "../utils/cosmetics";
+import FramedAvatar from "../components/FramedAvatar";
+import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
+import {
+  getCosmeticAnimationClass,
+  getCosmeticMeta,
+  getPostThemeStyle,
+} from "../utils/cosmetics";
 import {
   CONFESSION_MOODS,
   WHISPER_PROMPTS,
+  getConfessionThemeId,
+  getDisplayCosmetics,
+  getMoodChipStyle,
   getOwnedPostThemeIds,
 } from "../utils/engagement";
 
@@ -884,25 +893,51 @@ function MobileHomePage({
     const waterCount = conf.wateredBy?.length || 0;
     const burnCount = conf.burnedBy?.length || 0;
     const username = conf.userId?.username || "anon";
+    const equipped = getDisplayCosmetics(conf.userId);
+    const frameId =
+      equipped.frame ||
+      conf.userId?.equippedFrame ||
+      conf.userId?.frame ||
+      "";
+    const postThemeId = getConfessionThemeId(conf, equipped, conf.userId);
+    const postThemeClass = getCosmeticAnimationClass(postThemeId);
+    const postThemeStyle = getPostThemeStyle(postThemeId, "budding");
+    const moodStyle = getMoodChipStyle(conf.mood);
 
     return (
       <button
         type="button"
         onClick={() => navigate(`/confession/${conf._id}`)}
-        className="mobile-home-card"
+        className={["mobile-home-card", postThemeClass].filter(Boolean).join(" ")}
+        style={postThemeStyle}
       >
+        <PostThemeFxLayers themeId={postThemeId} />
+
         <div className="mobile-home-card-top">
-          {conf.userId?.profilePicture ? (
-            <img src={conf.userId.profilePicture} alt="profile" className="mobile-home-avatar" />
-          ) : (
-            <span className="mobile-home-avatar mobile-home-avatar-fallback">
-              {username[0]?.toUpperCase() || "A"}
-            </span>
-          )}
+          <FramedAvatar
+            src={conf.userId?.profilePicture}
+            username={username}
+            frameId={frameId}
+            effectId={equipped.visualEffect}
+            size={40}
+            context="post"
+            className="mobile-home-avatar-wrap"
+            placeholder={username[0]?.toUpperCase() || "A"}
+          />
 
           <div className="mobile-home-card-meta">
-            <strong>@{username}</strong>
-            <span>{timeAgo(conf.createdAt)} · 🌱 budding</span>
+            <span className="mobile-home-card-user">
+              <strong>@{username}</strong>
+              <AnimatedBadge badgeId={equipped.badge} size="sm" />
+            </span>
+            <span className="mobile-home-card-time">
+              {timeAgo(conf.createdAt)} · 🌱 budding
+            </span>
+            {moodStyle && (
+              <span className="mobile-home-card-mood" style={moodStyle}>
+                {conf.mood}
+              </span>
+            )}
           </div>
 
           <span className="mobile-home-card-menu">⋮</span>
@@ -921,16 +956,16 @@ function MobileHomePage({
 
   return (
     <main className="mobile-home-shell">
+      <section className="mobile-home-event-strip">
+        <ForestEventBanner compact />
+      </section>
+
       <section className="mobile-home-hero-wrap">
         <img
           src="/assets/mobile/mobile-hero-banner.png"
           alt="Confession Wall"
           className="mobile-home-hero-img"
         />
-      </section>
-
-      <section style={{ padding: "0 16px 10px" }}>
-        <ForestEventBanner compact />
       </section>
 
       <section className="mobile-home-realms" aria-label="Realms">

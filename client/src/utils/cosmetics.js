@@ -167,7 +167,7 @@ export const COSMETIC_META = {
   },
   "visual-effect-cursed-violet-aura": {
     icon: "\uD83D\uDD2E",
-    name: "Cursed Violet Aura",
+    name: "Lightning Violet Aura",
     type: "visualEffect",
     animationClass: "cw-cosmetic-visual-effect-cursed-violet-aura",
   },

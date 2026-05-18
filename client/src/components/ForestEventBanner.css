@@ -439,6 +439,63 @@
   }
 }
 
+@media (max-width: 520px) {
+  .forest-event-strip {
+    min-height: 58px;
+    padding: 8px 12px 9px 11px;
+  }
+
+  .forest-event-strip::before {
+    left: 16px;
+    right: 16px;
+    bottom: -8px;
+    height: 16px;
+  }
+
+  .forest-event-strip::after {
+    left: 12px;
+    right: 18px;
+    top: 8px;
+    bottom: 8px;
+  }
+
+  .forest-event-strip__art {
+    inset: -1px -4px -3px -4px;
+  }
+
+  .forest-event-strip__content {
+    min-height: 46px;
+    padding: 6px 10px 6px 10px;
+  }
+
+  .forest-event-strip__content::before {
+    inset: 2px 5px 2px 3px;
+  }
+
+  .forest-event-strip__kicker {
+    margin-bottom: 2px;
+    font-size: 8px;
+  }
+
+  .forest-event-strip__row {
+    gap: 6px;
+  }
+
+  .forest-event-strip__title {
+    font-size: 13px;
+  }
+
+  .forest-event-strip__badge {
+    padding: 3px 6px;
+    font-size: 7px;
+  }
+
+  .forest-event-strip__timer {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .forest-event-strip,
   .forest-event-strip__svg,

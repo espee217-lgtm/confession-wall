@@ -192,21 +192,25 @@ export function CosmeticFxLayers({ cosmeticId }) {
           <path className="cw-fx-apex-formula-accent" d="M112 96 C144 90, 182 84, 248 80" />
           <g className="cw-fx-apex-wheel-group formula-rear-wheel">
             <circle className="cw-fx-apex-wheel-tire" cx="90" cy="108" r="28" />
-            <circle className="cw-fx-apex-wheel-rim" cx="90" cy="108" r="18" />
-            <circle className="cw-fx-apex-wheel-hub" cx="90" cy="108" r="4" />
-            <path
-              className="cw-fx-apex-wheel-spokes"
-              d="M90 90 L90 126 M72 108 L108 108 M77 95 L103 121 M103 95 L77 121"
-            />
+            <g className="cw-fx-apex-wheel-spinner">
+              <circle className="cw-fx-apex-wheel-rim" cx="90" cy="108" r="18" />
+              <circle className="cw-fx-apex-wheel-hub" cx="90" cy="108" r="4" />
+              <path
+                className="cw-fx-apex-wheel-spokes"
+                d="M90 90 L90 126 M72 108 L108 108 M77 95 L103 121 M103 95 L77 121"
+              />
+            </g>
           </g>
           <g className="cw-fx-apex-wheel-group formula-front-wheel">
             <circle className="cw-fx-apex-wheel-tire" cx="252" cy="108" r="28" />
-            <circle className="cw-fx-apex-wheel-rim" cx="252" cy="108" r="18" />
-            <circle className="cw-fx-apex-wheel-hub" cx="252" cy="108" r="4" />
-            <path
-              className="cw-fx-apex-wheel-spokes"
-              d="M252 90 L252 126 M234 108 L270 108 M239 95 L265 121 M265 95 L239 121"
-            />
+            <g className="cw-fx-apex-wheel-spinner">
+              <circle className="cw-fx-apex-wheel-rim" cx="252" cy="108" r="18" />
+              <circle className="cw-fx-apex-wheel-hub" cx="252" cy="108" r="4" />
+              <path
+                className="cw-fx-apex-wheel-spokes"
+                d="M252 90 L252 126 M234 108 L270 108 M239 95 L265 121 M265 95 L239 121"
+              />
+            </g>
           </g>
         </svg>
         <svg className="cw-fx-apex-hypercar" viewBox="0 0 330 170" aria-hidden="true">
@@ -237,21 +241,25 @@ export function CosmeticFxLayers({ cosmeticId }) {
           <path className="cw-fx-apex-tail" d="M307 78 C314 80, 319 85, 321 92 L307 92 Z" />
           <g className="cw-fx-apex-wheel-group rear-wheel">
             <circle className="cw-fx-apex-wheel-tire" cx="82" cy="106" r="28" />
-            <circle className="cw-fx-apex-wheel-rim" cx="82" cy="106" r="18" />
-            <circle className="cw-fx-apex-wheel-hub" cx="82" cy="106" r="4" />
-            <path
-              className="cw-fx-apex-wheel-spokes"
-              d="M82 88 L82 124 M64 106 L100 106 M69 93 L95 119 M95 93 L69 119"
-            />
+            <g className="cw-fx-apex-wheel-spinner">
+              <circle className="cw-fx-apex-wheel-rim" cx="82" cy="106" r="18" />
+              <circle className="cw-fx-apex-wheel-hub" cx="82" cy="106" r="4" />
+              <path
+                className="cw-fx-apex-wheel-spokes"
+                d="M82 88 L82 124 M64 106 L100 106 M69 93 L95 119 M95 93 L69 119"
+              />
+            </g>
           </g>
           <g className="cw-fx-apex-wheel-group front-wheel">
             <circle className="cw-fx-apex-wheel-tire" cx="266" cy="106" r="28" />
-            <circle className="cw-fx-apex-wheel-rim" cx="266" cy="106" r="18" />
-            <circle className="cw-fx-apex-wheel-hub" cx="266" cy="106" r="4" />
-            <path
-              className="cw-fx-apex-wheel-spokes"
-              d="M266 88 L266 124 M248 106 L284 106 M253 93 L279 119 M279 93 L253 119"
-            />
+            <g className="cw-fx-apex-wheel-spinner">
+              <circle className="cw-fx-apex-wheel-rim" cx="266" cy="106" r="18" />
+              <circle className="cw-fx-apex-wheel-hub" cx="266" cy="106" r="4" />
+              <path
+                className="cw-fx-apex-wheel-spokes"
+                d="M266 88 L266 124 M248 106 L284 106 M253 93 L279 119 M279 93 L253 119"
+              />
+            </g>
           </g>
         </svg>
         <span className="cw-fx-apex-racing-stripe" />
@@ -272,11 +280,13 @@ export function CosmeticFxLayers({ cosmeticId }) {
   if (cosmeticId === "visual-effect-cursed-violet-aura") {
     return (
       <div className="cw-cosmetic-fx-layer" aria-hidden="true">
-        <span className="cw-fx-violet-aura-core" />
-        <span className="cw-fx-violet-aura-haze haze-a" />
-        <span className="cw-fx-violet-aura-haze haze-b" />
-        <span className="cw-fx-violet-aura-spark spark-a" />
-        <span className="cw-fx-violet-aura-spark spark-b" />
+        <span className="cw-fx-lightning-violet-ring" />
+        <span className="cw-fx-lightning-violet-glow" />
+        <span className="cw-fx-lightning-violet-arc arc-a" />
+        <span className="cw-fx-lightning-violet-arc arc-b" />
+        <span className="cw-fx-lightning-violet-arc arc-c" />
+        <span className="cw-fx-lightning-violet-bolt bolt-a" />
+        <span className="cw-fx-lightning-violet-bolt bolt-b" />
       </div>
     );
   }
