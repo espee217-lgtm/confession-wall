@@ -265,6 +265,17 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-frame-storm-eye-rogue",
   },
   {
+    id: "frame-victory-visor",
+    type: "frame",
+    name: "Visor Lift Racer Frame",
+    description:
+      "A racing helmet-inspired animated frame with a visor-lift glow.",
+    price: 220,
+    icon: "\uD83C\uDFC1",
+    rarity: "Epic",
+    previewClass: "cw-cosmetic-frame-visor-lift-racer",
+  },
+  {
     id: "post-theme-moonlit-vengeance",
     type: "postTheme",
     name: "Moonlit Vengeance Card",
@@ -273,6 +284,17 @@ const SHOP_ITEMS = [
     icon: "\uD83C\uDF19",
     rarity: "Legendary",
     previewClass: "cw-cosmetic-post-moonlit-vengeance",
+  },
+  {
+    id: "post-theme-spinning-apex-wheel",
+    type: "postTheme",
+    name: "Spinning Apex Wheel Card",
+    description:
+      "A midnight racing card with a glowing animated wheel, neon street-racer energy, and carbon fiber styling.",
+    price: 230,
+    icon: "\uD83D\uDEDE",
+    rarity: "Epic",
+    previewClass: "cw-cosmetic-post-spinning-apex-wheel",
   },
   {
     id: "visual-effect-cursed-violet-aura",
@@ -293,6 +315,16 @@ const SHOP_ITEMS = [
     icon: "\uD83D\uDC26\u200D\u2B1B",
     rarity: "Epic",
     previewClass: "cw-cosmetic-badge-lone-raven",
+  },
+  {
+    id: "badge-redline-rim",
+    type: "badge",
+    name: "Redline Rim Badge",
+    description: "A motorsport-inspired rim badge with a fast-spinning wheel and brake-glow accent.",
+    price: 185,
+    icon: "\u25C9",
+    rarity: "Epic",
+    previewClass: "cw-cosmetic-badge-redline-rim",
   },
 ];
 

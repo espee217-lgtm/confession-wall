@@ -141,11 +141,29 @@ export const COSMETIC_META = {
     type: "frame",
     animationClass: "cw-cosmetic-frame-storm-eye-rogue",
   },
+  "frame-victory-visor": {
+    icon: "\uD83C\uDFC1",
+    name: "Visor Lift Racer Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-visor-lift-racer",
+  },
+  "frame-visor-lift-racer": {
+    icon: "\uD83C\uDFC1",
+    name: "Visor Lift Racer Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-visor-lift-racer",
+  },
   "post-theme-moonlit-vengeance": {
     icon: "\uD83C\uDF19",
     name: "Moonlit Vengeance Card",
     type: "postTheme",
     animationClass: "cw-cosmetic-post-moonlit-vengeance",
+  },
+  "post-theme-spinning-apex-wheel": {
+    icon: "\uD83D\uDEDE",
+    name: "Spinning Apex Wheel Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-spinning-apex-wheel",
   },
   "visual-effect-cursed-violet-aura": {
     icon: "\uD83D\uDD2E",
@@ -158,6 +176,12 @@ export const COSMETIC_META = {
     name: "Lone Raven Badge",
     type: "badge",
     animationClass: "cw-cosmetic-badge-lone-raven",
+  },
+  "badge-redline-rim": {
+    icon: "\u25C9",
+    name: "Redline Rim Badge",
+    type: "badge",
+    animationClass: "cw-cosmetic-badge-redline-rim",
   },
   "frame-ashen-horns": {
     icon: "\uD83D\uDD25",
@@ -280,6 +304,19 @@ export function getPostThemeStyle(postThemeId, realm = "budding") {
         "0 0 28px rgba(104, 86, 188, 0.2), inset 0 1px 0 rgba(230,235,255,0.06)",
       position: "relative",
       overflow: "hidden",
+    };
+  }
+
+  if (postThemeId === "post-theme-spinning-apex-wheel") {
+    return {
+      background:
+        "linear-gradient(148deg, rgba(7, 14, 28, 0.88), rgba(8, 16, 30, 0.78), rgba(4, 8, 16, 0.9))",
+      border: "1px solid rgba(164, 198, 255, 0.2)",
+      boxShadow:
+        "0 14px 34px rgba(0, 0, 0, 0.28), 0 0 30px rgba(44, 104, 220, 0.1), inset 0 1px 0 rgba(228, 240, 255, 0.18), inset 0 -24px 40px rgba(2, 6, 14, 0.34)",
+      position: "relative",
+      overflow: "hidden",
+      isolation: "isolate",
     };
   }
 

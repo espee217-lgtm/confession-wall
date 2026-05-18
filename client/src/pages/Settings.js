@@ -440,10 +440,9 @@ export default function Settings() {
   const badge = getBadgeLabel(equipped.badge);
 
   const badgeItem = getCosmeticMeta(equipped.badge);
-  const frameItem = getCosmeticMeta(equipped.frame);
+  const frameItem = getCosmeticMeta(equipped.frame || equipped.visualEffect);
   const titleItem = getCosmeticMeta(equipped.title);
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
-  const visualEffectItem = getCosmeticMeta(equipped.visualEffect);
   const previewThemeStyle = getPostThemeStyle(equipped.postTheme, "budding");
 
   const ownedCosmeticIds = new Set(
@@ -456,10 +455,11 @@ export default function Settings() {
 
   const ownedInventoryByType = {
     badge: ownedInventoryItems.filter((item) => item.type === "badge"),
-    frame: ownedInventoryItems.filter((item) => item.type === "frame"),
+    frame: ownedInventoryItems.filter(
+      (item) => item.type === "frame" || item.type === "visualEffect"
+    ),
     title: ownedInventoryItems.filter((item) => item.type === "title"),
     postTheme: ownedInventoryItems.filter((item) => item.type === "postTheme"),
-    visualEffect: ownedInventoryItems.filter((item) => item.type === "visualEffect"),
   };
 
   const handleTheme = (t) => {
@@ -1018,11 +1018,6 @@ export default function Settings() {
                 item={postThemeItem}
                 palette={palette}
               />
-              <EquippedRow
-                label="Profile Effect"
-                item={visualEffectItem}
-                palette={palette}
-              />
             </div>
 
             <div
@@ -1149,7 +1144,6 @@ export default function Settings() {
                   ["frame", "Profile Frames"],
                   ["title", "Display Titles"],
                   ["postTheme", "Post Themes"],
-                  ["visualEffect", "Profile Effects"],
                 ].map(([type, label]) => {
                   const list = ownedInventoryByType[type];
 

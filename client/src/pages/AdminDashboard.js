@@ -636,23 +636,29 @@ const safeBtnStyle = {
                   {weeklyEventStatus.currentEvent?.description}
                 </p>
 
+                <p style={{ margin: "8px 0 0", opacity: 0.66, lineHeight: 1.55 }}>
+                  {weeklyEventStatus.currentEvent?.statusText}
+                </p>
+
                 <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   <span style={pillStyle(true)}>
-                    {weeklyEventStatus.currentEvent?.startsAt
-                      ? new Date(weeklyEventStatus.currentEvent.startsAt).toLocaleDateString()
+                    {weeklyEventStatus.currentEvent?.rankingStartAt
+                      ? new Date(weeklyEventStatus.currentEvent.rankingStartAt).toLocaleDateString()
                       : "?"}
                     {" "}to{" "}
-                    {weeklyEventStatus.currentEvent?.endsAt
+                    {weeklyEventStatus.currentEvent?.rankingEndAt
                       ? new Date(
-                          new Date(weeklyEventStatus.currentEvent.endsAt).getTime() - 1000
+                          new Date(weeklyEventStatus.currentEvent.rankingEndAt).getTime() - 1000
                         ).toLocaleDateString()
                       : "?"}
                   </span>
                   <span style={pillStyle(false)}>
-                    Tracking: confessions created this week only
+                    {weeklyEventStatus.currentEvent?.phase === "active"
+                      ? "Competition: Monday to Tuesday"
+                      : "Competition: closed, results active"}
                   </span>
                   <span style={pillStyle(false)}>
-                    Rewards: automatic background maintenance
+                    Rewards: Wednesday automatic payout
                   </span>
                 </div>
 
@@ -667,13 +673,15 @@ const safeBtnStyle = {
                   >
                     <strong style={{ color: "#b8ffd0" }}>Most Watered candidate</strong>
                     <div style={{ marginTop: "6px", opacity: 0.86 }}>
-                      {weeklyEventStatus.leaderboard?.mostWateredPost
+                      {weeklyEventStatus.competitionLeaderboard?.mostWateredPost
                         ? `@${weeklyEventStatus.leaderboard.mostWateredPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostWateredPost.wateredCount || 0} Water`
                         : "No current watered leader"}
                     </div>
                     <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
                       {weeklyEventStatus.rewards?.mostWateredSeeds?.granted
-                        ? `1000 Seeds granted to @${weeklyEventStatus.rewards.mostWateredSeeds.username}`
+                        ? `1000 Seeds granted to @${weeklyEventStatus.rewards.mostWateredSeeds.username} on ${new Date(weeklyEventStatus.rewards.mostWateredSeeds.grantedAt).toLocaleString()}`
+                        : weeklyEventStatus.currentEvent?.phase === "active"
+                        ? "1000 Seeds not paid until Wednesday close"
                         : "1000 Seeds not granted yet"}
                     </div>
                   </div>
@@ -688,13 +696,15 @@ const safeBtnStyle = {
                   >
                     <strong style={{ color: "#ffb39f" }}>Most Burned candidate</strong>
                     <div style={{ marginTop: "6px", opacity: 0.86 }}>
-                      {weeklyEventStatus.leaderboard?.mostBurnedPost
+                      {weeklyEventStatus.competitionLeaderboard?.mostBurnedPost
                         ? `@${weeklyEventStatus.leaderboard.mostBurnedPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostBurnedPost.burnedCount || 0} Burn`
                         : "No current burned leader"}
                     </div>
                     <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
-                      {weeklyEventStatus.rewards?.mostBurnedOverride?.granted
+                      {weeklyEventStatus.rewards?.mostBurnedOverride?.applied
                         ? `Override active for @${weeklyEventStatus.rewards.mostBurnedOverride.username} until ${new Date(weeklyEventStatus.rewards.mostBurnedOverride.expiresAt).toLocaleString()}`
+                        : weeklyEventStatus.currentEvent?.phase === "active"
+                        ? "Temporary override not applied until Wednesday close"
                         : "Temporary override not applied yet"}
                     </div>
                   </div>

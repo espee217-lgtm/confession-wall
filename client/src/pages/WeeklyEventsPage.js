@@ -1,10 +1,10 @@
-import { AnimatedBadge } from "../components/CosmeticFx";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import ForestEventBanner from "../components/ForestEventBanner";
 import FramedAvatar from "../components/FramedAvatar";
 import MobileBottomNav from "../components/MobileBottomNav";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { AnimatedBadge } from "../components/CosmeticFx";
 import { getPostThemeStyle } from "../utils/cosmetics";
 import {
   getConfessionThemeId,
@@ -29,13 +29,24 @@ function formatRange(start, end) {
   return `${startDate.toLocaleDateString()} - ${inclusiveEnd.toLocaleDateString()}`;
 }
 
+function formatDateTime(value) {
+  if (!value) return "";
+
+  return new Date(value).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function LeaderCard({ post, label, tone }) {
   if (!post) {
     return (
       <div style={{ ...leaderCardStyle, ...emptyLeaderStyle }}>
         <strong style={{ fontSize: "16px" }}>{label}</strong>
         <p style={{ margin: "8px 0 0", color: "rgba(235,255,225,0.66)" }}>
-          No qualifying confession yet for this spot.
+          No qualifying confession has taken this spot yet.
         </p>
       </div>
     );
@@ -43,7 +54,10 @@ function LeaderCard({ post, label, tone }) {
 
   const displayCosmetics = getDisplayCosmetics(post.userId);
   const themeId = getConfessionThemeId(post, displayCosmetics, post.userId);
-  const themeStyle = getPostThemeStyle(themeId, tone === "burned" ? "scorched" : "grove");
+  const themeStyle = getPostThemeStyle(
+    themeId,
+    tone === "burned" ? "scorched" : "grove"
+  );
 
   return (
     <Link
@@ -60,7 +74,14 @@ function LeaderCard({ post, label, tone }) {
               : "rgba(138, 226, 160, 0.26)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            marginBottom: "12px",
+          }}
+        >
           <FramedAvatar
             src={post.userId?.profilePicture}
             username={post.userId?.username || "?"}
@@ -114,9 +135,15 @@ function LeaderCard({ post, label, tone }) {
             fontSize: "12px",
           }}
         >
-          <span>🌱 {post.wateredCount || 0}</span>
-          <span>🔥 {post.burnedCount || 0}</span>
-          <span>{post.createdAt ? new Date(post.createdAt).toLocaleDateString() : ""}</span>
+          <span>Water {post.wateredCount || 0}</span>
+          <span>Burn {post.burnedCount || 0}</span>
+          <span>
+            {post.reachedWinningScoreAt
+              ? `Reached score first at ${formatDateTime(post.reachedWinningScoreAt)}`
+              : post.createdAt
+              ? new Date(post.createdAt).toLocaleDateString()
+              : ""}
+          </span>
         </div>
       </article>
     </Link>
@@ -153,7 +180,7 @@ export default function WeeklyEventsPage() {
       }
     };
 
-    loadStatus();
+    void loadStatus();
 
     return () => {
       alive = false;
@@ -161,6 +188,14 @@ export default function WeeklyEventsPage() {
   }, []);
 
   const currentEvent = status?.currentEvent;
+  const isActive = currentEvent?.phase === "active";
+  const activeResults = status?.activeResults;
+  const leaderboard = isActive
+    ? status?.competitionLeaderboard
+    : {
+        mostWateredPost: status?.leaderboard?.mostWateredPost,
+        mostBurnedPost: status?.leaderboard?.mostBurnedPost,
+      };
 
   return (
     <div style={pageStyle}>
@@ -169,10 +204,10 @@ export default function WeeklyEventsPage() {
 
       <div style={pageInnerStyle}>
         <Link to="/" style={backLinkStyle}>
-          ← return to the forest
+          return to the forest
         </Link>
 
-        <ForestEventBanner />
+        <ForestEventBanner statusData={status} />
 
         <section style={sectionCardStyle}>
           <div style={sectionKickerStyle}>current cycle</div>
@@ -180,37 +215,62 @@ export default function WeeklyEventsPage() {
             Weekly Forest Ledger
           </h1>
           <p style={sectionBodyStyle}>
-            Each weekly event tracks the leading confession created during that
-            week. Seeds and the temporary Scorched aesthetic are finalized
-            automatically shortly after the week closes.
+            The weekly competition only runs on Monday and Tuesday. Wednesday
+            locks the results, pays the 1000 Seeds reward, and activates the
+            temporary scorched takeover for one week.
           </p>
 
           {currentEvent && (
-            <div style={metaRowStyle}>
-              <span style={metaPillStyle}>{currentEvent.name}</span>
-              <span style={metaPillStyle}>{formatRange(currentEvent.startsAt, currentEvent.endsAt)}</span>
-              <span style={metaPillStyle}>
-                {status?.candidateCount || 0} confession
-                {status?.candidateCount === 1 ? "" : "s"}
-              </span>
-            </div>
+            <>
+              <div style={metaRowStyle}>
+                <span style={metaPillStyle}>{currentEvent.name}</span>
+                <span style={metaPillStyle}>
+                  Competition: {formatRange(currentEvent.rankingStartAt, currentEvent.rankingEndAt)}
+                </span>
+                <span style={metaPillStyle}>
+                  {status?.competitionLeaderboard?.candidateCount || 0} confession
+                  {(status?.competitionLeaderboard?.candidateCount || 0) === 1 ? "" : "s"}
+                </span>
+              </div>
+
+              <p style={{ ...sectionBodyStyle, marginTop: "12px" }}>
+                {currentEvent.statusText}
+              </p>
+
+              {isActive &&
+                activeResults &&
+                activeResults.weekKey !== currentEvent.weekKey && (
+                  <p style={{ ...sectionBodyStyle, marginTop: "8px" }}>
+                    Last week's rewards stay active until{" "}
+                    {formatDateTime(activeResults.rewardExpiresAt)}.
+                  </p>
+                )}
+
+              {!isActive && activeResults?.rewardExpiresAt && (
+                <p style={{ ...sectionBodyStyle, marginTop: "8px" }}>
+                  Reward window active until {formatDateTime(activeResults.rewardExpiresAt)}.
+                </p>
+              )}
+            </>
           )}
         </section>
 
         <section style={sectionCardStyle}>
-          <div style={sectionKickerStyle}>weekly leaderboard</div>
+          <div style={sectionKickerStyle}>
+            {isActive ? "live competition leaderboard" : "locked weekly results"}
+          </div>
           {loading ? (
-            <p style={sectionBodyStyle}>Loading the current weekly leaders...</p>
+            <p style={sectionBodyStyle}>Loading the weekly leaders...</p>
           ) : (
             <div style={{ display: "grid", gap: "14px" }}>
               <LeaderCard
-                label="Most Watered Post of the Week"
-                post={status?.leaderboard?.mostWateredPost}
+                label="Most Watered Post"
+                post={leaderboard?.mostWateredPost}
                 tone="watered"
               />
               <LeaderCard
-                label="Most Burned Post of the Week"
-                post={status?.leaderboard?.mostBurnedPost}
+                label="Most Burned Post"
+                post={leaderboard?.mostBurnedPost}
                 tone="burned"
               />
             </div>
@@ -223,27 +283,31 @@ export default function WeeklyEventsPage() {
             <div style={rewardCardStyle}>
               <strong style={{ color: "#f3ffe7" }}>Most Watered</strong>
               <p style={sectionBodyStyle}>
-                The winner receives 1000 Seeds once for the week through the
-                automatic weekly payout.
+                First place receives 1000 Seeds only after the Wednesday close.
               </p>
               <div style={rewardStatusStyle}>
                 {status?.rewards?.mostWateredSeeds?.granted
                   ? `Granted to @${status.rewards.mostWateredSeeds.username}`
-                  : "Waiting for week close"}
+                  : isActive
+                  ? "Pending Wednesday payout"
+                  : "No 1000 Seeds reward granted yet"}
               </div>
             </div>
 
             <div style={rewardCardStyle}>
               <strong style={{ color: "#f3ffe7" }}>Most Burned</strong>
               <p style={sectionBodyStyle}>
-                The winner receives a temporary ash-black Scorched takeover for
-                7 days. It overrides visible frame and confession card styling
-                only while active.
+                First place receives a temporary scorched frame and confession
+                card style for 7 days without overwriting their real cosmetics.
               </p>
               <div style={rewardStatusStyle}>
-                {status?.rewards?.mostBurnedOverride?.granted
-                  ? `Applied to @${status.rewards.mostBurnedOverride.username}`
-                  : "Waiting for week close"}
+                {status?.rewards?.mostBurnedOverride?.applied
+                  ? `Applied to @${status.rewards.mostBurnedOverride.username} until ${formatDateTime(
+                      status.rewards.mostBurnedOverride.expiresAt
+                    )}`
+                  : isActive
+                  ? "Pending Wednesday payout"
+                  : "No scorched override applied yet"}
               </div>
             </div>
           </div>
@@ -264,7 +328,7 @@ export default function WeeklyEventsPage() {
                 </div>
 
                 <span style={metaPillStyle}>
-                  {formatRange(event.startsAt, event.endsAt)}
+                  {formatRange(event.rankingStartAt, event.rankingEndAt)}
                 </span>
               </div>
             ))}
@@ -274,9 +338,10 @@ export default function WeeklyEventsPage() {
         <section style={sectionCardStyle}>
           <div style={sectionKickerStyle}>tracking note</div>
           <p style={sectionBodyStyle}>
-            Exact per-reaction weekly timing is not stored yet. The leaderboard
-            uses confessions created during the current weekly event period and
-            compares their current Water and Burn totals.
+            Only confessions created during the Monday-Tuesday competition
+            window qualify. The backend tracks the reaction milestones for that
+            cycle, uses the earliest reach time to break first-place ties, and
+            keeps reward state locked after Wednesday payout.
           </p>
         </section>
       </div>

@@ -18,10 +18,12 @@ const TYPE_LABELS = {
   title: "Display Title",
   postTheme: "Post Theme",
   reactionStyle: "Reaction Style",
-  visualEffect: "Visual Effect",
+  visualEffect: "Profile Frame",
 };
 
-const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme", "visualEffect"];
+const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
+
+const getDisplayType = (type) => (type === "visualEffect" ? "frame" : type);
 
 function ShopIconSvg() {
   return (
@@ -159,14 +161,15 @@ function Shop() {
 
   const filteredItems = useMemo(() => {
     if (activeType === "all") return items;
-    return items.filter((item) => item.type === activeType);
+    return items.filter((item) => getDisplayType(item.type) === activeType);
   }, [items, activeType]);
 
   const typeCounts = useMemo(() => {
     const counts = { all: items.length };
 
     items.forEach((item) => {
-      counts[item.type] = (counts[item.type] || 0) + 1;
+      const displayType = getDisplayType(item.type);
+      counts[displayType] = (counts[displayType] || 0) + 1;
     });
 
     return counts;
@@ -324,7 +327,7 @@ function Shop() {
           <h1>Forest Shop</h1>
           <p className="shop-subtitle">
             Spend Seeds on profile badges, frames, display titles, post
-            themes, and profile effects. Phase 1 keeps everything cosmetic
+            themes, and avatar auras. Phase 1 keeps everything cosmetic
             only, so nobody gets unfair power.
           </p>
         </div>
@@ -339,15 +342,22 @@ function Shop() {
         <div>
           <h2>Equipped right now</h2>
           <p>
-            Your active cosmetics. Frames, profile effects, titles, badges,
-            and post themes now display across your profile and posts.
+            Your active cosmetics. Frames, titles, badges, and post themes
+            now display across your profile and posts.
           </p>
         </div>
 
         <div className="shop-equipped-grid">
-          {["badge", "frame", "title", "postTheme", "visualEffect"].map((type) => {
-            const activeId = equipped[type];
+          {["badge", "frame", "title", "postTheme"].map((type) => {
+            const activeId =
+              type === "frame"
+                ? equipped.frame || equipped.visualEffect
+                : equipped[type];
             const activeItem = items.find((item) => item.id === activeId);
+            const unequipType =
+              type === "frame" && !equipped.frame && equipped.visualEffect
+                ? "visualEffect"
+                : type;
 
             return (
               <div className="shop-equipped-card" key={type}>
@@ -360,10 +370,10 @@ function Shop() {
                 {activeItem && (
                   <button
                     type="button"
-                    onClick={() => handleUnequip(type)}
-                    disabled={busyItemId === type}
+                    onClick={() => handleUnequip(unequipType)}
+                    disabled={busyItemId === unequipType}
                   >
-                    {busyItemId === type ? "Removing..." : "Unequip"}
+                    {busyItemId === unequipType ? "Removing..." : "Unequip"}
                   </button>
                 )}
               </div>
@@ -398,7 +408,10 @@ function Shop() {
         <section className="shop-grid">
           {filteredItems.map((item) => {
             const owned = ownedSet.has(item.id);
-            const isEquipped = equipped[item.type] === item.id;
+            const isEquipped =
+              item.type === "visualEffect"
+                ? equipped.visualEffect === item.id
+                : equipped[item.type] === item.id;
             const canAfford = (localSeeds || 0) >= item.price;
             const busy = busyItemId === item.id;
 
@@ -414,7 +427,7 @@ function Shop() {
                   </span>
 
                   <span className="shop-item-type">
-                    {TYPE_LABELS[item.type] || item.type}
+                    {TYPE_LABELS[getDisplayType(item.type)] || item.type}
                   </span>
                 </div>
 

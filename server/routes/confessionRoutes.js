@@ -15,7 +15,11 @@ const { awardSeeds } = require("../utils/seedRewards");
 const {
   USER_PUBLIC_SELECT,
   ensureWeeklyEventMaintenance,
+  getCurrentWeeklyEventContext,
   getWeeklyEventStatus,
+  isCompetitionActive,
+  isConfessionEligibleForCompetition,
+  syncConfessionWeeklyTracking,
 } = require("../utils/weeklyForestEvents");
 
 const postLimiter = rateLimit({
@@ -382,6 +386,17 @@ router.post(
         comments: [],
       });
 
+      const currentWeeklyEvent = getCurrentWeeklyEventContext(new Date());
+
+      if (
+        isCompetitionActive(currentWeeklyEvent) &&
+        isConfessionEligibleForCompetition(newConfession, currentWeeklyEvent)
+      ) {
+        syncConfessionWeeklyTracking(newConfession, currentWeeklyEvent, {
+          observedAt: new Date(),
+        });
+      }
+
       const saved = await newConfession.save();
 
       const populated = await Confession.findById(saved._id).populate(
@@ -663,6 +678,7 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
     }
 
     let seedReward = null;
+    const currentWeeklyEvent = getCurrentWeeklyEventContext(new Date());
 
     if (!alreadyVoted && confession.userId && !confession.userId.equals(userId)) {
       await createNotification({
@@ -689,6 +705,15 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
 
         confession.seedReactionRewardedBy.push(userId);
       }
+    }
+
+    if (
+      isCompetitionActive(currentWeeklyEvent) &&
+      isConfessionEligibleForCompetition(confession, currentWeeklyEvent)
+    ) {
+      syncConfessionWeeklyTracking(confession, currentWeeklyEvent, {
+        observedAt: new Date(),
+      });
     }
 
     await confession.save();

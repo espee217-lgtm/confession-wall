@@ -28,6 +28,11 @@ function normalizeFrameId(frameId) {
     frame_thornfire: "frame-thornfire",
     "frame-celestial": "frame-celestial",
     frame_celestial: "frame-celestial",
+    "frame-victory-visor": "frame-victory-visor",
+    frame_victory_visor: "frame-victory-visor",
+    "frame-visor-lift-racer": "frame-victory-visor",
+    frame_visor_lift_racer: "frame-victory-visor",
+    visor_lift_racer_frame: "frame-victory-visor",
   };
 
   return aliases[value] || value;
@@ -83,6 +88,8 @@ export default function FramedAvatar({
 }) {
   const normalized = normalizeFrameId(frameId);
   const hasFrame = Boolean(normalized);
+  const isAnimatedSpriteFrame = normalized === "frame-victory-visor";
+  const shouldRenderAnimatedFrame = isAnimatedSpriteFrame && size >= 56;
   const frameAnimClass = getCosmeticAnimationClass(normalized);
   const effectAnimClass = getCosmeticAnimationClass(effectId);
   const wrapperClassName =
@@ -115,6 +122,8 @@ export default function FramedAvatar({
           />
         ))}
       </div>
+    ) : normalized === "frame-victory-visor" && shouldRenderAnimatedFrame ? (
+      <CosmeticFxLayers cosmeticId={normalized} />
     ) : null;
 
   return (

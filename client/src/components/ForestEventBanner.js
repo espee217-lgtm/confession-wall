@@ -1,9 +1,54 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getWeeklyForestWindow } from "../utils/engagement";
 
-export default function ForestEventBanner({ compact = false }) {
-  const event = getWeeklyForestWindow();
+const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://confession-wall-hn63.onrender.com");
+
+const API_URL = `${API_BASE}/api/confessions/weekly-event`;
+
+export default function ForestEventBanner({ compact = false, statusData = null }) {
+  const [status, setStatus] = useState(statusData);
+
+  useEffect(() => {
+    if (statusData) {
+      setStatus(statusData);
+      return undefined;
+    }
+
+    let alive = true;
+
+    const loadStatus = async () => {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !alive || !data?.currentEvent) {
+          return;
+        }
+
+        setStatus(data);
+      } catch (err) {
+        console.error("Forest event banner error:", err);
+      }
+    };
+
+    void loadStatus();
+
+    return () => {
+      alive = false;
+    };
+  }, [statusData]);
+
+  const event = status?.currentEvent;
+
+  if (!event) {
+    return null;
+  }
+
+  const isActive = event.phase === "active";
 
   return (
     <div
@@ -59,6 +104,18 @@ export default function ForestEventBanner({ compact = false }) {
           >
             {event.description}
           </p>
+          {event.statusText && (
+            <p
+              style={{
+                margin: "8px 0 0",
+                fontSize: compact ? "11px" : "12px",
+                lineHeight: 1.5,
+                color: "rgba(244, 248, 255, 0.74)",
+              }}
+            >
+              {event.statusText}
+            </p>
+          )}
         </div>
 
         <span
@@ -87,6 +144,27 @@ export default function ForestEventBanner({ compact = false }) {
             }}
           >
             {event.label}
+          </span>
+
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "5px 10px",
+              borderRadius: "999px",
+              border: `1px solid ${event.border}`,
+              background: isActive
+                ? "rgba(120,255,170,0.12)"
+                : "rgba(255,255,255,0.06)",
+              color: "#f4f8ff",
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {isActive ? "Event live" : "Results active"}
           </span>
 
           <Link

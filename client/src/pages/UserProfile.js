@@ -97,11 +97,10 @@ export default function UserProfile() {
 
   const equipped = getDisplayCosmetics(profile);
 
-  const frameItem = getCosmeticMeta(equipped.frame);
+  const frameItem = getCosmeticMeta(equipped.frame || equipped.visualEffect);
   const titleItem = getCosmeticMeta(equipped.title);
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
   const badgeItem = getCosmeticMeta(equipped.badge);
-  const visualEffectItem = getCosmeticMeta(equipped.visualEffect);
 
   return (
     <div className="cw-user-profile-page" style={pageStyle}>
@@ -193,7 +192,6 @@ export default function UserProfile() {
             <CosmeticChip item={frameItem} fallback="Frame" />
             <CosmeticChip item={titleItem} fallback="Title" />
             <CosmeticChip item={postThemeItem} fallback="Post Theme" />
-            <CosmeticChip item={visualEffectItem} fallback="Profile Effect" />
           </div>
         </section>
 

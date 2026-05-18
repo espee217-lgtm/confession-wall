@@ -47,6 +47,35 @@ const pollSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const weeklyScoreMilestoneSchema = new mongoose.Schema(
+  {
+    score: { type: Number, required: true, min: 1 },
+    reachedAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
+const weeklyEventTrackingSchema = new mongoose.Schema(
+  {
+    weekKey: { type: String, required: true, trim: true },
+    eventKey: { type: String, required: true, trim: true },
+    rankingStartAt: { type: Date, required: true },
+    rankingEndAt: { type: Date, required: true },
+    wateredCount: { type: Number, default: 0, min: 0 },
+    burnedCount: { type: Number, default: 0, min: 0 },
+    wateredMilestones: {
+      type: [weeklyScoreMilestoneSchema],
+      default: [],
+    },
+    burnedMilestones: {
+      type: [weeklyScoreMilestoneSchema],
+      default: [],
+    },
+    lastSyncedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const commentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -98,6 +127,10 @@ const confessionSchema = new mongoose.Schema(
     poll: {
       type: pollSchema,
       default: undefined,
+    },
+    weeklyEventTracking: {
+      type: [weeklyEventTrackingSchema],
+      default: [],
     },
     comments: [commentSchema],
   },

@@ -16,6 +16,10 @@ const weeklyRewardSchema = new mongoose.Schema(
     },
     grantedAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, default: null },
+    score: { type: Number, default: 0, min: 0 },
+    reachedScoreAt: { type: Date, default: null },
+    notificationSentAt: { type: Date, default: null },
+    expiryNotificationSentAt: { type: Date, default: null },
   },
   { _id: false }
 );
