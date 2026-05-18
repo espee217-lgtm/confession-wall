@@ -89,7 +89,13 @@ export default function FramedAvatar({
   className = "",
 }) {
   const normalized = normalizeFrameId(frameId);
-  const hasFrame = Boolean(normalized);
+  const isLightningFrameEffect =
+    effectId === "visual-effect-cursed-violet-aura";
+  const activeEffectId =
+    isLightningFrameEffect && normalized ? "" : effectId;
+  const isLightningOnlyFrame =
+    !normalized && activeEffectId === "visual-effect-cursed-violet-aura";
+  const hasFrame = Boolean(normalized || activeEffectId === "visual-effect-cursed-violet-aura");
   const isAnimatedSpriteFrame = normalized === "frame-victory-visor";
   const resolvedContext =
     context && context !== "auto"
@@ -103,7 +109,7 @@ export default function FramedAvatar({
       : "post";
   const shouldRenderAnimatedFrame = isAnimatedSpriteFrame;
   const frameAnimClass = getCosmeticAnimationClass(normalized);
-  const effectAnimClass = getCosmeticAnimationClass(effectId);
+  const effectAnimClass = getCosmeticAnimationClass(activeEffectId);
   const wrapperClassName =
     [
       `cw-framed-avatar--${resolvedContext}`,
@@ -166,7 +172,7 @@ export default function FramedAvatar({
         ...frameStyle,
       }}
     >
-      <CosmeticFxLayers cosmeticId={effectId} />
+      <CosmeticFxLayers cosmeticId={activeEffectId} />
       {frameFx}
       {src ? (
         <img
@@ -181,7 +187,9 @@ export default function FramedAvatar({
             objectFit: "cover",
             display: "block",
             boxSizing: "border-box",
-            border: hasFrame
+            border: isLightningOnlyFrame
+              ? "1.5px solid rgba(168, 134, 255, 0.24)"
+              : hasFrame
               ? "2px solid rgba(3, 16, 7, 0.95)"
               : "2px solid rgba(100,180,80,0.35)",
           }}
@@ -199,7 +207,9 @@ export default function FramedAvatar({
             justifyContent: "center",
             boxSizing: "border-box",
             background: "linear-gradient(135deg, #d9f5c8, #9ed58d)",
-            border: hasFrame
+            border: isLightningOnlyFrame
+              ? "1.5px solid rgba(168, 134, 255, 0.24)"
+              : hasFrame
               ? "2px solid rgba(3, 16, 7, 0.95)"
               : "2px solid rgba(100,180,80,0.35)",
             color: "#123816",

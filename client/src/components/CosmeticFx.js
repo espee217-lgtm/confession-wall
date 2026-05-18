@@ -1,5 +1,6 @@
 import React from "react";
 import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
+import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -279,14 +280,15 @@ export function CosmeticFxLayers({ cosmeticId }) {
 
   if (cosmeticId === "visual-effect-cursed-violet-aura") {
     return (
-      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
-        <span className="cw-fx-lightning-violet-ring" />
-        <span className="cw-fx-lightning-violet-glow" />
-        <span className="cw-fx-lightning-violet-arc arc-a" />
-        <span className="cw-fx-lightning-violet-arc arc-b" />
-        <span className="cw-fx-lightning-violet-arc arc-c" />
-        <span className="cw-fx-lightning-violet-bolt bolt-a" />
-        <span className="cw-fx-lightning-violet-bolt bolt-b" />
+      <div
+        className="cw-cosmetic-fx-layer cw-lightning-violet-sprite-shell"
+        aria-hidden="true"
+        style={{
+          "--cw-lightning-violet-sprite-image": `url(${lightningVioletFrameSprite})`,
+        }}
+      >
+        <span className="cw-lightning-violet-fallback-ring" />
+        <span className="cw-lightning-violet-sprite" />
       </div>
     );
   }
