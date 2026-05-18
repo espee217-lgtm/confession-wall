@@ -39,8 +39,8 @@ import ReenaPage from "./pages/ReenaPage";
 import WeeklyEventsPage from "./pages/WeeklyEventsPage";
 
 import { useAuth } from "./context/AuthContext";
-import { getCosmeticAnimationClass, getCosmeticIcon } from "./utils/cosmetics";
 import FramedAvatar from "./components/FramedAvatar";
+import { AnimatedBadge } from "./components/CosmeticFx";
 import { getDisplayCosmetics } from "./utils/engagement";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
@@ -653,17 +653,11 @@ function Navbar() {
               />
 
               {displayCosmetics?.badge && (
-                <span
-                  className={[
-                    "nav-profile-badge",
-                    `nav-badge-${displayCosmetics.badge}`,
-                    getCosmeticAnimationClass(displayCosmetics.badge),
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  {getCosmeticIcon(user.equippedCosmetics.badge) || "🌱"}
-                </span>
+                <AnimatedBadge
+                  badgeId={displayCosmetics.badge}
+                  size="sm"
+                  className="nav-profile-badge-wrap"
+                />
               )}
             </div>
           <NotificationBell />

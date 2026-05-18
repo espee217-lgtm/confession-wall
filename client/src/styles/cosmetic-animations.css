@@ -814,10 +814,10 @@
 
 @keyframes cw-racer-visor-sprite {
   from {
-    transform: translateX(0);
+    background-position: 0% 0;
   }
   to {
-    transform: translateX(-100%);
+    background-position: 100% 0;
   }
 }
 
@@ -907,6 +907,9 @@
     radial-gradient(circle at 50% 50%, rgba(14, 18, 28, 0.96), rgba(2, 3, 8, 0.99));
   border-color: rgba(126, 168, 255, 0.34) !important;
   animation: cw-racing-rim-glow 2.4s ease-in-out infinite;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .cw-cosmetic-badge-redline-rim .cw-cosmetic-icon::before,
@@ -935,6 +938,11 @@
   animation: cw-racing-rim-spin 1.35s linear infinite;
   box-shadow: 0 0 8px rgba(110, 154, 255, 0.18);
   pointer-events: none;
+  transform-origin: 50% 50%;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .cw-cosmetic-badge-redline-rim .cw-cosmetic-icon::after,
@@ -1081,20 +1089,20 @@
 
 .cw-framed-avatar--nav.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
-  --cw-visor-glow-inset: -5%;
-  --cw-visor-shell-inset: -10%;
+  --cw-visor-glow-inset: -3%;
+  --cw-visor-shell-inset: -7%;
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2.5px;
   --cw-visor-glow-inset: -7%;
-  --cw-visor-shell-inset: -16%;
+  --cw-visor-shell-inset: -12%;
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
   --cw-visor-glow-inset: -6%;
-  --cw-visor-shell-inset: -15%;
+  --cw-visor-shell-inset: -10%;
 }
 
 .cw-framed-avatar--profile.cw-cosmetic-frame-visor-lift-racer,
@@ -1166,28 +1174,23 @@
   pointer-events: none;
   z-index: 1;
   overflow: hidden;
-}
-
-.cw-visor-lift-sprite::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 800%;
-  height: 100%;
-  background-image: url("../assets/cosmetics/racer-visor-frame-sprite.png");
+  background-image: var(--cw-visor-sprite-image, none);
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: 800% 100%;
+  background-position: 0 0;
   animation: cw-racer-visor-sprite 2s steps(8) infinite;
   filter:
     drop-shadow(0 0 12px rgba(114, 170, 255, 0.2))
     drop-shadow(0 0 18px rgba(255, 92, 82, 0.08));
   pointer-events: none;
-  will-change: transform;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: background-position;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cw-visor-lift-sprite::before {
+  .cw-visor-lift-sprite {
     animation: none !important;
   }
 }
@@ -1803,6 +1806,9 @@
   filter: drop-shadow(0 0 16px rgba(88, 150, 255, 0.16)) drop-shadow(0 0 24px rgba(255, 88, 92, 0.08));
   animation: cw-apex-formula-surge 4.8s ease-in-out infinite;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-formula *,
@@ -1855,6 +1861,9 @@
   filter: drop-shadow(0 0 22px rgba(84, 150, 255, 0.22)) drop-shadow(0 0 34px rgba(88, 86, 255, 0.12));
   animation: cw-apex-car-surge 5.6s ease-in-out infinite;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-hypercar * ,
@@ -1902,9 +1911,32 @@
 
 .cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group,
 .shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group {
-  transform-origin: center center;
   transform-box: fill-box;
   animation: cw-apex-rim-spin 1.8s linear infinite;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.formula-rear-wheel,
+.shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.formula-rear-wheel {
+  transform-origin: 90px 108px;
+}
+
+.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.formula-front-wheel,
+.shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.formula-front-wheel {
+  transform-origin: 252px 108px;
+}
+
+.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.rear-wheel,
+.shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.rear-wheel {
+  transform-origin: 82px 106px;
+}
+
+.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.front-wheel,
+.shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-group.front-wheel {
+  transform-origin: 266px 106px;
 }
 
 .cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-wheel-tire,

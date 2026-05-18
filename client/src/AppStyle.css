@@ -1417,11 +1417,29 @@ a.chip {
   box-shadow: 0 0 16px rgba(255,85,45,0.72), 0 0 32px rgba(255,85,45,0.24);
 }
 
-.nav-profile-badge {
+.nav-profile-badge-wrap {
   position: absolute;
   right: -7px;
   bottom: -5px;
   z-index: 4;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.nav-profile-badge-wrap .cw-cosmetic-stage {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-profile-badge-wrap .cw-cosmetic-icon {
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -1556,11 +1574,21 @@ a.chip {
     min-height: 38px !important;
   }
 
-  .nav-profile-badge {
+  .nav-profile-badge-wrap {
     width: 18px !important;
     height: 18px !important;
     right: -5px !important;
     bottom: -5px !important;
+  }
+
+  .nav-profile-badge-wrap .cw-cosmetic-stage {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .nav-profile-badge-wrap .cw-cosmetic-icon {
+    width: 18px !important;
+    height: 18px !important;
     font-size: 11px !important;
   }
 

@@ -1,4 +1,5 @@
 import React from "react";
+import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -76,7 +77,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
     cosmeticId === "frame-visor-lift-racer"
   ) {
     return (
-      <div className="cw-cosmetic-fx-layer cw-visor-lift-sprite-shell" aria-hidden="true">
+      <div
+        className="cw-cosmetic-fx-layer cw-visor-lift-sprite-shell"
+        aria-hidden="true"
+        style={{ "--cw-visor-sprite-image": `url(${racerVisorFrameSprite})` }}
+      >
         <span className="cw-visor-lift-sprite" />
       </div>
     );
