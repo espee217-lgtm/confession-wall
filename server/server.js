@@ -9,6 +9,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 
 const { setupSocket } = require("./socket");
+const { startWeeklyEventAutomation } = require("./utils/weeklyForestEvents");
 
 const reportRoutes = require("./routes/reportRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
@@ -157,6 +158,7 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ Connected to MongoDB");
+    startWeeklyEventAutomation();
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

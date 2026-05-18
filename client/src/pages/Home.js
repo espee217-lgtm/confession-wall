@@ -1,8 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import ForestEventBanner from "../components/ForestEventBanner";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DaisyScene from "../DaisyScene";
+import { getCosmeticMeta } from "../utils/cosmetics";
+import {
+  CONFESSION_MOODS,
+  WHISPER_PROMPTS,
+  getOwnedPostThemeIds,
+} from "../utils/engagement";
 
 const API_BASE =
   window.location.hostname === "localhost"
@@ -515,6 +522,328 @@ function timeAgo(dateValue) {
   return date.toLocaleDateString();
 }
 
+function getAvailablePostThemes(user) {
+  const themeIds = new Set(getOwnedPostThemeIds(user));
+  const equippedTheme = String(user?.equippedCosmetics?.postTheme || "").trim();
+
+  if (equippedTheme.startsWith("post-theme-")) {
+    themeIds.add(equippedTheme);
+  }
+
+  return Array.from(themeIds)
+    .map((id) => ({
+      id,
+      meta: getCosmeticMeta(id),
+    }))
+    .filter((item) => item.meta);
+}
+
+function getNextWhisperPrompt(currentPrompt) {
+  if (WHISPER_PROMPTS.length <= 1) {
+    return WHISPER_PROMPTS[0] || "";
+  }
+
+  let nextPrompt = currentPrompt;
+
+  while (nextPrompt === currentPrompt) {
+    nextPrompt =
+      WHISPER_PROMPTS[Math.floor(Math.random() * WHISPER_PROMPTS.length)];
+  }
+
+  return nextPrompt;
+}
+
+function buildPollPayload(question, options) {
+  const trimmedQuestion = question.trim();
+  const trimmedOptions = options.map((option) => option.trim()).filter(Boolean);
+  const hasPollContent = Boolean(trimmedQuestion) || trimmedOptions.length > 0;
+
+  if (!hasPollContent) {
+    return { poll: null };
+  }
+
+  if (!trimmedQuestion) {
+    return { error: "Add a poll question or remove the poll." };
+  }
+
+  if (trimmedOptions.length < 2 || trimmedOptions.length > 4) {
+    return { error: "Polls need between 2 and 4 filled options." };
+  }
+
+  return {
+    poll: {
+      question: trimmedQuestion,
+      options: trimmedOptions,
+    },
+  };
+}
+
+function ComposeEnhancements({
+  compact = false,
+  selectedMood,
+  setSelectedMood,
+  availablePostThemes,
+  selectedPostTheme,
+  setSelectedPostTheme,
+  whisperPrompt,
+  onGeneratePrompt,
+  onUsePrompt,
+  showPollComposer,
+  setShowPollComposer,
+  pollQuestion,
+  setPollQuestion,
+  pollOptions,
+  setPollOptions,
+}) {
+  const sectionTitleStyle = {
+    fontSize: compact ? "10px" : "11px",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(226,255,200,0.74)",
+    marginBottom: compact ? "8px" : "9px",
+  };
+
+  const chipStyle = (active) => ({
+    borderRadius: "999px",
+    border: `1px solid ${
+      active ? "rgba(190,255,130,0.45)" : "rgba(255,255,220,0.12)"
+    }`,
+    background: active
+      ? "rgba(170,255,100,0.16)"
+      : "rgba(255,255,220,0.05)",
+    color: active ? "rgba(236,255,198,0.94)" : "rgba(255,255,220,0.68)",
+    padding: compact ? "6px 10px" : "7px 12px",
+    cursor: "pointer",
+    fontSize: compact ? "11px" : "12px",
+    fontFamily: "Georgia, serif",
+  });
+
+  const inputStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    borderRadius: "12px",
+    border: "1px solid rgba(255,255,220,0.14)",
+    background: "rgba(255,255,220,0.04)",
+    color: "rgba(255,255,220,0.9)",
+    padding: compact ? "9px 11px" : "10px 12px",
+    fontSize: compact ? "12px" : "13px",
+    fontFamily: "Georgia, serif",
+    outline: "none",
+  };
+
+  const themeSelectStyle = {
+    ...inputStyle,
+    colorScheme: "dark",
+  };
+
+  const themeOptionStyle = {
+    backgroundColor: "#0b1d0c",
+    color: "#f3f8d9",
+  };
+
+  return (
+    <div style={{ marginTop: compact ? "14px" : "16px", display: "grid", gap: compact ? "13px" : "15px" }}>
+      <div
+        style={{
+          borderRadius: "16px",
+          border: "1px solid rgba(170,255,130,0.14)",
+          background: "rgba(255,255,255,0.035)",
+          padding: compact ? "11px" : "12px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div style={sectionTitleStyle}>Whisper Prompt</div>
+            <p
+              style={{
+                margin: 0,
+                color: "rgba(255,255,220,0.46)",
+                fontSize: compact ? "11px" : "12px",
+              }}
+            >
+              Need a spark without losing your draft.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onGeneratePrompt}
+            style={chipStyle(Boolean(whisperPrompt))}
+          >
+            {whisperPrompt ? "Another whisper" : "Need a spark?"}
+          </button>
+        </div>
+
+        {whisperPrompt && (
+          <div
+            style={{
+              marginTop: "10px",
+              padding: compact ? "10px 11px" : "11px 12px",
+              borderRadius: "14px",
+              border: "1px solid rgba(170,255,130,0.12)",
+              background: "rgba(9,28,10,0.52)",
+            }}
+          >
+            <p
+              style={{
+                margin: "0 0 10px",
+                color: "rgba(240,255,220,0.88)",
+                fontSize: compact ? "12px" : "13px",
+                lineHeight: 1.55,
+              }}
+            >
+              {whisperPrompt}
+            </p>
+
+            <button
+              type="button"
+              onClick={onUsePrompt}
+              style={chipStyle(false)}
+            >
+              Use as opening line
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div style={sectionTitleStyle}>Mood</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          <button
+            type="button"
+            onClick={() => setSelectedMood("")}
+            style={chipStyle(!selectedMood)}
+          >
+            No mood
+          </button>
+
+          {CONFESSION_MOODS.map((mood) => (
+            <button
+              key={mood}
+              type="button"
+              onClick={() => setSelectedMood((prev) => (prev === mood ? "" : mood))}
+              style={chipStyle(selectedMood === mood)}
+            >
+              {mood}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div style={sectionTitleStyle}>Confession Card Theme</div>
+
+        {availablePostThemes.length > 0 ? (
+          <select
+            value={selectedPostTheme}
+            onChange={(e) => setSelectedPostTheme(e.target.value)}
+            style={themeSelectStyle}
+          >
+            <option value="" style={themeOptionStyle}>
+              Forest Default
+            </option>
+            {availablePostThemes.map((theme) => (
+              <option key={theme.id} value={theme.id} style={themeOptionStyle}>
+                {theme.meta.icon ? `${theme.meta.icon} ` : ""}
+                {theme.meta.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div
+            style={{
+              ...inputStyle,
+              color: "rgba(255,255,220,0.48)",
+            }}
+          >
+            You do not own any confession card themes yet.
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+            marginBottom: "8px",
+          }}
+        >
+          <div>
+            <div style={sectionTitleStyle}>Anonymous Poll</div>
+            <p
+              style={{
+                margin: 0,
+                color: "rgba(255,255,220,0.46)",
+                fontSize: compact ? "11px" : "12px",
+              }}
+            >
+              Optional. Add 2 to 4 answers.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (showPollComposer) {
+                setShowPollComposer(false);
+                setPollQuestion("");
+                setPollOptions(["", "", "", ""]);
+                return;
+              }
+
+              setShowPollComposer(true);
+            }}
+            style={chipStyle(showPollComposer)}
+          >
+            {showPollComposer ? "Hide poll" : "Add poll"}
+          </button>
+        </div>
+
+        {showPollComposer && (
+          <div style={{ display: "grid", gap: "8px" }}>
+            <input
+              type="text"
+              value={pollQuestion}
+              onChange={(e) => setPollQuestion(e.target.value)}
+              placeholder="Should I forgive them?"
+              style={inputStyle}
+            />
+
+            {pollOptions.map((option, index) => (
+              <input
+                key={`poll-option-${index}`}
+                type="text"
+                value={option}
+                onChange={(e) =>
+                  setPollOptions((prev) =>
+                    prev.map((item, itemIndex) =>
+                      itemIndex === index ? e.target.value : item
+                    )
+                  )
+                }
+                placeholder={`Option ${index + 1}${index < 2 ? " *" : ""}`}
+                style={inputStyle}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MobileHomePage({
   user,
   freshPosts,
@@ -534,6 +863,20 @@ function MobileHomePage({
   setShowPostEmojiPicker,
   postInputRef,
   insertPostEmoji,
+  selectedMood,
+  setSelectedMood,
+  availablePostThemes,
+  selectedPostTheme,
+  setSelectedPostTheme,
+  whisperPrompt,
+  onGeneratePrompt,
+  onUsePrompt,
+  showPollComposer,
+  setShowPollComposer,
+  pollQuestion,
+  setPollQuestion,
+  pollOptions,
+  setPollOptions,
 }) {
   const visiblePosts = freshPosts.slice(0, 8);
 
@@ -584,6 +927,10 @@ function MobileHomePage({
           alt="Confession Wall"
           className="mobile-home-hero-img"
         />
+      </section>
+
+      <section style={{ padding: "0 16px 10px" }}>
+        <ForestEventBanner />
       </section>
 
       <section className="mobile-home-realms" aria-label="Realms">
@@ -652,6 +999,24 @@ function MobileHomePage({
   onChange={(e) => setMessage(e.target.value)}
   autoFocus
 />
+
+            <ComposeEnhancements
+              compact
+              selectedMood={selectedMood}
+              setSelectedMood={setSelectedMood}
+              availablePostThemes={availablePostThemes}
+              selectedPostTheme={selectedPostTheme}
+              setSelectedPostTheme={setSelectedPostTheme}
+              whisperPrompt={whisperPrompt}
+              onGeneratePrompt={onGeneratePrompt}
+              onUsePrompt={onUsePrompt}
+              showPollComposer={showPollComposer}
+              setShowPollComposer={setShowPollComposer}
+              pollQuestion={pollQuestion}
+              setPollQuestion={setPollQuestion}
+              pollOptions={pollOptions}
+              setPollOptions={setPollOptions}
+            />
 
             {imagePreview && (
               <div className="mobile-compose-preview">
@@ -898,10 +1263,17 @@ const postInputRef = useRef(null);
 const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedMood, setSelectedMood] = useState("");
+  const [selectedPostTheme, setSelectedPostTheme] = useState("");
+  const [whisperPrompt, setWhisperPrompt] = useState("");
+  const [showPollComposer, setShowPollComposer] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", "", "", ""]);
   const [muted, setMuted] = useState(true);
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 720);
 
   const videoRef = useRef(null);
+  const availablePostThemes = useMemo(() => getAvailablePostThemes(user), [user]);
 
   useEffect(() => {
     const updateMode = () => setIsMobile(window.innerWidth <= 720);
@@ -942,6 +1314,31 @@ useEffect(() => {
       .then((d) => setConfessions(Array.isArray(d) ? d : []))
       .catch((err) => console.error(err));
   }, [user, navigate]);
+
+  useEffect(() => {
+    const equippedTheme = String(user?.equippedCosmetics?.postTheme || "").trim();
+
+    if (!availablePostThemes.length) {
+      if (selectedPostTheme) {
+        setSelectedPostTheme("");
+      }
+      return;
+    }
+
+    const currentThemeIsAvailable = availablePostThemes.some(
+      (theme) => theme.id === selectedPostTheme
+    );
+
+    if (currentThemeIsAvailable) {
+      return;
+    }
+
+    const nextTheme = availablePostThemes.some((theme) => theme.id === equippedTheme)
+      ? equippedTheme
+      : "";
+
+    setSelectedPostTheme(nextTheme);
+  }, [availablePostThemes, selectedPostTheme, user?.equippedCosmetics?.postTheme]);
 
   // 🔊 Auto-unmute on first interaction
   useEffect(() => {
@@ -997,6 +1394,24 @@ useEffect(() => {
     input.setSelectionRange(nextPosition, nextPosition);
   }, 0);
 };
+  const handleGeneratePrompt = () => {
+    setWhisperPrompt((current) => getNextWhisperPrompt(current));
+  };
+
+  const handleUsePrompt = () => {
+    if (!whisperPrompt) return;
+
+    setMessage((prev) => {
+      if (!prev.trim()) return whisperPrompt;
+      if (prev.includes(whisperPrompt)) return prev;
+      return `${whisperPrompt}\n\n${prev}`;
+    });
+
+    window.setTimeout(() => {
+      postInputRef.current?.focus();
+    }, 0);
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
@@ -1006,12 +1421,25 @@ useEffect(() => {
   const handleSubmit = async () => {
     if (!message.trim()) return;
 
+    const { poll, error: pollError } = buildPollPayload(
+      pollQuestion,
+      pollOptions
+    );
+
+    if (pollError) {
+      window.cwToast?.(pollError, "warning") || alert(pollError);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("message", message);
       if (image) formData.append("image", image);
+      if (selectedMood) formData.append("mood", selectedMood);
+      if (selectedPostTheme) formData.append("postTheme", selectedPostTheme);
+      if (poll) formData.append("poll", JSON.stringify(poll));
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -1023,6 +1451,7 @@ useEffect(() => {
 
       if (!res.ok) {
         window.cwToast?.(newConfession.message || newConfession.error || "Could not post.", "error") || alert(newConfession.message || newConfession.error || "Could not post.");
+        setLoading(false);
         return;
       }
 
@@ -1033,17 +1462,33 @@ useEffect(() => {
 
       const confessionWithUser = {
         ...newConfession,
-        userId: {
-          _id: user._id,
-          username: user.username,
-          profilePicture: user.profilePicture,
-        },
+        userId:
+          newConfession.userId && typeof newConfession.userId === "object"
+            ? newConfession.userId
+            : {
+                _id: user._id,
+                username: user.username,
+                profilePicture: user.profilePicture,
+                equippedCosmetics: user.equippedCosmetics || {},
+              },
       };
 
-      setConfessions([confessionWithUser, ...confessions]);
+      setConfessions((prev) => [confessionWithUser, ...prev]);
       setMessage("");
       setImage(null);
       setImagePreview(null);
+      setSelectedMood("");
+      setWhisperPrompt("");
+      setShowPollComposer(false);
+      setPollQuestion("");
+      setPollOptions(["", "", "", ""]);
+      setSelectedPostTheme(
+        availablePostThemes.some(
+          (theme) => theme.id === user?.equippedCosmetics?.postTheme
+        )
+          ? user.equippedCosmetics.postTheme
+          : ""
+      );
       setShowCompose(false);
       setShowPostEmojiPicker(false);
     } catch (err) {
@@ -1075,6 +1520,20 @@ useEffect(() => {
   setShowPostEmojiPicker={setShowPostEmojiPicker}
   postInputRef={postInputRef}
   insertPostEmoji={insertPostEmoji}
+  selectedMood={selectedMood}
+  setSelectedMood={setSelectedMood}
+  availablePostThemes={availablePostThemes}
+  selectedPostTheme={selectedPostTheme}
+  setSelectedPostTheme={setSelectedPostTheme}
+  whisperPrompt={whisperPrompt}
+  onGeneratePrompt={handleGeneratePrompt}
+  onUsePrompt={handleUsePrompt}
+  showPollComposer={showPollComposer}
+  setShowPollComposer={setShowPollComposer}
+  pollQuestion={pollQuestion}
+  setPollQuestion={setPollQuestion}
+  pollOptions={pollOptions}
+  setPollOptions={setPollOptions}
 />
     );
   }
@@ -1257,6 +1716,21 @@ useEffect(() => {
   </button>
 </div>
 
+      <div
+        data-ui="true"
+        style={{
+          position: "absolute",
+          top: "58px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "min(520px, calc(100vw - 32px))",
+          zIndex: 120,
+          pointerEvents: "auto",
+        }}
+      >
+        <ForestEventBanner />
+      </div>
+
       <SpiritNavigation
         onLeftClick={() => navigate("/grove")}
         onRightClick={() => navigate("/scorched")}
@@ -1399,6 +1873,23 @@ useEffect(() => {
                 lineHeight: 1.7,
                 boxSizing: "border-box",
               }}
+            />
+
+            <ComposeEnhancements
+              selectedMood={selectedMood}
+              setSelectedMood={setSelectedMood}
+              availablePostThemes={availablePostThemes}
+              selectedPostTheme={selectedPostTheme}
+              setSelectedPostTheme={setSelectedPostTheme}
+              whisperPrompt={whisperPrompt}
+              onGeneratePrompt={handleGeneratePrompt}
+              onUsePrompt={handleUsePrompt}
+              showPollComposer={showPollComposer}
+              setShowPollComposer={setShowPollComposer}
+              pollQuestion={pollQuestion}
+              setPollQuestion={setPollQuestion}
+              pollOptions={pollOptions}
+              setPollOptions={setPollOptions}
             />
 
             {imagePreview && (

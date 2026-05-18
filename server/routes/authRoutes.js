@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
+const Confession = require("../models/Confession");
 const OTP = require("../models/OTP");
 const PasswordReset = require("../models/PasswordReset");
 const cloudinary = require("../config/cloudinary");
@@ -15,6 +16,7 @@ const { sanitizeText, sanitizeEmail } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { createAdminLog } = require("../utils/adminLogger");
 const { awardSeeds } = require("../utils/seedRewards");
+const { ensureWeeklyEventMaintenance } = require("../utils/weeklyForestEvents");
 
 const storage = new CloudinaryStorage({
   cloudinary,
@@ -58,6 +60,11 @@ const buildUserPayload = (user) => ({
   ownedCosmetics: Array.isArray(user.ownedCosmetics)
     ? user.ownedCosmetics
     : [],
+  savedConfessions: Array.isArray(user.savedConfessions)
+    ? user.savedConfessions
+    : [],
+  temporaryCosmeticOverride: user.temporaryCosmeticOverride || {},
+  weeklyRewards: Array.isArray(user.weeklyRewards) ? user.weeklyRewards : [],
 
   equippedCosmetics: user.equippedCosmetics || {
     badge: "",
@@ -646,8 +653,90 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
 // ─────────────────────────────────────────────────────────────────────────────
 
 router.get("/me", protect, async (req, res) => {
+  await ensureWeeklyEventMaintenance();
   const freshUser = await User.findById(req.user._id);
   res.json(buildUserPayload(freshUser || req.user));
+});
+
+// PRIVATE SAVED CONFESSIONS / PRESSED LEAVES
+router.get("/pressed-leaves", protect, async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+    const user = await User.findById(req.user._id).select("savedConfessions");
+    const savedIds = Array.isArray(user?.savedConfessions) ? user.savedConfessions : [];
+
+    if (savedIds.length === 0) {
+      return res.json([]);
+    }
+
+    const confessions = await Confession.find({ _id: { $in: savedIds } })
+      .sort({ createdAt: -1 })
+      .populate(
+        "userId",
+        "username profilePicture isAdmin role equippedCosmetics temporaryCosmeticOverride"
+      );
+
+    res.json(confessions);
+  } catch (err) {
+    console.error("Pressed leaves fetch error:", err.message);
+    res.status(500).json({ message: "Could not load your pressed leaves right now." });
+  }
+});
+
+router.post("/pressed-leaves/:confessionId", protect, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.confessionId).select("_id");
+
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const user = await User.findById(req.user._id).select("savedConfessions");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const alreadySaved = user.savedConfessions.some((id) => id.equals(confession._id));
+
+    if (!alreadySaved) {
+      user.savedConfessions.push(confession._id);
+      await user.save();
+    }
+
+    res.json({
+      message: alreadySaved
+        ? "This confession is already tucked into your Pressed Leaves."
+        : "Confession saved to your Pressed Leaves.",
+      savedConfessions: user.savedConfessions,
+    });
+  } catch (err) {
+    console.error("Pressed leaves save error:", err.message);
+    res.status(500).json({ message: "Could not save this confession right now." });
+  }
+});
+
+router.delete("/pressed-leaves/:confessionId", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("savedConfessions");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.savedConfessions = user.savedConfessions.filter(
+      (id) => String(id) !== String(req.params.confessionId)
+    );
+    await user.save();
+
+    res.json({
+      message: "Confession removed from your Pressed Leaves.",
+      savedConfessions: user.savedConfessions,
+    });
+  } catch (err) {
+    console.error("Pressed leaves remove error:", err.message);
+    res.status(500).json({ message: "Could not update your Pressed Leaves right now." });
+  }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -747,8 +836,6 @@ router.delete("/account", protect, async (req, res) => {
       return res.status(400).json({ message: "Incorrect password" });
     }
 
-    const Confession = require("../models/Confession");
-
     await Confession.deleteMany({ userId: req.user._id });
     await User.findByIdAndDelete(req.user._id);
 
@@ -766,7 +853,6 @@ router.delete("/account", protect, async (req, res) => {
 
 router.get("/post-count", protect, async (req, res) => {
   try {
-    const Confession = require("../models/Confession");
     const count = await Confession.countDocuments({ userId: req.user._id });
 
     res.json({ count });
@@ -815,6 +901,7 @@ router.put("/show-seeds", protect, async (req, res) => {
 
 router.get("/user/:id", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const user = await User.findById(req.params.id).select(
       "-password -email"
     );
@@ -839,6 +926,8 @@ router.get("/user/:id", async (req, res) => {
       ownedCosmetics: Array.isArray(user.ownedCosmetics)
         ? user.ownedCosmetics
         : [],
+
+      temporaryCosmeticOverride: user.temporaryCosmeticOverride || {},
 
       equippedCosmetics: user.equippedCosmetics || {
         badge: "",

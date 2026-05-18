@@ -118,7 +118,7 @@
 
 .shop-equipped-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -275,6 +275,7 @@
 .shop-preview-frame,
 .shop-preview-title,
 .shop-preview-post {
+  position: relative;
   height: 126px;
   border-radius: 20px;
   display: grid;
@@ -297,14 +298,22 @@
 }
 
 .shop-preview-avatar {
+  position: relative;
   width: 62px;
   height: 62px;
   display: grid;
   place-items: center;
   border-radius: 50%;
+  box-sizing: border-box;
+  isolation: isolate;
   color: #f7ffe9;
   font-weight: 800;
   background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08));
+}
+
+.shop-preview-avatar-glyph {
+  position: relative;
+  z-index: 2;
 }
 
 .shop-preview-frame.cw-cosmetic-preview-frame-vine .shop-preview-avatar {

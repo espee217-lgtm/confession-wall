@@ -45,6 +45,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [weeklyEventStatus, setWeeklyEventStatus] = useState(null);
+  const [weeklyBusy, setWeeklyBusy] = useState(false);
 
   const headers = { Authorization: `Bearer ${adminToken}` };
 
@@ -73,6 +75,29 @@ export default function AdminDashboard() {
     setLogs(Array.isArray(data) ? data : []);
   };
 
+  const fetchWeeklyEventStatus = async () => {
+    const res = await fetch(`${API_URL}/weekly-event/status`, { headers });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Could not load weekly event status.");
+    }
+
+    setWeeklyEventStatus(data);
+  };
+
+  const refreshWeeklyEventStatus = async () => {
+    try {
+      await fetchWeeklyEventStatus();
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.(
+        err.message || "Could not refresh weekly event status.",
+        "error"
+      ) || alert(err.message || "Could not refresh weekly event status.");
+    }
+  };
+
  useEffect(() => {
   if (!adminToken) return;
 
@@ -82,6 +107,7 @@ export default function AdminDashboard() {
       fetchConfessions(),
       fetchUsers(),
       fetchLogs(),
+      fetchWeeklyEventStatus(),
     ]);
   };
 
@@ -89,6 +115,46 @@ export default function AdminDashboard() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [adminToken]);
+
+  const finalizeWeeklyEvent = async () => {
+    if (!window.confirm("Run weekly event maintenance now and apply any pending automated rewards?")) {
+      return;
+    }
+
+    try {
+      setWeeklyBusy(true);
+      const res = await fetch(`${API_URL}/weekly-event/finalize-current`, {
+        method: "POST",
+        headers,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        window.cwToast?.(
+          data.message || "Could not finalize the weekly event.",
+          "error"
+        ) || alert(data.message || "Could not finalize the weekly event.");
+        return;
+      }
+
+      setWeeklyEventStatus(data.status || null);
+      await fetchUsers();
+      window.cwToast?.(
+        data.message || "Weekly event maintenance completed.",
+        "success"
+      ) || alert(data.message || "Weekly event maintenance completed.");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.(
+        "Something went wrong while finalizing the weekly event.",
+        "error"
+      ) ||
+        alert("Something went wrong while finalizing the weekly event.");
+    } finally {
+      setWeeklyBusy(false);
+    }
+  };
 
   const pendingReports = reports.filter((r) => r.status !== "resolved");
   const resolvedReports = reports.filter((r) => r.status === "resolved");
@@ -538,6 +604,128 @@ const safeBtnStyle = {
   </button>
 </div>
         </div>
+        {weeklyEventStatus && (
+          <div style={cardStyle}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "16px",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                    opacity: 0.68,
+                    marginBottom: "8px",
+                  }}
+                >
+                  Weekly Event Status
+                </div>
+
+                <h2 style={{ margin: "0 0 6px", fontSize: "1.22rem" }}>
+                  {weeklyEventStatus.currentEvent?.name || "Current weekly event"}
+                </h2>
+
+                <p style={{ margin: 0, opacity: 0.76, lineHeight: 1.6 }}>
+                  {weeklyEventStatus.currentEvent?.description}
+                </p>
+
+                <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  <span style={pillStyle(true)}>
+                    {weeklyEventStatus.currentEvent?.startsAt
+                      ? new Date(weeklyEventStatus.currentEvent.startsAt).toLocaleDateString()
+                      : "?"}
+                    {" "}to{" "}
+                    {weeklyEventStatus.currentEvent?.endsAt
+                      ? new Date(
+                          new Date(weeklyEventStatus.currentEvent.endsAt).getTime() - 1000
+                        ).toLocaleDateString()
+                      : "?"}
+                  </span>
+                  <span style={pillStyle(false)}>
+                    Tracking: confessions created this week only
+                  </span>
+                  <span style={pillStyle(false)}>
+                    Rewards: automatic background maintenance
+                  </span>
+                </div>
+
+                <div style={{ marginTop: "14px", display: "grid", gap: "10px" }}>
+                  <div
+                    style={{
+                      padding: "12px",
+                      borderRadius: "12px",
+                      background: "rgba(120,255,170,0.08)",
+                      border: "1px solid rgba(120,255,170,0.18)",
+                    }}
+                  >
+                    <strong style={{ color: "#b8ffd0" }}>Most Watered candidate</strong>
+                    <div style={{ marginTop: "6px", opacity: 0.86 }}>
+                      {weeklyEventStatus.leaderboard?.mostWateredPost
+                        ? `@${weeklyEventStatus.leaderboard.mostWateredPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostWateredPost.wateredCount || 0} Water`
+                        : "No current watered leader"}
+                    </div>
+                    <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
+                      {weeklyEventStatus.rewards?.mostWateredSeeds?.granted
+                        ? `1000 Seeds granted to @${weeklyEventStatus.rewards.mostWateredSeeds.username}`
+                        : "1000 Seeds not granted yet"}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "12px",
+                      borderRadius: "12px",
+                      background: "rgba(255,120,90,0.08)",
+                      border: "1px solid rgba(255,120,90,0.18)",
+                    }}
+                  >
+                    <strong style={{ color: "#ffb39f" }}>Most Burned candidate</strong>
+                    <div style={{ marginTop: "6px", opacity: 0.86 }}>
+                      {weeklyEventStatus.leaderboard?.mostBurnedPost
+                        ? `@${weeklyEventStatus.leaderboard.mostBurnedPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostBurnedPost.burnedCount || 0} Burn`
+                        : "No current burned leader"}
+                    </div>
+                    <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
+                      {weeklyEventStatus.rewards?.mostBurnedOverride?.granted
+                        ? `Override active for @${weeklyEventStatus.rewards.mostBurnedOverride.username} until ${new Date(weeklyEventStatus.rewards.mostBurnedOverride.expiresAt).toLocaleString()}`
+                        : "Temporary override not applied yet"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={refreshWeeklyEventStatus}
+                  style={btnStyle}
+                >
+                  Refresh weekly status
+                </button>
+
+                <button
+                  type="button"
+                  onClick={finalizeWeeklyEvent}
+                  disabled={weeklyBusy}
+                  style={{
+                    ...safeBtnStyle,
+                    minWidth: "220px",
+                    opacity: weeklyBusy ? 0.72 : 1,
+                  }}
+                >
+                  {weeklyBusy ? "Running..." : "Run weekly check now"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div style={cardStyle}>
   <div
     style={{

@@ -12,6 +12,11 @@ const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { reactionLimiter } = require("../middleware/rateLimiter");
 const { createAdminLog } = require("../utils/adminLogger");
 const { awardSeeds } = require("../utils/seedRewards");
+const {
+  USER_PUBLIC_SELECT,
+  ensureWeeklyEventMaintenance,
+  getWeeklyEventStatus,
+} = require("../utils/weeklyForestEvents");
 
 const postLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -58,12 +63,133 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage, ...imageUploadOptions });
 
+const CONFESSION_MOODS = [
+  "Hopeful",
+  "Heavy",
+  "Angry",
+  "Lonely",
+  "Love",
+  "Regret",
+  "Funny",
+  "Grateful",
+  "Lost",
+  "Healing",
+];
+
+const COMFORT_CARD_OPTIONS = [
+  "I hear you.",
+  "You are not alone.",
+  "This pain matters.",
+  "Sending strength.",
+  "You survived this.",
+  "May your heart feel lighter.",
+];
+
+const PRIVATE_ENGAGEMENT_SELECT = "+comfortCards.sentBy +poll.voterIds";
+
+const normalizeOwnedCosmeticIds = (user) =>
+  new Set(
+    (Array.isArray(user?.ownedCosmetics) ? user.ownedCosmetics : [])
+      .map((owned) => (typeof owned === "string" ? owned : owned?.itemId))
+      .filter(Boolean)
+  );
+
+const sanitizeShortText = (value, maxLength) =>
+  sanitizeText(value, { maxLength, allowNewLines: false });
+
+const buildSelectedPostTheme = (user, requestedTheme) => {
+  const value = String(requestedTheme || "").trim();
+
+  if (!value) {
+    return { value: "" };
+  }
+
+  if (!value.startsWith("post-theme-")) {
+    return { error: "Invalid post theme selection." };
+  }
+
+  const ownedItemIds = normalizeOwnedCosmeticIds(user);
+  const equippedPostTheme = String(user?.equippedCosmetics?.postTheme || "").trim();
+
+  if (!ownedItemIds.has(value) && equippedPostTheme !== value) {
+    return { error: "You can only use post themes from your owned cosmetics." };
+  }
+
+  return { value };
+};
+
+const parsePollPayload = (rawPoll) => {
+  if (!rawPoll) {
+    return { poll: null };
+  }
+
+  let source = rawPoll;
+
+  if (typeof rawPoll === "string") {
+    try {
+      source = JSON.parse(rawPoll);
+    } catch {
+      return { error: "Poll data could not be read." };
+    }
+  }
+
+  const question = sanitizeShortText(source?.question || "", 160);
+  const options = Array.isArray(source?.options)
+    ? source.options
+        .map((option) => sanitizeShortText(option, 80))
+        .filter(Boolean)
+    : [];
+
+  const hasAnyPollContent = Boolean(question) || options.length > 0;
+
+  if (!hasAnyPollContent) {
+    return { poll: null };
+  }
+
+  if (!question) {
+    return { error: "Poll question is required when adding a poll." };
+  }
+
+  if (options.length < 2 || options.length > 4) {
+    return { error: "Polls need between 2 and 4 options." };
+  }
+
+  return {
+    poll: {
+      question,
+      options: options.map((text) => ({ text, votes: 0 })),
+      voterIds: [],
+    },
+  };
+};
+
+const serializeComfortCards = (comfortCards = []) =>
+  comfortCards.map((card) => ({
+    text: card.text,
+    count: card.count || 0,
+  }));
+
+const serializePoll = (poll) => {
+  if (!poll?.question || !Array.isArray(poll.options)) {
+    return null;
+  }
+
+  return {
+    question: poll.question,
+    options: poll.options.map((option) => ({
+      text: option.text,
+      votes: option.votes || 0,
+    })),
+  };
+};
+
 // GET all confessions
 router.get("/", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
+      .populate("userId", USER_PUBLIC_SELECT);
 
     res.json(confessions);
   } catch (err) {
@@ -74,9 +200,10 @@ router.get("/", async (req, res) => {
 // GET thriving confessions
 router.get("/realm/thriving", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
+      .populate("userId", USER_PUBLIC_SELECT);
 
     const thriving = confessions.filter((p) => {
       const total = p.wateredBy.length + p.burnedBy.length;
@@ -93,9 +220,10 @@ router.get("/realm/thriving", async (req, res) => {
 // GET scorched confessions
 router.get("/realm/scorched", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const confessions = await Confession.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
+      .populate("userId", USER_PUBLIC_SELECT);
 
     const scorched = confessions.filter((p) => {
       const total = p.wateredBy.length + p.burnedBy.length;
@@ -116,6 +244,7 @@ router.get("/realm/scorched", async (req, res) => {
 // type = all | grove | budding | scorched
 router.get("/search", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const q = String(req.query.q || "").trim();
     const type = String(req.query.type || "all").trim().toLowerCase();
 
@@ -132,7 +261,7 @@ router.get("/search", async (req, res) => {
     let confessions = await Confession.find(query)
       .sort({ createdAt: -1 })
       .limit(80)
-      .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
+      .populate("userId", USER_PUBLIC_SELECT);
 
     // Also allow searching by username after population.
     if (q) {
@@ -140,7 +269,7 @@ router.get("/search", async (req, res) => {
       const usernameMatches = await Confession.find()
         .sort({ createdAt: -1 })
         .limit(120)
-        .populate("userId", "username profilePicture isAdmin role equippedCosmetics");
+        .populate("userId", USER_PUBLIC_SELECT);
 
       const byUsername = usernameMatches.filter((post) =>
         String(post.userId?.username || "").toLowerCase().includes(lower)
@@ -174,12 +303,27 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// GET current weekly event status and leaderboard
+router.get("/weekly-event", async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+    const status = await getWeeklyEventStatus();
+    res.json(status);
+  } catch (err) {
+    console.error("Weekly event status error:", err.message);
+    res.status(500).json({
+      message: "Could not load the weekly event right now.",
+    });
+  }
+});
+
 // GET single confession by ID
 router.get("/:id", async (req, res) => {
   try {
+    await ensureWeeklyEventMaintenance();
     const confession = await Confession.findById(req.params.id)
-      .populate("userId", "username profilePicture isAdmin role equippedCosmetics")
-      .populate("comments.userId", "username profilePicture isAdmin role equippedCosmetics");
+      .populate("userId", USER_PUBLIC_SELECT)
+      .populate("comments.userId", USER_PUBLIC_SELECT);
 
     if (!confession) {
       return res.status(404).json({ message: "Confession not found" });
@@ -203,15 +347,38 @@ router.post(
   async (req, res) => {
     try {
       const message = sanitizeText(req.body.message, { maxLength: 2000, allowNewLines: true });
+      const mood = sanitizeShortText(req.body.mood || "", 20);
+      const moodValue = mood || undefined;
+      const { value: postTheme = "", error: postThemeError } = buildSelectedPostTheme(
+        req.user,
+        req.body.postTheme || req.body.postThemeId
+      );
+      const { poll, error: pollError } = parsePollPayload(req.body.poll);
 
       if (!message && !req.file) {
         return res.status(400).json({ message: "Post text or image is required." });
+      }
+
+      if (moodValue && !CONFESSION_MOODS.includes(moodValue)) {
+        return res.status(400).json({ message: "Invalid mood selection." });
+      }
+
+      if (postThemeError) {
+        return res.status(400).json({ message: postThemeError });
+      }
+
+      if (pollError) {
+        return res.status(400).json({ message: pollError });
       }
 
       const newConfession = new Confession({
         userId: req.user._id,
         message,
         image: req.file ? req.file.path : null,
+        mood: moodValue,
+        postTheme,
+        poll: poll || undefined,
+        comfortCards: [],
         comments: [],
       });
 
@@ -219,7 +386,7 @@ router.post(
 
       const populated = await Confession.findById(saved._id).populate(
         "userId",
-        "username profilePicture isAdmin role equippedCosmetics"
+        USER_PUBLIC_SELECT
       );
 
       await createAdminLog({
@@ -229,7 +396,12 @@ router.post(
         user: req.user,
         targetId: saved._id,
         targetType: "confession",
-        metadata: { hasImage: Boolean(req.file) },
+        metadata: {
+          hasImage: Boolean(req.file),
+          mood: moodValue || "",
+          postTheme,
+          hasPoll: Boolean(poll),
+        },
       });
 
       const seedReward = await awardSeeds({
@@ -243,6 +415,120 @@ router.post(
       responsePost.seedReward = seedReward;
 
       res.json(responsePost);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// SEND an anonymous comfort card to a confession
+router.post(
+  "/:id/comfort-cards",
+  protect,
+  blockSuspended,
+  reactionLimiter,
+  async (req, res) => {
+    try {
+      const text = sanitizeShortText(req.body.text || "", 60);
+
+      if (!COMFORT_CARD_OPTIONS.includes(text)) {
+        return res.status(400).json({ message: "Invalid comfort card." });
+      }
+
+      const confession = await Confession.findById(req.params.id).select(
+        PRIVATE_ENGAGEMENT_SELECT
+      );
+
+      if (!confession) {
+        return res.status(404).json({ message: "Confession not found." });
+      }
+
+      const userId = req.user._id;
+      let comfortCard = confession.comfortCards.find((card) => card.text === text);
+
+      if (!comfortCard) {
+        confession.comfortCards.push({
+          text,
+          count: 0,
+          sentBy: [],
+        });
+        comfortCard = confession.comfortCards[confession.comfortCards.length - 1];
+      }
+
+      const alreadySent = comfortCard.sentBy?.some((id) => id.equals(userId));
+
+      if (alreadySent) {
+        return res.status(400).json({
+          message: "You already sent that comfort card to this confession.",
+        });
+      }
+
+      comfortCard.sentBy.push(userId);
+      comfortCard.count += 1;
+
+      await confession.save();
+
+      if (confession.userId && !confession.userId.equals(userId)) {
+        await createNotification({
+          userId: confession.userId,
+          type: "comment",
+          message: `${req.user.username || "Someone"} sent a comfort card to your confession.`,
+          link: `/confession/${confession._id}`,
+        });
+      }
+
+      res.json({
+        comfortCards: serializeComfortCards(confession.comfortCards),
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// VOTE on an anonymous poll
+router.post(
+  "/:id/poll-vote",
+  protect,
+  blockSuspended,
+  reactionLimiter,
+  async (req, res) => {
+    try {
+      const optionIndex = Number(req.body.optionIndex);
+      const confession = await Confession.findById(req.params.id).select(
+        PRIVATE_ENGAGEMENT_SELECT
+      );
+
+      if (!confession) {
+        return res.status(404).json({ message: "Confession not found." });
+      }
+
+      if (!confession.poll?.question || !Array.isArray(confession.poll.options)) {
+        return res.status(400).json({ message: "This confession does not have a poll." });
+      }
+
+      if (
+        !Number.isInteger(optionIndex) ||
+        optionIndex < 0 ||
+        optionIndex >= confession.poll.options.length
+      ) {
+        return res.status(400).json({ message: "Invalid poll option." });
+      }
+
+      const alreadyVoted = confession.poll.voterIds?.some((id) => id.equals(req.user._id));
+
+      if (alreadyVoted) {
+        return res.status(400).json({ message: "You have already voted on this poll." });
+      }
+
+      confession.poll.options[optionIndex].votes += 1;
+      confession.poll.voterIds.push(req.user._id);
+
+      await confession.save();
+
+      res.json({
+        poll: serializePoll(confession.poll),
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -330,8 +616,8 @@ router.post(
       });
 
       const updated = await Confession.findById(req.params.id)
-        .populate("userId", "username profilePicture isAdmin role equippedCosmetics")
-        .populate("comments.userId", "username profilePicture isAdmin role equippedCosmetics");
+        .populate("userId", USER_PUBLIC_SELECT)
+        .populate("comments.userId", USER_PUBLIC_SELECT);
 
       const responsePost = updated?.toObject ? updated.toObject() : updated;
       responsePost.seedReward = seedReward;

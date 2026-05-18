@@ -1,4 +1,5 @@
 import DisplayTitlePill from "../components/DisplayTitlePill";
+import ForestEventBanner from "../components/ForestEventBanner";
 import FramedAvatar from "../components/FramedAvatar";
 import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import MobileBottomNav from "../components/MobileBottomNav";
@@ -6,6 +7,15 @@ import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
 } from "../utils/cosmetics";
+import {
+  COMFORT_CARD_OPTIONS,
+  getComfortCardSummary,
+  getConfessionThemeId,
+  getDisplayCosmetics,
+  getMoodChipStyle,
+  getPollTotalVotes,
+  getSavedConfessionIdSet,
+} from "../utils/engagement";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
@@ -14,6 +24,7 @@ import { useAuth } from "../context/AuthContext";
 const API_URL = process.env.REACT_APP_API_URL;
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
+const PRESSED_LEAVES_URL = `${API_BASE}/api/auth/pressed-leaves`;
 
 const realmThemes = {
   grove: {
@@ -278,7 +289,7 @@ export default function ConfessionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetCommentId = searchParams.get("comment");
-  const { token, user, refreshUser } = useAuth();
+  const { token, user, refreshUser, updateUser } = useAuth();
 
   const [confession, setConfession] = useState(null);
   const [comment, setComment] = useState("");
@@ -360,12 +371,21 @@ export default function ConfessionPage() {
 
   const realm = realmFromUrl || inferredRealm;
   const theme = realmThemes[realm] || realmThemes.grove;
-  const authorEquipped = confession?.userId?.equippedCosmetics || {};
-const authorPostThemeStyle = getPostThemeStyle(authorEquipped.postTheme, realm);
-const authorPostThemeClass = getCosmeticAnimationClass(authorEquipped.postTheme);
-const viewerEquipped = user?.equippedCosmetics || {};
-const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
-const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
+  const authorEquipped = getDisplayCosmetics(confession?.userId);
+  const confessionThemeId = getConfessionThemeId(
+    confession,
+    authorEquipped,
+    confession?.userId
+  );
+  const authorPostThemeStyle = getPostThemeStyle(confessionThemeId, realm);
+  const authorPostThemeClass = getCosmeticAnimationClass(confessionThemeId);
+  const viewerEquipped = getDisplayCosmetics(user);
+  const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
+  const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
+  const moodStyle = getMoodChipStyle(confession?.mood);
+  const comfortCards = getComfortCardSummary(confession?.comfortCards);
+  const pollVotes = getPollTotalVotes(confession?.poll);
+  const isSaved = getSavedConfessionIdSet(user).has(String(confession?._id || ""));
 
 // 📎 COMMENT IMAGE PIN PLACEMENT CONTROLS
 // Change only these 4 values later.
@@ -582,6 +602,119 @@ const activeCommentPinPosition = isPhoneLayout
     }
   };
 
+  const togglePressedLeaf = async () => {
+    if (!token) {
+      window.cwToast?.("You must be logged in to save confessions.", "warning") ||
+        alert("You must be logged in to save confessions.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${PRESSED_LEAVES_URL}/${id}`, {
+        method: isSaved ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        window.cwToast?.(
+          data.message || "Could not update your Pressed Leaves.",
+          "error"
+        ) || alert(data.message || "Could not update your Pressed Leaves.");
+        return;
+      }
+
+      updateUser?.({
+        savedConfessions: Array.isArray(data.savedConfessions)
+          ? data.savedConfessions
+          : [],
+      });
+
+      window.cwToast?.(data.message || "Pressed Leaves updated.", "success");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Could not update your Pressed Leaves.", "error") ||
+        alert("Could not update your Pressed Leaves.");
+    }
+  };
+
+  const sendComfortCard = async (text) => {
+    if (!token) {
+      window.cwToast?.("You must be logged in to send comfort cards.", "warning") ||
+        alert("You must be logged in to send comfort cards.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/${id}/comfort-cards`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        window.cwToast?.(
+          data.message || "Could not send that comfort card.",
+          "error"
+        ) || alert(data.message || "Could not send that comfort card.");
+        return;
+      }
+
+      setConfession((prev) => ({
+        ...prev,
+        comfortCards: data.comfortCards || [],
+      }));
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Could not send that comfort card.", "error") ||
+        alert("Could not send that comfort card.");
+    }
+  };
+
+  const votePoll = async (optionIndex) => {
+    if (!token) {
+      window.cwToast?.("You must be logged in to vote on polls.", "warning") ||
+        alert("You must be logged in to vote on polls.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/${id}/poll-vote`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ optionIndex }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not record your vote.", "error") ||
+          alert(data.message || "Could not record your vote.");
+        return;
+      }
+
+      setConfession((prev) => ({
+        ...prev,
+        poll: data.poll,
+      }));
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Could not record your vote.", "error") ||
+        alert("Could not record your vote.");
+    }
+  };
+
   if (!confession) {
     return (
       <div
@@ -661,11 +794,15 @@ const activeCommentPinPosition = isPhoneLayout
             ← back
           </Link>
 
+          <div style={{ marginBottom: "16px" }}>
+            <ForestEventBanner />
+          </div>
+
           <div
             style={cardStyle}
             className={authorPostThemeClass || undefined}
           >
-            <PostThemeFxLayers themeId={authorEquipped.postTheme} />
+            <PostThemeFxLayers themeId={confessionThemeId} />
             <div style={styles.avatarRow}>
               <Link
                 to={confession.userId ? `/user/${confession.userId._id}` : "#"}
@@ -678,7 +815,8 @@ const activeCommentPinPosition = isPhoneLayout
                 <FramedAvatar
                   src={confession.userId?.profilePicture}
                   username={confession.userId?.username || "?"}
-                  frameId={confession.userId?.equippedCosmetics?.frame}
+                  frameId={authorEquipped.frame}
+                  effectId={authorEquipped.visualEffect}
                   size={38}
                   placeholder="🌿"
                 />
@@ -709,6 +847,7 @@ const activeCommentPinPosition = isPhoneLayout
   </Link>
 
   <DisplayTitlePill titleId={authorEquipped.title} />
+  {moodStyle && <span style={moodStyle}>{confession.mood}</span>}
 </div>
             </div>
 
@@ -736,6 +875,80 @@ const activeCommentPinPosition = isPhoneLayout
               />
             )}
 
+            {confession.poll?.question &&
+              Array.isArray(confession.poll.options) && (
+                <div
+                  style={{
+                    marginTop: "14px",
+                    padding: "14px",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(180, 210, 255, 0.18)",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: theme.section,
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Anonymous Poll
+                  </div>
+
+                  <p
+                    style={{
+                      margin: "0 0 10px",
+                      color: theme.text,
+                      fontSize: "14px",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {confession.poll.question}
+                  </p>
+
+                  <div style={{ display: "grid", gap: "7px" }}>
+                    {confession.poll.options.map((option, index) => (
+                      <button
+                        key={`${option.text}-${index}`}
+                        type="button"
+                        onClick={() => votePoll(index)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "10px",
+                          padding: "9px 12px",
+                          borderRadius: "12px",
+                          border: `1px solid ${theme.reactionBorder}`,
+                          background: "rgba(255,255,255,0.05)",
+                          color: theme.text,
+                          cursor: "pointer",
+                          fontFamily: "Georgia, serif",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <span>{option.text}</span>
+                        <strong>{option.votes || 0}</strong>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      fontSize: "10px",
+                      color: theme.muted,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    {pollVotes} vote{pollVotes !== 1 ? "s" : ""}
+                  </div>
+                </div>
+              )}
+
             <div
               style={{
                 fontSize: "11px",
@@ -745,6 +958,37 @@ const activeCommentPinPosition = isPhoneLayout
               }}
             >
               🌱 {new Date(confession.createdAt).toLocaleString()}
+            </div>
+
+            <div
+              style={{
+                marginTop: "10px",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                type="button"
+                onClick={togglePressedLeaf}
+                style={{
+                  borderRadius: "999px",
+                  border: `1px solid ${
+                    isSaved
+                      ? "rgba(240, 210, 135, 0.4)"
+                      : "rgba(220, 192, 120, 0.22)"
+                  }`,
+                  background: isSaved
+                    ? "rgba(220, 192, 120, 0.16)"
+                    : "rgba(220, 192, 120, 0.08)",
+                  color: isSaved ? "#ffe6a7" : "#e7d59a",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  fontFamily: "Georgia, serif",
+                  fontSize: "11px",
+                }}
+              >
+                {isSaved ? "🍂 saved to Pressed Leaves" : "🍂 save to Pressed Leaves"}
+              </button>
             </div>
 
             <ReactionBar
@@ -789,6 +1033,79 @@ const activeCommentPinPosition = isPhoneLayout
                 }));
               }}
             />
+
+            <div
+              style={{
+                marginTop: "16px",
+                paddingTop: "14px",
+                borderTop: `1px solid ${theme.reactionBorder}`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "11px",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: theme.section,
+                  marginBottom: "9px",
+                }}
+              >
+                Comfort Cards
+              </div>
+
+              {comfortCards.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "7px",
+                    marginBottom: "10px",
+                  }}
+                >
+                  {comfortCards.map((card) => (
+                    <span
+                      key={card.text}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 10px",
+                        borderRadius: "999px",
+                        border: `1px solid ${theme.reactionBorder}`,
+                        background: "rgba(255,255,255,0.05)",
+                        color: theme.text,
+                        fontSize: "11px",
+                      }}
+                    >
+                      <span>{card.text}</span>
+                      <strong>{card.count}</strong>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {COMFORT_CARD_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => sendComfortCard(option)}
+                    style={{
+                      padding: "7px 11px",
+                      borderRadius: "999px",
+                      border: `1px solid ${theme.reactionBorder}`,
+                      background: "rgba(255,255,255,0.04)",
+                      color: theme.text,
+                      cursor: "pointer",
+                      fontFamily: "Georgia, serif",
+                      fontSize: "11px",
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div
@@ -812,15 +1129,11 @@ const activeCommentPinPosition = isPhoneLayout
   const isTargetComment =
     targetCommentId && c._id?.toString() === targetCommentId;
 
-  const commentEquipped = c.userId?.equippedCosmetics || {};
-  const commentPostThemeStyle = getPostThemeStyle(
-    commentEquipped.postTheme,
-    realm
-  );
-  const commentPostThemeClass = getCosmeticAnimationClass(
-    commentEquipped.postTheme
-  );
-  const commentHasTheme = Boolean(commentEquipped.postTheme);
+  const commentEquipped = getDisplayCosmetics(c.userId);
+  const commentThemeId = getConfessionThemeId(c, commentEquipped, c.userId);
+  const commentPostThemeStyle = getPostThemeStyle(commentThemeId, realm);
+  const commentPostThemeClass = getCosmeticAnimationClass(commentThemeId);
+  const commentHasTheme = Boolean(commentThemeId);
 
   const commentTextColor = commentHasTheme
     ? "rgba(240,255,235,0.94)"
@@ -845,7 +1158,7 @@ const activeCommentPinPosition = isPhoneLayout
                     transition: "all 0.35s ease",
                   }}
                 >
-                  <PostThemeFxLayers themeId={commentEquipped.postTheme} />
+                  <PostThemeFxLayers themeId={commentThemeId} />
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <Link
                       to={c.userId ? `/user/${c.userId._id}` : "#"}
@@ -860,7 +1173,8 @@ const activeCommentPinPosition = isPhoneLayout
                         src={c.userId?.profilePicture}
                         username={c.userId?.username || "?"}
                         size={30}
-                        frameId={c.userId?.equippedCosmetics?.frame}
+                        frameId={commentEquipped.frame}
+                        effectId={commentEquipped.visualEffect}
                         placeholder="🌿"
                       />
                     </Link>

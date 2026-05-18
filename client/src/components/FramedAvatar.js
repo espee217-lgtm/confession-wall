@@ -1,4 +1,5 @@
 import React from "react";
+import { CosmeticFxLayers } from "./CosmeticFx";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
 
 function normalizeFrameId(frameId) {
@@ -76,13 +77,17 @@ export default function FramedAvatar({
   src,
   username = "User",
   frameId = "",
+  effectId = "",
   size = 42,
   placeholder,
 }) {
   const normalized = normalizeFrameId(frameId);
   const hasFrame = Boolean(normalized);
-  const animClass = getCosmeticAnimationClass(normalized);
-  const frameStyle = animClass
+  const frameAnimClass = getCosmeticAnimationClass(normalized);
+  const effectAnimClass = getCosmeticAnimationClass(effectId);
+  const wrapperClassName =
+    [frameAnimClass, effectAnimClass].filter(Boolean).join(" ") || undefined;
+  const frameStyle = frameAnimClass
     ? {
         padding: "4px",
         background: "transparent",
@@ -115,7 +120,7 @@ export default function FramedAvatar({
   return (
     <div
       title={normalized || ""}
-      className={animClass || undefined}
+      className={["cw-framed-avatar", wrapperClassName].filter(Boolean).join(" ")}
       style={{
         width: size,
         height: size,
@@ -133,12 +138,15 @@ export default function FramedAvatar({
         ...frameStyle,
       }}
     >
+      <CosmeticFxLayers cosmeticId={effectId} />
       {frameFx}
       {src ? (
         <img
           src={src}
           alt={username}
           style={{
+            position: "relative",
+            zIndex: 2,
             width: "100%",
             height: "100%",
             borderRadius: "50%",
@@ -153,6 +161,8 @@ export default function FramedAvatar({
       ) : (
         <div
           style={{
+            position: "relative",
+            zIndex: 2,
             width: "100%",
             height: "100%",
             borderRadius: "50%",

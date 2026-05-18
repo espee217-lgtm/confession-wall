@@ -29,15 +29,18 @@ import BuddingLand from "./pages/BuddingLand";
 import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
 import * as ShopModule from "./pages/Shop";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
+import WeeklyEventsPage from "./pages/WeeklyEventsPage";
 
 import { useAuth } from "./context/AuthContext";
 import { getCosmeticAnimationClass, getCosmeticIcon } from "./utils/cosmetics";
+import { getDisplayCosmetics } from "./utils/engagement";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
@@ -479,6 +482,8 @@ function Navbar() {
 
   if (HIDE_NAVBAR_ROUTES.includes(location.pathname)) return null;
 
+  const displayCosmetics = getDisplayCosmetics(user);
+
   const navLinkStyle = (path, activeColor) => ({
     fontSize: "13px",
     fontFamily: "'Cinzel', Georgia, serif",
@@ -635,12 +640,13 @@ function Navbar() {
               onClick={() => navigate("/settings")}
               className={[
                 "nav-profile-wrap",
-                `nav-frame-${user.equippedCosmetics?.frame || "none"}`,
-                getCosmeticAnimationClass(user.equippedCosmetics?.frame),
+                `nav-frame-${displayCosmetics?.frame || "none"}`,
+                getCosmeticAnimationClass(displayCosmetics?.frame),
+                getCosmeticAnimationClass(displayCosmetics?.visualEffect),
               ]
                 .filter(Boolean)
                 .join(" ")}
-              title={user.equippedCosmetics?.title ? `Equipped title: ${user.equippedCosmetics.title}` : "Settings"}
+              title={displayCosmetics?.title ? `Equipped title: ${displayCosmetics.title}` : "Settings"}
             >
               {user.profilePicture ? (
                 <img
@@ -654,12 +660,12 @@ function Navbar() {
                 </div>
               )}
 
-              {user.equippedCosmetics?.badge && (
+              {displayCosmetics?.badge && (
                 <span
                   className={[
                     "nav-profile-badge",
-                    `nav-badge-${user.equippedCosmetics.badge}`,
-                    getCosmeticAnimationClass(user.equippedCosmetics.badge),
+                    `nav-badge-${displayCosmetics.badge}`,
+                    getCosmeticAnimationClass(displayCosmetics.badge),
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -752,6 +758,8 @@ function AppContent() {
         <Route path="/guidelines" element={<CommunityGuidelines />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/pressed-leaves" element={<PressedLeaves />} />
+        <Route path="/weekly-events" element={<WeeklyEventsPage />} />
         <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
         <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
         <Route path="/reena-apology" element={<ReenaApologyPage />} />

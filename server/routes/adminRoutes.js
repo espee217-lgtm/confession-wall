@@ -9,6 +9,11 @@ const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
 const AdminLog = require("../models/AdminLog");
 const { awardSeeds, debitSeeds } = require("../utils/seedRewards");
+const {
+  ensureWeeklyEventMaintenance,
+  getWeeklyEventStatus,
+  finalizeCurrentWeeklyResults,
+} = require("../utils/weeklyForestEvents");
 
 
 const createNotification = async ({ userId, type, message, link }) => {
@@ -111,6 +116,35 @@ router.get("/logs", adminProtect, async (req, res) => {
   } catch (err) {
     console.error("Fetch admin logs error:", err);
     res.status(500).json({ message: "Could not fetch logs" });
+  }
+});
+
+// GET /api/admin/weekly-event/status
+router.get("/weekly-event/status", adminProtect, async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+    const status = await getWeeklyEventStatus();
+    res.json(status);
+  } catch (err) {
+    console.error("Admin weekly event status error:", err);
+    res.status(500).json({ message: "Could not load weekly event status." });
+  }
+});
+
+// POST /api/admin/weekly-event/finalize-current
+router.post("/weekly-event/finalize-current", adminProtect, async (req, res) => {
+  try {
+    const status = await finalizeCurrentWeeklyResults();
+    res.json({
+      message:
+        "Weekly event maintenance ran and any pending automated rewards were applied.",
+      status,
+    });
+  } catch (err) {
+    console.error("Finalize weekly event error:", err);
+    res.status(500).json({
+      message: "Could not finalize weekly event results right now.",
+    });
   }
 });
 

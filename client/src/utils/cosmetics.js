@@ -135,6 +135,42 @@ export const COSMETIC_META = {
     type: "postTheme",
     animationClass: "cw-cosmetic-post-starbound",
   },
+  "frame-storm-eye-rogue": {
+    icon: "\u26A1",
+    name: "Storm-Eye Rogue Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-storm-eye-rogue",
+  },
+  "post-theme-moonlit-vengeance": {
+    icon: "\uD83C\uDF19",
+    name: "Moonlit Vengeance Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-moonlit-vengeance",
+  },
+  "visual-effect-cursed-violet-aura": {
+    icon: "\uD83D\uDD2E",
+    name: "Cursed Violet Aura",
+    type: "visualEffect",
+    animationClass: "cw-cosmetic-visual-effect-cursed-violet-aura",
+  },
+  "badge-lone-raven": {
+    icon: "\uD83D\uDC26\u200D\u2B1B",
+    name: "Lone Raven Badge",
+    type: "badge",
+    animationClass: "cw-cosmetic-badge-lone-raven",
+  },
+  "frame-ashen-horns": {
+    icon: "\uD83D\uDD25",
+    name: "Ashen Horns Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-ashen-horns",
+  },
+  "post-theme-cinder-throne": {
+    icon: "\uD83D\uDD25",
+    name: "Cinder Throne Card",
+    type: "postTheme",
+    animationClass: "cw-cosmetic-post-cinder-throne",
+  },
 };
 
 /** Shared CSS animation class for shop previews and equipped cosmetics */
@@ -230,6 +266,30 @@ export function getPostThemeStyle(postThemeId, realm = "budding") {
       border: "1px solid rgba(100, 90, 200, 0.48)",
       boxShadow:
         "0 0 26px rgba(70, 60, 180, 0.28), inset 0 1px 0 rgba(180,190,255,0.06)",
+      position: "relative",
+      overflow: "hidden",
+    };
+  }
+
+  if (postThemeId === "post-theme-moonlit-vengeance") {
+    return {
+      background:
+        "linear-gradient(145deg, rgba(4, 6, 18, 0.97), rgba(9, 8, 24, 0.96))",
+      border: "1px solid rgba(196, 200, 215, 0.48)",
+      boxShadow:
+        "0 0 28px rgba(104, 86, 188, 0.2), inset 0 1px 0 rgba(230,235,255,0.06)",
+      position: "relative",
+      overflow: "hidden",
+    };
+  }
+
+  if (postThemeId === "post-theme-cinder-throne") {
+    return {
+      background:
+        "linear-gradient(145deg, rgba(14, 6, 7, 0.97), rgba(32, 10, 10, 0.95))",
+      border: "1px solid rgba(214, 84, 66, 0.52)",
+      boxShadow:
+        "0 0 30px rgba(174, 56, 42, 0.24), inset 0 1px 0 rgba(255, 150, 120, 0.06)",
       position: "relative",
       overflow: "hidden",
     };

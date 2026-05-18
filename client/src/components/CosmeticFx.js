@@ -4,7 +4,7 @@ import {
   getCosmeticIcon,
 } from "../utils/cosmetics";
 
-/** Particle / overlay layers for animated cosmetics (badge, frame, post theme). */
+/** Particle / overlay layers for animated cosmetics (badge, frame, post theme, profile effect). */
 export function CosmeticFxLayers({ cosmeticId }) {
   if (!cosmeticId) return null;
 
@@ -61,6 +61,26 @@ export function CosmeticFxLayers({ cosmeticId }) {
     );
   }
 
+  if (cosmeticId === "frame-storm-eye-rogue") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <span className="cw-fx-storm-core-glow" />
+        <span className="cw-fx-storm-arc arc-a" />
+        <span className="cw-fx-storm-arc arc-b" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-ashen-horns") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <span className="cw-fx-ashen-horn horn-left" />
+        <span className="cw-fx-ashen-horn horn-right" />
+        <span className="cw-fx-ashen-ember-ring" />
+      </div>
+    );
+  }
+
   if (cosmeticId === "post-theme-dewdrop-card") {
     return (
       <div className="cw-cosmetic-fx-layer" aria-hidden="true">
@@ -110,6 +130,38 @@ export function CosmeticFxLayers({ cosmeticId }) {
             }}
           />
         ))}
+      </div>
+    );
+  }
+
+  if (cosmeticId === "post-theme-moonlit-vengeance") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <span className="cw-fx-crescent-moon" />
+        <span className="cw-fx-moon-fog fog-a" />
+        <span className="cw-fx-moon-fog fog-b" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "post-theme-cinder-throne") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <span className="cw-fx-cinder-smoke smoke-a" />
+        <span className="cw-fx-cinder-smoke smoke-b" />
+        <span className="cw-fx-cinder-glow" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "visual-effect-cursed-violet-aura") {
+    return (
+      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
+        <span className="cw-fx-violet-aura-core" />
+        <span className="cw-fx-violet-aura-haze haze-a" />
+        <span className="cw-fx-violet-aura-haze haze-b" />
+        <span className="cw-fx-violet-aura-spark spark-a" />
+        <span className="cw-fx-violet-aura-spark spark-b" />
       </div>
     );
   }

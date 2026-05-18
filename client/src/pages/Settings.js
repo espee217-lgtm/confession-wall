@@ -443,6 +443,7 @@ export default function Settings() {
   const frameItem = getCosmeticMeta(equipped.frame);
   const titleItem = getCosmeticMeta(equipped.title);
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
+  const visualEffectItem = getCosmeticMeta(equipped.visualEffect);
   const previewThemeStyle = getPostThemeStyle(equipped.postTheme, "budding");
 
   const ownedCosmeticIds = new Set(
@@ -458,6 +459,7 @@ export default function Settings() {
     frame: ownedInventoryItems.filter((item) => item.type === "frame"),
     title: ownedInventoryItems.filter((item) => item.type === "title"),
     postTheme: ownedInventoryItems.filter((item) => item.type === "postTheme"),
+    visualEffect: ownedInventoryItems.filter((item) => item.type === "visualEffect"),
   };
 
   const handleTheme = (t) => {
@@ -894,6 +896,7 @@ export default function Settings() {
                   src={preview || user?.profilePicture}
                   username={username || user?.username}
                   frameId={equipped.frame}
+                  effectId={equipped.visualEffect}
                   size={92}
                   placeholder={(username || user?.username || "U")
                     ?.charAt(0)
@@ -981,6 +984,20 @@ export default function Settings() {
               >
                 view public profile
               </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/pressed-leaves")}
+                style={{
+                  ...btnGreen,
+                  marginTop: "8px",
+                  background: "rgba(214, 186, 120, 0.14)",
+                  border: `1px solid ${palette.border}`,
+                  color: palette.text,
+                }}
+              >
+                view pressed leaves
+              </button>
             </form>
           </Section>
 
@@ -1001,6 +1018,11 @@ export default function Settings() {
                 item={postThemeItem}
                 palette={palette}
               />
+              <EquippedRow
+                label="Profile Effect"
+                item={visualEffectItem}
+                palette={palette}
+              />
             </div>
 
             <div
@@ -1014,6 +1036,7 @@ export default function Settings() {
                   src={preview || user?.profilePicture}
                   username={username || user?.username}
                   frameId={equipped.frame}
+                  effectId={equipped.visualEffect}
                   size={38}
                   placeholder={(username || user?.username || "U")
                     ?.charAt(0)
@@ -1126,6 +1149,7 @@ export default function Settings() {
                   ["frame", "Profile Frames"],
                   ["title", "Display Titles"],
                   ["postTheme", "Post Themes"],
+                  ["visualEffect", "Profile Effects"],
                 ].map(([type, label]) => {
                   const list = ownedInventoryByType[type];
 

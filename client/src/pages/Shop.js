@@ -21,7 +21,7 @@ const TYPE_LABELS = {
   visualEffect: "Visual Effect",
 };
 
-const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
+const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme", "visualEffect"];
 
 function ShopIconSvg() {
   return (
@@ -46,21 +46,40 @@ function ShopIconSvg() {
 
 
 function ShopPreview({ item }) {
-  const animClass =
-    item.previewClass || getCosmeticAnimationClass(item.id) || "";
+  const previewClass = item.previewClass || "";
+  const animClass = getCosmeticAnimationClass(item.id) || "";
 
   if (item.type === "frame") {
+    const containerClass = previewClass.startsWith("cw-cosmetic-preview-frame-")
+      ? previewClass
+      : "";
+
     return (
-      <div className={`shop-preview-frame ${animClass}`}>
-        <div className={`shop-preview-avatar ${animClass}`}>A</div>
-        <CosmeticFxLayers cosmeticId={item.id} />
+      <div className={`shop-preview-frame ${containerClass}`.trim()}>
+        <div className={`shop-preview-avatar ${animClass}`.trim()}>
+          <CosmeticFxLayers cosmeticId={item.id} />
+          <span className="shop-preview-avatar-glyph">A</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (item.type === "visualEffect") {
+    return (
+      <div className="shop-preview-frame shop-preview-visual-effect">
+        <div className={`shop-preview-avatar ${animClass}`.trim()}>
+          <CosmeticFxLayers cosmeticId={item.id} />
+          <span className="shop-preview-avatar-glyph">A</span>
+        </div>
       </div>
     );
   }
 
   if (item.type === "postTheme") {
+    const postClass = previewClass || animClass;
+
     return (
-      <div className={`shop-preview-post ${animClass}`}>
+      <div className={`shop-preview-post ${postClass}`.trim()}>
         <CosmeticFxLayers cosmeticId={item.id} />
         <div className="shop-preview-post-line wide" />
         <div className="shop-preview-post-line" />
@@ -76,13 +95,15 @@ function ShopPreview({ item }) {
     return (
       <div className="shop-preview-title">
         <span className="shop-preview-name">Anonymous</span>
-        <span className={`shop-preview-title-text ${animClass}`}>{item.name}</span>
+        <span className={`shop-preview-title-text ${previewClass || animClass}`.trim()}>
+          {item.name}
+        </span>
       </div>
     );
   }
 
   return (
-    <div className={`shop-preview-badge ${animClass}`}>
+    <div className={`shop-preview-badge ${previewClass || animClass}`.trim()}>
       <div className="cw-cosmetic-stage">
         <CosmeticFxLayers cosmeticId={item.id} />
         <span className="cw-cosmetic-icon">{item.icon}</span>
@@ -302,9 +323,9 @@ function Shop() {
           <p className="shop-kicker">Confession Wall Cosmetics</p>
           <h1>Forest Shop</h1>
           <p className="shop-subtitle">
-            Spend Seeds on profile badges, frames, display titles, and post
-            themes. Phase 1 keeps everything cosmetic only, so nobody gets
-            unfair power.
+            Spend Seeds on profile badges, frames, display titles, post
+            themes, and profile effects. Phase 1 keeps everything cosmetic
+            only, so nobody gets unfair power.
           </p>
         </div>
 
@@ -318,13 +339,13 @@ function Shop() {
         <div>
           <h2>Equipped right now</h2>
           <p>
-            Your active cosmetics. Frames, titles, badges, and post themes now
-            display across your profile and posts.
+            Your active cosmetics. Frames, profile effects, titles, badges,
+            and post themes now display across your profile and posts.
           </p>
         </div>
 
         <div className="shop-equipped-grid">
-          {["badge", "frame", "title", "postTheme"].map((type) => {
+          {["badge", "frame", "title", "postTheme", "visualEffect"].map((type) => {
             const activeId = equipped[type];
             const activeItem = items.find((item) => item.id === activeId);
 

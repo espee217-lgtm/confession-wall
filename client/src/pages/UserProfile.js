@@ -5,10 +5,15 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
 import {
-  getDisplayTitle,
   getCosmeticMeta,
   getPostThemeStyle,
 } from "../utils/cosmetics";
+import {
+  getConfessionThemeId,
+  getDisplayCosmetics,
+  getMoodChipStyle,
+  getPollTotalVotes,
+} from "../utils/engagement";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -90,13 +95,13 @@ export default function UserProfile() {
     );
   }
 
-  const equipped = profile.equippedCosmetics || {};
-  const displayTitle = getDisplayTitle(equipped.title);
+  const equipped = getDisplayCosmetics(profile);
 
   const frameItem = getCosmeticMeta(equipped.frame);
   const titleItem = getCosmeticMeta(equipped.title);
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
   const badgeItem = getCosmeticMeta(equipped.badge);
+  const visualEffectItem = getCosmeticMeta(equipped.visualEffect);
 
   return (
     <div className="cw-user-profile-page" style={pageStyle}>
@@ -118,6 +123,7 @@ export default function UserProfile() {
               src={profile.profilePicture}
               username={profile.username}
               frameId={equipped.frame}
+              effectId={equipped.visualEffect}
               size={124}
               placeholder={profile.username?.[0]?.toUpperCase() || "?"}
             />
@@ -187,6 +193,7 @@ export default function UserProfile() {
             <CosmeticChip item={frameItem} fallback="Frame" />
             <CosmeticChip item={titleItem} fallback="Title" />
             <CosmeticChip item={postThemeItem} fallback="Post Theme" />
+            <CosmeticChip item={visualEffectItem} fallback="Profile Effect" />
           </div>
         </section>
 
@@ -203,7 +210,12 @@ export default function UserProfile() {
           </div>
         ) : (
           posts.map((p) => {
-            const themeStyle = getPostThemeStyle(equipped.postTheme, "grove");
+            const themeStyle = getPostThemeStyle(
+              getConfessionThemeId(p, equipped, p.userId || profile),
+              "grove"
+            );
+            const moodStyle = getMoodChipStyle(p.mood);
+            const pollVotes = getPollTotalVotes(p.poll);
 
             return (
               <Link
@@ -225,6 +237,29 @@ export default function UserProfile() {
                     e.currentTarget.style.filter = "brightness(1)";
                   }}
                 >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "10px",
+                      flexWrap: "wrap",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {moodStyle ? (
+                      <span style={moodStyle}>{p.mood}</span>
+                    ) : (
+                      <span style={postMetaPillStyle}>Whisper</span>
+                    )}
+
+                    {p.poll?.question ? (
+                      <span style={postMetaPillStyle}>
+                        Poll · {pollVotes} vote{pollVotes !== 1 ? "s" : ""}
+                      </span>
+                    ) : null}
+                  </div>
+
                   <p style={postTextStyle}>{p.message}</p>
 
                   {p.image && <img src={p.image} alt="" style={postImageStyle} />}
@@ -506,6 +541,19 @@ const postFooterStyle = {
   color: "rgba(170,220,160,0.55)",
   fontSize: "0.78rem",
   letterSpacing: "0.05em",
+};
+
+const postMetaPillStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "4px 10px",
+  borderRadius: "999px",
+  border: "1px solid rgba(168, 232, 160, 0.22)",
+  background: "rgba(255,255,255,0.05)",
+  color: "rgba(224,255,216,0.82)",
+  fontSize: "11px",
+  letterSpacing: "0.04em",
 };
 
 const emptyPostsStyle = {
