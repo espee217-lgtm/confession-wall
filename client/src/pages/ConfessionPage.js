@@ -794,8 +794,8 @@ const activeCommentPinPosition = isPhoneLayout
             ← back
           </Link>
 
-          <div style={{ marginBottom: "16px" }}>
-            <ForestEventBanner />
+          <div style={{ marginBottom: "16px", maxWidth: "360px" }}>
+            <ForestEventBanner compact />
           </div>
 
           <div

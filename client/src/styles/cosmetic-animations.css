@@ -1067,30 +1067,51 @@
 
 .cw-framed-avatar.cw-cosmetic-frame-visor-lift-racer,
 .shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
+  --cw-visor-ring-padding: 3px;
+  --cw-visor-glow-inset: -8%;
+  --cw-visor-shell-inset: -14%;
+  --cw-visor-shell-shift-y: 0%;
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
   background: transparent !important;
   box-shadow: none !important;
+  overflow: visible;
 }
 
-.nav-profile-wrap.cw-cosmetic-frame-visor-lift-racer {
-  position: relative;
-  border-radius: 50%;
-  padding: 3px !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  aspect-ratio: 1 / 1;
+.cw-framed-avatar--nav.cw-cosmetic-frame-visor-lift-racer {
+  --cw-visor-ring-padding: 2px;
+  --cw-visor-glow-inset: -5%;
+  --cw-visor-shell-inset: -10%;
+}
+
+.cw-framed-avatar--post.cw-cosmetic-frame-visor-lift-racer {
+  --cw-visor-ring-padding: 2.5px;
+  --cw-visor-glow-inset: -7%;
+  --cw-visor-shell-inset: -16%;
+}
+
+.cw-framed-avatar--comment.cw-cosmetic-frame-visor-lift-racer {
+  --cw-visor-ring-padding: 2px;
+  --cw-visor-glow-inset: -6%;
+  --cw-visor-shell-inset: -15%;
+}
+
+.cw-framed-avatar--profile.cw-cosmetic-frame-visor-lift-racer,
+.cw-framed-avatar--shop.cw-cosmetic-frame-visor-lift-racer,
+.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
+  --cw-visor-ring-padding: 3px;
+  --cw-visor-glow-inset: -9%;
+  --cw-visor-shell-inset: -13%;
 }
 
 .cw-cosmetic-frame-visor-lift-racer::before,
-.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer::before,
-.nav-profile-wrap.cw-cosmetic-frame-visor-lift-racer::before {
+.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  padding: 3px;
+  padding: var(--cw-visor-ring-padding, 3px);
   background: conic-gradient(
     from 0deg,
     rgba(228, 236, 255, 0.96),
@@ -1108,11 +1129,10 @@
 }
 
 .cw-cosmetic-frame-visor-lift-racer::after,
-.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer::after,
-.nav-profile-wrap.cw-cosmetic-frame-visor-lift-racer::after {
+.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer::after {
   content: "";
   position: absolute;
-  inset: -8%;
+  inset: var(--cw-visor-glow-inset, -8%);
   border-radius: 50%;
   background:
     radial-gradient(circle at 34% 30%, rgba(235, 242, 255, 0.18), transparent 22%),
@@ -1124,37 +1144,19 @@
 }
 
 .cw-cosmetic-frame-visor-lift-racer .cw-cosmetic-fx-layer,
-.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer .cw-cosmetic-fx-layer,
-.nav-profile-wrap.cw-cosmetic-frame-visor-lift-racer .cw-cosmetic-fx-layer {
+.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer .cw-cosmetic-fx-layer {
   z-index: 3;
   overflow: visible;
 }
 
 .cw-visor-lift-sprite-shell {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 168%;
-  height: 168%;
-  transform: translate(-50%, -50%);
+  inset: var(--cw-visor-shell-inset, -14%);
+  transform: translateY(var(--cw-visor-shell-shift-y, 0%));
   pointer-events: none;
   overflow: visible;
+  border-radius: 50%;
   background: transparent;
-}
-
-.cw-framed-avatar.cw-cosmetic-frame-visor-lift-racer .cw-visor-lift-sprite-shell {
-  width: 176%;
-  height: 176%;
-}
-
-.shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer .cw-visor-lift-sprite-shell {
-  width: 172%;
-  height: 172%;
-}
-
-.nav-profile-wrap.cw-cosmetic-frame-visor-lift-racer .cw-visor-lift-sprite-shell {
-  width: 178%;
-  height: 178%;
 }
 
 .cw-visor-lift-sprite {

@@ -85,15 +85,34 @@ export default function FramedAvatar({
   effectId = "",
   size = 42,
   placeholder,
+  context = "auto",
+  className = "",
 }) {
   const normalized = normalizeFrameId(frameId);
   const hasFrame = Boolean(normalized);
   const isAnimatedSpriteFrame = normalized === "frame-victory-visor";
-  const shouldRenderAnimatedFrame = isAnimatedSpriteFrame && size >= 56;
+  const resolvedContext =
+    context && context !== "auto"
+      ? context
+      : size >= 80
+      ? "profile"
+      : size >= 56
+      ? "shop"
+      : size <= 32
+      ? "comment"
+      : "post";
+  const shouldRenderAnimatedFrame = isAnimatedSpriteFrame;
   const frameAnimClass = getCosmeticAnimationClass(normalized);
   const effectAnimClass = getCosmeticAnimationClass(effectId);
   const wrapperClassName =
-    [frameAnimClass, effectAnimClass].filter(Boolean).join(" ") || undefined;
+    [
+      `cw-framed-avatar--${resolvedContext}`,
+      className,
+      frameAnimClass,
+      effectAnimClass,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
   const frameStyle = frameAnimClass
     ? {
         padding: "4px",

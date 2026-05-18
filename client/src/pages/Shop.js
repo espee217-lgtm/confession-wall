@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import "./Shop.css";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
 import { CosmeticFxLayers } from "../components/CosmeticFx";
+import FramedAvatar from "../components/FramedAvatar";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -58,10 +59,14 @@ function ShopPreview({ item }) {
 
     return (
       <div className={`shop-preview-frame ${containerClass}`.trim()}>
-        <div className={`shop-preview-avatar ${animClass}`.trim()}>
-          <CosmeticFxLayers cosmeticId={item.id} />
-          <span className="shop-preview-avatar-glyph">A</span>
-        </div>
+        <FramedAvatar
+          username="Anonymous"
+          frameId={item.id}
+          size={62}
+          context="shop"
+          className={`shop-preview-avatar ${animClass}`.trim()}
+          placeholder="A"
+        />
       </div>
     );
   }
@@ -69,10 +74,14 @@ function ShopPreview({ item }) {
   if (item.type === "visualEffect") {
     return (
       <div className="shop-preview-frame shop-preview-visual-effect">
-        <div className={`shop-preview-avatar ${animClass}`.trim()}>
-          <CosmeticFxLayers cosmeticId={item.id} />
-          <span className="shop-preview-avatar-glyph">A</span>
-        </div>
+        <FramedAvatar
+          username="Anonymous"
+          effectId={item.id}
+          size={62}
+          context="shop"
+          className={`shop-preview-avatar ${animClass}`.trim()}
+          placeholder="A"
+        />
       </div>
     );
   }

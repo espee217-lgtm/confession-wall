@@ -1365,17 +1365,20 @@ a.chip {
   flex: 0 0 auto;
   line-height: 0;
   cursor: pointer;
-  padding: 3px;
   border-radius: 50%;
   box-sizing: border-box;
   overflow: visible;
-  background: linear-gradient(135deg, rgba(120,255,180,0.4), rgba(255,220,120,0.18));
-  box-shadow: 0 0 18px rgba(120,255,180,0.35);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  background: transparent;
+  box-shadow: none;
+  transition: transform 0.18s ease;
 }
 
 .nav-profile-wrap:hover {
   transform: translateY(-1px) scale(1.04);
+}
+
+.nav-profile-wrap .cw-framed-avatar {
+  z-index: 2;
 }
 
 .nav-profile-avatar {
@@ -1533,8 +1536,6 @@ a.chip {
   }
 
   .nav-shop-btn,
-  .nav-profile-avatar,
-  .nav-profile-wrap,
   .navbar button[title="Notifications"] {
     width: 38px !important;
     height: 38px !important;
@@ -1542,7 +1543,17 @@ a.chip {
   }
 
   .nav-profile-wrap {
-    padding: 2px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+  }
+
+  .nav-profile-wrap .cw-framed-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
   }
 
   .nav-profile-badge {

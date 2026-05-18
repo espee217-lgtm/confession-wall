@@ -930,7 +930,7 @@ function MobileHomePage({
       </section>
 
       <section style={{ padding: "0 16px 10px" }}>
-        <ForestEventBanner />
+        <ForestEventBanner compact />
       </section>
 
       <section className="mobile-home-realms" aria-label="Realms">
@@ -1720,15 +1720,14 @@ useEffect(() => {
         data-ui="true"
         style={{
           position: "absolute",
-          top: "58px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "min(520px, calc(100vw - 32px))",
-          zIndex: 120,
-          pointerEvents: "auto",
+          top: "18px",
+          left: "18px",
+          width: "min(340px, calc(100vw - 40px))",
+          zIndex: 90,
+          pointerEvents: "none",
         }}
       >
-        <ForestEventBanner />
+        <ForestEventBanner compact />
       </div>
 
       <SpiritNavigation

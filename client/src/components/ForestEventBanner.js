@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import "./ForestEventBanner.css";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -8,6 +9,54 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const API_URL = `${API_BASE}/api/confessions/weekly-event`;
+
+function formatCompactCountdown(ms) {
+  const safeMs = Number(ms) || 0;
+
+  if (safeMs <= 0) {
+    return "Closed";
+  }
+
+  const totalMinutes = Math.max(1, Math.ceil(safeMs / 60000));
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h left` : `${days}d left`;
+  }
+
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m left` : `${hours}h left`;
+  }
+
+  return `${minutes}m left`;
+}
+
+function getCompactStatus(event) {
+  if (!event) {
+    return {
+      timerText: "",
+      badgeText: "",
+    };
+  }
+
+  if (event.phase === "active") {
+    return {
+      timerText: formatCompactCountdown(event.countdownMs),
+      badgeText: "Event live",
+    };
+  }
+
+  const expiresAtMs = event.rewardExpiresAt
+    ? new Date(event.rewardExpiresAt).getTime() - Date.now()
+    : 0;
+
+  return {
+    timerText: expiresAtMs > 0 ? formatCompactCountdown(expiresAtMs) : "Closed",
+    badgeText: "Results active",
+  };
+}
 
 export default function ForestEventBanner({ compact = false, statusData = null }) {
   const [status, setStatus] = useState(statusData);
@@ -37,8 +86,13 @@ export default function ForestEventBanner({ compact = false, statusData = null }
 
     void loadStatus();
 
+    const interval = window.setInterval(() => {
+      void loadStatus();
+    }, 60000);
+
     return () => {
       alive = false;
+      window.clearInterval(interval);
     };
   }, [statusData]);
 
@@ -49,6 +103,43 @@ export default function ForestEventBanner({ compact = false, statusData = null }
   }
 
   const isActive = event.phase === "active";
+
+  if (compact) {
+    const compactStatus = getCompactStatus(event);
+
+    return (
+      <Link
+        to="/weekly-events"
+        className="forest-event-strip"
+        aria-label={`Open weekly event ${event.name}`}
+        style={{
+          "--event-strip-border": event.border,
+          "--event-strip-accent": event.accent,
+          "--event-strip-background": event.background,
+        }}
+      >
+        <span className="forest-event-strip__vines" aria-hidden="true" />
+
+        <span className="forest-event-strip__content">
+          <span className="forest-event-strip__kicker">Weekly Forest Event</span>
+
+          <span className="forest-event-strip__row">
+            <strong className="forest-event-strip__title">{event.name}</strong>
+
+            {compactStatus.badgeText && (
+              <span className="forest-event-strip__badge">
+                {compactStatus.badgeText}
+              </span>
+            )}
+          </span>
+
+          <span className="forest-event-strip__timer">
+            {compactStatus.timerText || event.statusText}
+          </span>
+        </span>
+      </Link>
+    );
+  }
 
   return (
     <div

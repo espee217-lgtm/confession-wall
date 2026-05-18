@@ -40,7 +40,7 @@ import WeeklyEventsPage from "./pages/WeeklyEventsPage";
 
 import { useAuth } from "./context/AuthContext";
 import { getCosmeticAnimationClass, getCosmeticIcon } from "./utils/cosmetics";
-import { CosmeticFxLayers } from "./components/CosmeticFx";
+import FramedAvatar from "./components/FramedAvatar";
 import { getDisplayCosmetics } from "./utils/engagement";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
@@ -484,10 +484,6 @@ function Navbar() {
   if (HIDE_NAVBAR_ROUTES.includes(location.pathname)) return null;
 
   const displayCosmetics = getDisplayCosmetics(user);
-  const navFrameId = displayCosmetics?.frame || "";
-  const showNavAnimatedFrame =
-    navFrameId === "frame-victory-visor" ||
-    navFrameId === "frame-visor-lift-racer";
 
   const navLinkStyle = (path, activeColor) => ({
     fontSize: "13px",
@@ -643,30 +639,18 @@ function Navbar() {
 
             <div
               onClick={() => navigate("/settings")}
-              className={[
-                "nav-profile-wrap",
-                `nav-frame-${displayCosmetics?.frame || "none"}`,
-                getCosmeticAnimationClass(displayCosmetics?.frame),
-                getCosmeticAnimationClass(displayCosmetics?.visualEffect),
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className="nav-profile-wrap"
               title={displayCosmetics?.title ? `Equipped title: ${displayCosmetics.title}` : "Settings"}
             >
-              {showNavAnimatedFrame && (
-                <CosmeticFxLayers cosmeticId={navFrameId} />
-              )}
-              {user.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt="profile"
-                  className="nav-profile-avatar"
-                />
-              ) : (
-                <div className="nav-profile-avatar nav-profile-initial">
-                  {user.username[0].toUpperCase()}
-                </div>
-              )}
+              <FramedAvatar
+                src={user.profilePicture}
+                username={user.username}
+                frameId={displayCosmetics?.frame}
+                effectId={displayCosmetics?.visualEffect}
+                size={42}
+                context="nav"
+                placeholder={user.username?.[0]?.toUpperCase?.() || "U"}
+              />
 
               {displayCosmetics?.badge && (
                 <span
