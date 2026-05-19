@@ -158,6 +158,7 @@ export default function FramedAvatar({
       title={normalized || ""}
       className={["cw-framed-avatar", wrapperClassName].filter(Boolean).join(" ")}
       style={{
+        "--cw-avatar-size": `${size}px`,
         width: size,
         height: size,
         minWidth: size,

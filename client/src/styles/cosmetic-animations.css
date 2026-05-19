@@ -1157,86 +1157,86 @@
 @keyframes cw-racer-visor-sprite {
   0%,
   12.49% {
-    background-position: 0% 0;
+    background-position: 0px 0px;
   }
   12.5%,
   24.99% {
-    background-position: 14.285714% 0;
+    background-position: calc(-1 * var(--cw-visor-frame-size)) 0px;
   }
   25%,
   37.49% {
-    background-position: 28.571428% 0;
+    background-position: calc(-2 * var(--cw-visor-frame-size)) 0px;
   }
   37.5%,
   49.99% {
-    background-position: 42.857142% 0;
+    background-position: calc(-3 * var(--cw-visor-frame-size)) 0px;
   }
   50%,
   62.49% {
-    background-position: 57.142857% 0;
+    background-position: calc(-4 * var(--cw-visor-frame-size)) 0px;
   }
   62.5%,
   74.99% {
-    background-position: 71.428571% 0;
+    background-position: calc(-5 * var(--cw-visor-frame-size)) 0px;
   }
   75%,
   87.49% {
-    background-position: 85.714285% 0;
+    background-position: calc(-6 * var(--cw-visor-frame-size)) 0px;
   }
   87.5%,
   100% {
-    background-position: 100% 0;
+    background-position: calc(-7 * var(--cw-visor-frame-size)) 0px;
   }
 }
 
 @keyframes cw-venom-frame-sprite {
   0%,
   8.32% {
-    background-position: 0% 0%;
+    background-position: 0px 0px;
   }
   8.33%,
   16.65% {
-    background-position: 33.333333% 0%;
+    background-position: calc(-1 * var(--cw-venom-frame-size)) 0px;
   }
   16.66%,
   24.99% {
-    background-position: 66.666667% 0%;
+    background-position: calc(-2 * var(--cw-venom-frame-size)) 0px;
   }
   25%,
   33.32% {
-    background-position: 100% 0%;
+    background-position: calc(-3 * var(--cw-venom-frame-size)) 0px;
   }
   33.33%,
   41.65% {
-    background-position: 0% 50%;
+    background-position: 0px calc(-1 * var(--cw-venom-frame-size));
   }
   41.66%,
   49.99% {
-    background-position: 33.333333% 50%;
+    background-position: calc(-1 * var(--cw-venom-frame-size)) calc(-1 * var(--cw-venom-frame-size));
   }
   50%,
   58.32% {
-    background-position: 66.666667% 50%;
+    background-position: calc(-2 * var(--cw-venom-frame-size)) calc(-1 * var(--cw-venom-frame-size));
   }
   58.33%,
   66.65% {
-    background-position: 100% 50%;
+    background-position: calc(-3 * var(--cw-venom-frame-size)) calc(-1 * var(--cw-venom-frame-size));
   }
   66.66%,
   74.99% {
-    background-position: 0% 100%;
+    background-position: 0px calc(-2 * var(--cw-venom-frame-size));
   }
   75%,
   83.32% {
-    background-position: 33.333333% 100%;
+    background-position: calc(-1 * var(--cw-venom-frame-size)) calc(-2 * var(--cw-venom-frame-size));
   }
   83.33%,
   91.65% {
-    background-position: 66.666667% 100%;
+    background-position: calc(-2 * var(--cw-venom-frame-size)) calc(-2 * var(--cw-venom-frame-size));
   }
   91.66%,
   100% {
-    background-position: 100% 100%;
+    background-position: calc(-3 * var(--cw-venom-frame-size)) calc(-2 * var(--cw-venom-frame-size));
   }
 }
 
@@ -1403,7 +1403,7 @@
 .shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue {
   --cw-venom-ring-padding: 3px;
   --cw-venom-glow-inset: -8%;
-  --cw-venom-shell-size: 126%;
+  --cw-venom-frame-size: calc(var(--cw-avatar-size) * 1.26);
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
@@ -1414,19 +1414,19 @@
 .cw-framed-avatar--nav.cw-cosmetic-frame-storm-eye-rogue {
   --cw-venom-ring-padding: 2px;
   --cw-venom-glow-inset: -4%;
-  --cw-venom-shell-size: 112%;
+  --cw-venom-frame-size: calc(var(--cw-avatar-size) * 1.12);
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-storm-eye-rogue {
   --cw-venom-ring-padding: 2.5px;
   --cw-venom-glow-inset: -7%;
-  --cw-venom-shell-size: 120%;
+  --cw-venom-frame-size: calc(var(--cw-avatar-size) * 1.2);
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-storm-eye-rogue {
   --cw-venom-ring-padding: 2px;
   --cw-venom-glow-inset: -5%;
-  --cw-venom-shell-size: 116%;
+  --cw-venom-frame-size: calc(var(--cw-avatar-size) * 1.16);
 }
 
 .cw-framed-avatar--profile.cw-cosmetic-frame-storm-eye-rogue,
@@ -1434,7 +1434,7 @@
 .shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue {
   --cw-venom-ring-padding: 3px;
   --cw-venom-glow-inset: -9%;
-  --cw-venom-shell-size: 130%;
+  --cw-venom-frame-size: calc(var(--cw-avatar-size) * 1.3);
 }
 
 .cw-cosmetic-frame-storm-eye-rogue::before,
@@ -1484,7 +1484,7 @@
 .shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 3px;
   --cw-visor-glow-inset: -8%;
-  --cw-visor-shell-size: 122%;
+  --cw-visor-frame-size: calc(var(--cw-avatar-size) * 1.22);
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
@@ -1496,19 +1496,19 @@
 .cw-framed-avatar--nav.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
   --cw-visor-glow-inset: -3%;
-  --cw-visor-shell-size: 110%;
+  --cw-visor-frame-size: calc(var(--cw-avatar-size) * 1.1);
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2.5px;
   --cw-visor-glow-inset: -7%;
-  --cw-visor-shell-size: 118%;
+  --cw-visor-frame-size: calc(var(--cw-avatar-size) * 1.18);
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
   --cw-visor-glow-inset: -6%;
-  --cw-visor-shell-size: 114%;
+  --cw-visor-frame-size: calc(var(--cw-avatar-size) * 1.14);
 }
 
 .cw-framed-avatar--profile.cw-cosmetic-frame-visor-lift-racer,
@@ -1516,7 +1516,7 @@
 .shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 3px;
   --cw-visor-glow-inset: -9%;
-  --cw-visor-shell-size: 126%;
+  --cw-visor-frame-size: calc(var(--cw-avatar-size) * 1.26);
 }
 
 .cw-cosmetic-frame-visor-lift-racer::before,
@@ -1565,8 +1565,8 @@
 
 .cw-visor-lift-sprite-shell {
   position: absolute;
-  width: var(--cw-visor-shell-size, 122%);
-  height: var(--cw-visor-shell-size, 122%);
+  width: var(--cw-visor-frame-size, 160px);
+  height: var(--cw-visor-frame-size, 160px);
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -1580,8 +1580,8 @@
 
 .cw-venom-frame-sprite-shell {
   position: absolute;
-  width: var(--cw-venom-shell-size, 126%);
-  height: var(--cw-venom-shell-size, 126%);
+  width: var(--cw-venom-frame-size, 160px);
+  height: var(--cw-venom-frame-size, 160px);
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -1610,9 +1610,9 @@
   z-index: 1;
   background-image: var(--cw-venom-sprite-image, none);
   background-repeat: no-repeat;
-  background-size: 400% 300%;
-  background-position: 0% 0%;
-  animation: cw-venom-frame-sprite 1s linear infinite;
+  background-size: calc(var(--cw-venom-frame-size, 160px) * 4) calc(var(--cw-venom-frame-size, 160px) * 3);
+  background-position: 0px 0px;
+  animation: cw-venom-frame-sprite 1.08s steps(1) infinite;
   will-change: background-position;
 }
 
@@ -1644,9 +1644,9 @@
   overflow: hidden;
   background-image: var(--cw-visor-sprite-image, none);
   background-repeat: no-repeat;
-  background-size: 800% 100%;
-  background-position: 0 0;
-  animation: cw-racer-visor-sprite 2s linear infinite;
+  background-size: calc(var(--cw-visor-frame-size, 160px) * 8) var(--cw-visor-frame-size, 160px);
+  background-position: 0px 0px;
+  animation: cw-racer-visor-sprite 2s steps(1) infinite;
   filter:
     drop-shadow(0 0 12px rgba(114, 170, 255, 0.2))
     drop-shadow(0 0 18px rgba(255, 92, 82, 0.08));
