@@ -1,6 +1,7 @@
 import React from "react";
 import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
 import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
+import venomFrameSprite from "../assets/avatarFrames/venom-frame-spritesheet.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -140,10 +141,13 @@ export function CosmeticFxLayers({ cosmeticId }) {
 
   if (cosmeticId === "frame-storm-eye-rogue") {
     return (
-      <div className="cw-cosmetic-fx-layer" aria-hidden="true">
-        <span className="cw-fx-storm-core-glow" />
-        <span className="cw-fx-storm-arc arc-a" />
-        <span className="cw-fx-storm-arc arc-b" />
+      <div
+        className="cw-cosmetic-fx-layer cw-venom-frame-sprite-shell"
+        aria-hidden="true"
+        style={{ "--cw-venom-sprite-image": `url(${venomFrameSprite})` }}
+      >
+        <span className="cw-venom-frame-fallback-glow" />
+        <span className="cw-venom-frame-sprite" />
       </div>
     );
   }

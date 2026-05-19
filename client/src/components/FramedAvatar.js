@@ -96,7 +96,9 @@ export default function FramedAvatar({
   const isLightningOnlyFrame =
     !normalized && activeEffectId === "visual-effect-cursed-violet-aura";
   const hasFrame = Boolean(normalized || activeEffectId === "visual-effect-cursed-violet-aura");
-  const isAnimatedSpriteFrame = normalized === "frame-victory-visor";
+  const isAnimatedSpriteFrame =
+    normalized === "frame-victory-visor" ||
+    normalized === "frame-storm-eye-rogue";
   const resolvedContext =
     context && context !== "auto"
       ? context
@@ -147,7 +149,7 @@ export default function FramedAvatar({
           />
         ))}
       </div>
-    ) : normalized === "frame-victory-visor" && shouldRenderAnimatedFrame ? (
+    ) : isAnimatedSpriteFrame && shouldRenderAnimatedFrame ? (
       <CosmeticFxLayers cosmeticId={normalized} />
     ) : null;
 

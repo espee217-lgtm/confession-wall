@@ -1189,6 +1189,57 @@
   }
 }
 
+@keyframes cw-venom-frame-sprite {
+  0%,
+  8.32% {
+    background-position: 0% 0%;
+  }
+  8.33%,
+  16.65% {
+    background-position: 33.333333% 0%;
+  }
+  16.66%,
+  24.99% {
+    background-position: 66.666667% 0%;
+  }
+  25%,
+  33.32% {
+    background-position: 100% 0%;
+  }
+  33.33%,
+  41.65% {
+    background-position: 0% 50%;
+  }
+  41.66%,
+  49.99% {
+    background-position: 33.333333% 50%;
+  }
+  50%,
+  58.32% {
+    background-position: 66.666667% 50%;
+  }
+  58.33%,
+  66.65% {
+    background-position: 100% 50%;
+  }
+  66.66%,
+  74.99% {
+    background-position: 0% 100%;
+  }
+  75%,
+  83.32% {
+    background-position: 33.333333% 100%;
+  }
+  83.33%,
+  91.65% {
+    background-position: 66.666667% 100%;
+  }
+  91.66%,
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
 @keyframes cw-victory-shell-breathe {
   0%, 100% {
     filter: drop-shadow(0 0 10px rgba(112, 168, 255, 0.18));
@@ -1350,103 +1401,90 @@
 
 .cw-framed-avatar.cw-cosmetic-frame-storm-eye-rogue,
 .shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue {
+  --cw-venom-ring-padding: 3px;
+  --cw-venom-glow-inset: -8%;
+  --cw-venom-shell-size: 126%;
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
   background: transparent !important;
   box-shadow: none !important;
-  animation: cw-violet-pulse 2.8s ease-in-out infinite;
 }
 
-.nav-profile-wrap.cw-cosmetic-frame-storm-eye-rogue {
-  position: relative;
-  border-radius: 50%;
-  padding: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  aspect-ratio: 1 / 1;
-  animation: cw-violet-pulse 2.8s ease-in-out infinite;
+.cw-framed-avatar--nav.cw-cosmetic-frame-storm-eye-rogue {
+  --cw-venom-ring-padding: 2px;
+  --cw-venom-glow-inset: -4%;
+  --cw-venom-shell-size: 112%;
 }
 
-.cw-framed-avatar.cw-cosmetic-frame-storm-eye-rogue::before,
+.cw-framed-avatar--post.cw-cosmetic-frame-storm-eye-rogue {
+  --cw-venom-ring-padding: 2.5px;
+  --cw-venom-glow-inset: -7%;
+  --cw-venom-shell-size: 120%;
+}
+
+.cw-framed-avatar--comment.cw-cosmetic-frame-storm-eye-rogue {
+  --cw-venom-ring-padding: 2px;
+  --cw-venom-glow-inset: -5%;
+  --cw-venom-shell-size: 116%;
+}
+
+.cw-framed-avatar--profile.cw-cosmetic-frame-storm-eye-rogue,
+.cw-framed-avatar--shop.cw-cosmetic-frame-storm-eye-rogue,
+.shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue {
+  --cw-venom-ring-padding: 3px;
+  --cw-venom-glow-inset: -9%;
+  --cw-venom-shell-size: 130%;
+}
+
+.cw-cosmetic-frame-storm-eye-rogue::before,
 .shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  padding: 3px;
+  padding: var(--cw-venom-ring-padding, 3px);
   background: conic-gradient(
     from 0deg,
-    #090913,
-    #5230bf,
-    #1b1b30,
-    #9f1732,
-    #090913
+    rgba(6, 6, 10, 0.98),
+    rgba(42, 42, 52, 0.98),
+    rgba(8, 8, 12, 0.98),
+    rgba(18, 18, 28, 0.98),
+    rgba(6, 6, 10, 0.98)
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: cw-thorn-border-spin 4.8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.nav-profile-wrap.cw-cosmetic-frame-storm-eye-rogue::before {
+.cw-cosmetic-frame-storm-eye-rogue::after,
+.shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue::after {
   content: "";
   position: absolute;
-  inset: -2px;
+  inset: var(--cw-venom-glow-inset, -8%);
   border-radius: 50%;
-  padding: 2px;
-  background: conic-gradient(
-    from 0deg,
-    #090913,
-    #5230bf,
-    #1b1b30,
-    #9f1732,
-    #090913
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(118, 178, 110, 0.16), transparent 58%),
+    radial-gradient(circle at 40% 30%, rgba(232, 244, 218, 0.08), transparent 20%);
+  filter: blur(8px);
   pointer-events: none;
-  animation: cw-thorn-border-spin 4.8s linear infinite;
+  z-index: 0;
 }
 
-.cw-cosmetic-frame-storm-eye-rogue .cw-fx-storm-core-glow {
-  position: absolute;
-  inset: 16%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(210, 30, 60, 0.18), transparent 68%);
-  pointer-events: none;
-}
-
-.cw-cosmetic-frame-storm-eye-rogue .cw-fx-storm-arc {
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  border-top: 2px solid rgba(190, 170, 255, 0.92);
-  border-right: 2px solid rgba(120, 86, 255, 0.9);
-  clip-path: polygon(0 0, 100% 0, 100% 52%, 62% 52%, 76% 100%, 26% 100%, 40% 56%, 0 56%);
-  animation: cw-storm-arc-flash 2.1s linear infinite;
-  pointer-events: none;
-}
-
-.cw-cosmetic-frame-storm-eye-rogue .cw-fx-storm-arc.arc-a {
-  transform: rotate(24deg);
-}
-
-.cw-cosmetic-frame-storm-eye-rogue .cw-fx-storm-arc.arc-b {
-  inset: 16%;
-  transform: rotate(188deg);
-  animation-delay: -0.95s;
+.cw-cosmetic-frame-storm-eye-rogue .cw-cosmetic-fx-layer,
+.shop-preview-avatar.cw-cosmetic-frame-storm-eye-rogue .cw-cosmetic-fx-layer {
+  z-index: 3;
+  overflow: visible;
 }
 
 .cw-framed-avatar.cw-cosmetic-frame-visor-lift-racer,
 .shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 3px;
   --cw-visor-glow-inset: -8%;
-  --cw-visor-shell-inset: -14%;
-  --cw-visor-shell-shift-y: 0%;
+  --cw-visor-shell-size: 122%;
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
@@ -1458,19 +1496,19 @@
 .cw-framed-avatar--nav.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
   --cw-visor-glow-inset: -3%;
-  --cw-visor-shell-inset: -7%;
+  --cw-visor-shell-size: 110%;
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2.5px;
   --cw-visor-glow-inset: -7%;
-  --cw-visor-shell-inset: -12%;
+  --cw-visor-shell-size: 118%;
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 2px;
   --cw-visor-glow-inset: -6%;
-  --cw-visor-shell-inset: -10%;
+  --cw-visor-shell-size: 114%;
 }
 
 .cw-framed-avatar--profile.cw-cosmetic-frame-visor-lift-racer,
@@ -1478,7 +1516,7 @@
 .shop-preview-avatar.cw-cosmetic-frame-visor-lift-racer {
   --cw-visor-ring-padding: 3px;
   --cw-visor-glow-inset: -9%;
-  --cw-visor-shell-inset: -13%;
+  --cw-visor-shell-size: 126%;
 }
 
 .cw-cosmetic-frame-visor-lift-racer::before,
@@ -1527,14 +1565,55 @@
 
 .cw-visor-lift-sprite-shell {
   position: absolute;
-  inset: var(--cw-visor-shell-inset, -14%);
-  transform: translateY(var(--cw-visor-shell-shift-y, 0%));
+  width: var(--cw-visor-shell-size, 122%);
+  height: var(--cw-visor-shell-size, 122%);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   overflow: hidden;
   border-radius: 50%;
   background: transparent;
   z-index: 2;
   animation: cw-victory-shell-breathe 3.4s ease-in-out infinite;
+}
+
+.cw-venom-frame-sprite-shell {
+  position: absolute;
+  width: var(--cw-venom-shell-size, 126%);
+  height: var(--cw-venom-shell-size, 126%);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 50%;
+  background: transparent;
+  z-index: 2;
+}
+
+.cw-venom-frame-fallback-glow {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 194, 108, 0.18), transparent 70%);
+  filter: blur(8px);
+  opacity: 0.54;
+  pointer-events: none;
+}
+
+.cw-venom-frame-sprite {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--cw-venom-sprite-image, none);
+  background-repeat: no-repeat;
+  background-size: 400% 300%;
+  background-position: 0% 0%;
+  animation: cw-venom-frame-sprite 1s linear infinite;
+  will-change: background-position;
 }
 
 .cw-visor-lift-sprite-shell::after {
@@ -1584,6 +1663,10 @@
   }
 
   .cw-visor-lift-sprite {
+    animation: none !important;
+  }
+
+  .cw-venom-frame-sprite {
     animation: none !important;
   }
 }
