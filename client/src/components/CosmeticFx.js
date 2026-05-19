@@ -2,7 +2,7 @@ import React from "react";
 import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
 import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
 import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
-import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-full-effect-spritesheet.png";
+import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-greenkey-spritesheet.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,

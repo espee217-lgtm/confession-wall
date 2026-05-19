@@ -1341,131 +1341,130 @@
 
 /* Storm Hoodie sprite sheet:
    - 384px per frame
-   - 10 columns x 13 rows
-   - 121 animated frames
+   - 10 columns x 12 rows
+   - 120 animated frames
    - scaled only with a static transform on the shell */
-@keyframes stormHoodieFullEffectFrameAnim {
+@keyframes stormHoodieGreenKeyFrameAnim {
   0.00000% { background-position: 0px 0px; }
-  0.82645% { background-position: -384px 0px; }
-  1.65289% { background-position: -768px 0px; }
-  2.47934% { background-position: -1152px 0px; }
-  3.30579% { background-position: -1536px 0px; }
-  4.13223% { background-position: -1920px 0px; }
-  4.95868% { background-position: -2304px 0px; }
-  5.78512% { background-position: -2688px 0px; }
-  6.61157% { background-position: -3072px 0px; }
-  7.43802% { background-position: -3456px 0px; }
-  8.26446% { background-position: 0px -384px; }
-  9.09091% { background-position: -384px -384px; }
-  9.91736% { background-position: -768px -384px; }
-  10.74380% { background-position: -1152px -384px; }
-  11.57025% { background-position: -1536px -384px; }
-  12.39669% { background-position: -1920px -384px; }
-  13.22314% { background-position: -2304px -384px; }
-  14.04959% { background-position: -2688px -384px; }
-  14.87603% { background-position: -3072px -384px; }
-  15.70248% { background-position: -3456px -384px; }
-  16.52893% { background-position: 0px -768px; }
-  17.35537% { background-position: -384px -768px; }
-  18.18182% { background-position: -768px -768px; }
-  19.00826% { background-position: -1152px -768px; }
-  19.83471% { background-position: -1536px -768px; }
-  20.66116% { background-position: -1920px -768px; }
-  21.48760% { background-position: -2304px -768px; }
-  22.31405% { background-position: -2688px -768px; }
-  23.14050% { background-position: -3072px -768px; }
-  23.96694% { background-position: -3456px -768px; }
-  24.79339% { background-position: 0px -1152px; }
-  25.61983% { background-position: -384px -1152px; }
-  26.44628% { background-position: -768px -1152px; }
-  27.27273% { background-position: -1152px -1152px; }
-  28.09917% { background-position: -1536px -1152px; }
-  28.92562% { background-position: -1920px -1152px; }
-  29.75207% { background-position: -2304px -1152px; }
-  30.57851% { background-position: -2688px -1152px; }
-  31.40496% { background-position: -3072px -1152px; }
-  32.23140% { background-position: -3456px -1152px; }
-  33.05785% { background-position: 0px -1536px; }
-  33.88430% { background-position: -384px -1536px; }
-  34.71074% { background-position: -768px -1536px; }
-  35.53719% { background-position: -1152px -1536px; }
-  36.36364% { background-position: -1536px -1536px; }
-  37.19008% { background-position: -1920px -1536px; }
-  38.01653% { background-position: -2304px -1536px; }
-  38.84298% { background-position: -2688px -1536px; }
-  39.66942% { background-position: -3072px -1536px; }
-  40.49587% { background-position: -3456px -1536px; }
-  41.32231% { background-position: 0px -1920px; }
-  42.14876% { background-position: -384px -1920px; }
-  42.97521% { background-position: -768px -1920px; }
-  43.80165% { background-position: -1152px -1920px; }
-  44.62810% { background-position: -1536px -1920px; }
-  45.45455% { background-position: -1920px -1920px; }
-  46.28099% { background-position: -2304px -1920px; }
-  47.10744% { background-position: -2688px -1920px; }
-  47.93388% { background-position: -3072px -1920px; }
-  48.76033% { background-position: -3456px -1920px; }
-  49.58678% { background-position: 0px -2304px; }
-  50.41322% { background-position: -384px -2304px; }
-  51.23967% { background-position: -768px -2304px; }
-  52.06612% { background-position: -1152px -2304px; }
-  52.89256% { background-position: -1536px -2304px; }
-  53.71901% { background-position: -1920px -2304px; }
-  54.54545% { background-position: -2304px -2304px; }
-  55.37190% { background-position: -2688px -2304px; }
-  56.19835% { background-position: -3072px -2304px; }
-  57.02479% { background-position: -3456px -2304px; }
-  57.85124% { background-position: 0px -2688px; }
-  58.67769% { background-position: -384px -2688px; }
-  59.50413% { background-position: -768px -2688px; }
-  60.33058% { background-position: -1152px -2688px; }
-  61.15702% { background-position: -1536px -2688px; }
-  61.98347% { background-position: -1920px -2688px; }
-  62.80992% { background-position: -2304px -2688px; }
-  63.63636% { background-position: -2688px -2688px; }
-  64.46281% { background-position: -3072px -2688px; }
-  65.28926% { background-position: -3456px -2688px; }
-  66.11570% { background-position: 0px -3072px; }
-  66.94215% { background-position: -384px -3072px; }
-  67.76860% { background-position: -768px -3072px; }
-  68.59504% { background-position: -1152px -3072px; }
-  69.42149% { background-position: -1536px -3072px; }
-  70.24793% { background-position: -1920px -3072px; }
-  71.07438% { background-position: -2304px -3072px; }
-  71.90083% { background-position: -2688px -3072px; }
-  72.72727% { background-position: -3072px -3072px; }
-  73.55372% { background-position: -3456px -3072px; }
-  74.38017% { background-position: 0px -3456px; }
-  75.20661% { background-position: -384px -3456px; }
-  76.03306% { background-position: -768px -3456px; }
-  76.85950% { background-position: -1152px -3456px; }
-  77.68595% { background-position: -1536px -3456px; }
-  78.51240% { background-position: -1920px -3456px; }
-  79.33884% { background-position: -2304px -3456px; }
-  80.16529% { background-position: -2688px -3456px; }
-  80.99174% { background-position: -3072px -3456px; }
-  81.81818% { background-position: -3456px -3456px; }
-  82.64463% { background-position: 0px -3840px; }
-  83.47107% { background-position: -384px -3840px; }
-  84.29752% { background-position: -768px -3840px; }
-  85.12397% { background-position: -1152px -3840px; }
-  85.95041% { background-position: -1536px -3840px; }
-  86.77686% { background-position: -1920px -3840px; }
-  87.60331% { background-position: -2304px -3840px; }
-  88.42975% { background-position: -2688px -3840px; }
-  89.25620% { background-position: -3072px -3840px; }
-  90.08264% { background-position: -3456px -3840px; }
-  90.90909% { background-position: 0px -4224px; }
-  91.73554% { background-position: -384px -4224px; }
-  92.56198% { background-position: -768px -4224px; }
-  93.38843% { background-position: -1152px -4224px; }
-  94.21488% { background-position: -1536px -4224px; }
-  95.04132% { background-position: -1920px -4224px; }
-  95.86777% { background-position: -2304px -4224px; }
-  96.69421% { background-position: -2688px -4224px; }
-  97.52066% { background-position: -3072px -4224px; }
-  98.34711% { background-position: -3456px -4224px; }
-  99.17355% { background-position: 0px -4608px; }
+  0.83333% { background-position: -384px 0px; }
+  1.66667% { background-position: -768px 0px; }
+  2.50000% { background-position: -1152px 0px; }
+  3.33333% { background-position: -1536px 0px; }
+  4.16667% { background-position: -1920px 0px; }
+  5.00000% { background-position: -2304px 0px; }
+  5.83333% { background-position: -2688px 0px; }
+  6.66667% { background-position: -3072px 0px; }
+  7.50000% { background-position: -3456px 0px; }
+  8.33333% { background-position: 0px -384px; }
+  9.16667% { background-position: -384px -384px; }
+  10.00000% { background-position: -768px -384px; }
+  10.83333% { background-position: -1152px -384px; }
+  11.66667% { background-position: -1536px -384px; }
+  12.50000% { background-position: -1920px -384px; }
+  13.33333% { background-position: -2304px -384px; }
+  14.16667% { background-position: -2688px -384px; }
+  15.00000% { background-position: -3072px -384px; }
+  15.83333% { background-position: -3456px -384px; }
+  16.66667% { background-position: 0px -768px; }
+  17.50000% { background-position: -384px -768px; }
+  18.33333% { background-position: -768px -768px; }
+  19.16667% { background-position: -1152px -768px; }
+  20.00000% { background-position: -1536px -768px; }
+  20.83333% { background-position: -1920px -768px; }
+  21.66667% { background-position: -2304px -768px; }
+  22.50000% { background-position: -2688px -768px; }
+  23.33333% { background-position: -3072px -768px; }
+  24.16667% { background-position: -3456px -768px; }
+  25.00000% { background-position: 0px -1152px; }
+  25.83333% { background-position: -384px -1152px; }
+  26.66667% { background-position: -768px -1152px; }
+  27.50000% { background-position: -1152px -1152px; }
+  28.33333% { background-position: -1536px -1152px; }
+  29.16667% { background-position: -1920px -1152px; }
+  30.00000% { background-position: -2304px -1152px; }
+  30.83333% { background-position: -2688px -1152px; }
+  31.66667% { background-position: -3072px -1152px; }
+  32.50000% { background-position: -3456px -1152px; }
+  33.33333% { background-position: 0px -1536px; }
+  34.16667% { background-position: -384px -1536px; }
+  35.00000% { background-position: -768px -1536px; }
+  35.83333% { background-position: -1152px -1536px; }
+  36.66667% { background-position: -1536px -1536px; }
+  37.50000% { background-position: -1920px -1536px; }
+  38.33333% { background-position: -2304px -1536px; }
+  39.16667% { background-position: -2688px -1536px; }
+  40.00000% { background-position: -3072px -1536px; }
+  40.83333% { background-position: -3456px -1536px; }
+  41.66667% { background-position: 0px -1920px; }
+  42.50000% { background-position: -384px -1920px; }
+  43.33333% { background-position: -768px -1920px; }
+  44.16667% { background-position: -1152px -1920px; }
+  45.00000% { background-position: -1536px -1920px; }
+  45.83333% { background-position: -1920px -1920px; }
+  46.66667% { background-position: -2304px -1920px; }
+  47.50000% { background-position: -2688px -1920px; }
+  48.33333% { background-position: -3072px -1920px; }
+  49.16667% { background-position: -3456px -1920px; }
+  50.00000% { background-position: 0px -2304px; }
+  50.83333% { background-position: -384px -2304px; }
+  51.66667% { background-position: -768px -2304px; }
+  52.50000% { background-position: -1152px -2304px; }
+  53.33333% { background-position: -1536px -2304px; }
+  54.16667% { background-position: -1920px -2304px; }
+  55.00000% { background-position: -2304px -2304px; }
+  55.83333% { background-position: -2688px -2304px; }
+  56.66667% { background-position: -3072px -2304px; }
+  57.50000% { background-position: -3456px -2304px; }
+  58.33333% { background-position: 0px -2688px; }
+  59.16667% { background-position: -384px -2688px; }
+  60.00000% { background-position: -768px -2688px; }
+  60.83333% { background-position: -1152px -2688px; }
+  61.66667% { background-position: -1536px -2688px; }
+  62.50000% { background-position: -1920px -2688px; }
+  63.33333% { background-position: -2304px -2688px; }
+  64.16667% { background-position: -2688px -2688px; }
+  65.00000% { background-position: -3072px -2688px; }
+  65.83333% { background-position: -3456px -2688px; }
+  66.66667% { background-position: 0px -3072px; }
+  67.50000% { background-position: -384px -3072px; }
+  68.33333% { background-position: -768px -3072px; }
+  69.16667% { background-position: -1152px -3072px; }
+  70.00000% { background-position: -1536px -3072px; }
+  70.83333% { background-position: -1920px -3072px; }
+  71.66667% { background-position: -2304px -3072px; }
+  72.50000% { background-position: -2688px -3072px; }
+  73.33333% { background-position: -3072px -3072px; }
+  74.16667% { background-position: -3456px -3072px; }
+  75.00000% { background-position: 0px -3456px; }
+  75.83333% { background-position: -384px -3456px; }
+  76.66667% { background-position: -768px -3456px; }
+  77.50000% { background-position: -1152px -3456px; }
+  78.33333% { background-position: -1536px -3456px; }
+  79.16667% { background-position: -1920px -3456px; }
+  80.00000% { background-position: -2304px -3456px; }
+  80.83333% { background-position: -2688px -3456px; }
+  81.66667% { background-position: -3072px -3456px; }
+  82.50000% { background-position: -3456px -3456px; }
+  83.33333% { background-position: 0px -3840px; }
+  84.16667% { background-position: -384px -3840px; }
+  85.00000% { background-position: -768px -3840px; }
+  85.83333% { background-position: -1152px -3840px; }
+  86.66667% { background-position: -1536px -3840px; }
+  87.50000% { background-position: -1920px -3840px; }
+  88.33333% { background-position: -2304px -3840px; }
+  89.16667% { background-position: -2688px -3840px; }
+  90.00000% { background-position: -3072px -3840px; }
+  90.83333% { background-position: -3456px -3840px; }
+  91.66667% { background-position: 0px -4224px; }
+  92.50000% { background-position: -384px -4224px; }
+  93.33333% { background-position: -768px -4224px; }
+  94.16667% { background-position: -1152px -4224px; }
+  95.00000% { background-position: -1536px -4224px; }
+  95.83333% { background-position: -1920px -4224px; }
+  96.66667% { background-position: -2304px -4224px; }
+  97.50000% { background-position: -2688px -4224px; }
+  98.33333% { background-position: -3072px -4224px; }
+  99.16667% { background-position: -3456px -4224px; }
   100% { background-position: 0px 0px; }
 }
 
@@ -1795,7 +1794,7 @@
 .cw-framed-avatar.cw-cosmetic-frame-storm-hoodie,
 .shop-preview-avatar.cw-cosmetic-frame-storm-hoodie {
   /* The sprite cells are already full hoodie art, so the overlay is scaled as one unit. */
-  --cw-storm-hoodie-scale: 0.28;
+  --cw-storm-hoodie-scale: 0.34;
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
@@ -1805,21 +1804,24 @@
 }
 
 .cw-framed-avatar--nav.cw-cosmetic-frame-storm-hoodie {
-  --cw-storm-hoodie-scale: 0.2;
+  --cw-storm-hoodie-scale: 0.22;
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-storm-hoodie {
-  --cw-storm-hoodie-scale: 0.24;
+  --cw-storm-hoodie-scale: 0.28;
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-storm-hoodie {
-  --cw-storm-hoodie-scale: 0.18;
+  --cw-storm-hoodie-scale: 0.2;
 }
 
-.cw-framed-avatar--profile.cw-cosmetic-frame-storm-hoodie,
 .cw-framed-avatar--shop.cw-cosmetic-frame-storm-hoodie,
 .shop-preview-avatar.cw-cosmetic-frame-storm-hoodie {
-  --cw-storm-hoodie-scale: 0.34;
+  --cw-storm-hoodie-scale: 0.38;
+}
+
+.cw-framed-avatar--profile.cw-cosmetic-frame-storm-hoodie {
+  --cw-storm-hoodie-scale: 0.52;
 }
 
 .cw-cosmetic-frame-storm-hoodie .cw-cosmetic-fx-layer,
@@ -1895,7 +1897,8 @@
   will-change: background-position;
 }
 
-.cw-storm-hoodie-frame-sprite {
+.cw-storm-hoodie-frame-sprite,
+.stormHoodieGreenKeyAvatarFrame {
   position: absolute;
   inset: 0;
   display: block;
@@ -1903,9 +1906,9 @@
   z-index: 1;
   background-image: var(--cw-storm-hoodie-sprite-image, none);
   background-repeat: no-repeat;
-  background-size: 3840px 4992px;
+  background-size: 3840px 4608px;
   background-position: 0px 0px;
-  animation: stormHoodieFullEffectFrameAnim 5.042s steps(1) infinite;
+  animation: stormHoodieGreenKeyFrameAnim 5.042s steps(1) infinite;
   will-change: background-position;
 }
 
