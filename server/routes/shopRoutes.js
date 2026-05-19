@@ -329,6 +329,25 @@ const SHOP_ITEMS = [
   },
 ];
 
+function equipCosmeticOnUser(user, item) {
+  const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];
+
+  if (!equipField) {
+    return false;
+  }
+
+  if (equipField === "frame") {
+    user.set("equippedCosmetics.visualEffect", "");
+  }
+
+  if (equipField === "visualEffect") {
+    user.set("equippedCosmetics.frame", "");
+  }
+
+  user.set(`equippedCosmetics.${equipField}`, item.id);
+  return true;
+}
+
 const getItemById = (itemId) => SHOP_ITEMS.find((item) => item.id === itemId);
 
 const buildUserPayload = (user) => ({
@@ -413,11 +432,7 @@ user.ownedCosmetics.push({
 });
 
 // Auto-equip the cosmetic immediately after purchase
-const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];
-
-if (equipField) {
-  user.set(`equippedCosmetics.${equipField}`, item.id);
-}
+equipCosmeticOnUser(user, item);
 
 await user.save();
 
@@ -460,7 +475,7 @@ router.post("/equip/:itemId", protect, async (req, res) => {
       return res.status(403).json({ message: "Buy this cosmetic before equipping it." });
     }
 
-    user.set(`equippedCosmetics.${equipField}`, item.id);
+    equipCosmeticOnUser(user, item);
 
     await user.save();
 

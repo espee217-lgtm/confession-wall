@@ -6,6 +6,81 @@ import {
   getCosmeticIcon,
 } from "../utils/cosmetics";
 
+const BASIC_BADGE_CLASSES = {
+  "badge-sprout-soul": "cw-cosmetic-badge-sprout-soul",
+  "badge-moon-whisper": "cw-cosmetic-badge-moon-whisper",
+  "badge-forest-crown": "cw-cosmetic-badge-forest-crown",
+};
+
+function getBadgeAnimationClass(badgeId) {
+  return getCosmeticAnimationClass(badgeId) || BASIC_BADGE_CLASSES[badgeId] || "";
+}
+
+export function BadgeFace({ badgeId, icon }) {
+  if (badgeId === "badge-sprout-soul") {
+    return (
+      <span className="cw-badge-face cw-badge-face--sprout" aria-hidden="true">
+        <span className="cw-badge-sprout-glow" />
+        <span className="cw-badge-sprout-soil" />
+        <span className="cw-badge-sprout-stem" />
+        <span className="cw-badge-sprout-leaf leaf-left" />
+        <span className="cw-badge-sprout-leaf leaf-right" />
+        <span className="cw-badge-sprout-dew dew-a" />
+        <span className="cw-badge-sprout-dew dew-b" />
+      </span>
+    );
+  }
+
+  if (badgeId === "badge-moon-whisper") {
+    return (
+      <span className="cw-badge-face cw-badge-face--moon" aria-hidden="true">
+        <span className="cw-badge-moon-halo" />
+        <span className="cw-badge-moon-disc" />
+        <span className="cw-badge-moon-cutout" />
+        <span className="cw-badge-moon-star star-a" />
+        <span className="cw-badge-moon-star star-b" />
+        <span className="cw-badge-moon-star star-c" />
+        <span className="cw-badge-moon-mist" />
+      </span>
+    );
+  }
+
+  if (badgeId === "badge-forest-crown") {
+    return (
+      <span className="cw-badge-face cw-badge-face--crown" aria-hidden="true">
+        <span className="cw-badge-crown-shine" />
+        <svg className="cw-badge-crown-svg" viewBox="0 0 100 100" aria-hidden="true">
+          <path
+            className="cw-badge-crown-shape"
+            d="M18 68 L24 40 L40 55 L50 28 L60 55 L76 40 L82 68 Z"
+          />
+          <path
+            className="cw-badge-crown-band"
+            d="M24 68 H76 C75 76, 69 82, 60 82 H40 C31 82, 25 76, 24 68 Z"
+          />
+          <path
+            className="cw-badge-crown-vein vein-left"
+            d="M36 64 L40 52"
+          />
+          <path
+            className="cw-badge-crown-vein vein-center"
+            d="M50 62 L50 42"
+          />
+          <path
+            className="cw-badge-crown-vein vein-right"
+            d="M64 64 L60 52"
+          />
+        </svg>
+        <span className="cw-badge-crown-jewel" />
+        <span className="cw-badge-crown-spark spark-a" />
+        <span className="cw-badge-crown-spark spark-b" />
+      </span>
+    );
+  }
+
+  return icon;
+}
+
 /** Particle / overlay layers for animated cosmetics (badge, frame, post theme, profile effect). */
 export function CosmeticFxLayers({ cosmeticId }) {
   if (!cosmeticId) return null;
@@ -303,7 +378,7 @@ export function AnimatedBadge({ badgeId, size = "md", className = "" }) {
   const icon = getCosmeticIcon(badgeId);
   if (!icon) return null;
 
-  const animClass = getCosmeticAnimationClass(badgeId);
+  const animClass = getBadgeAnimationClass(badgeId);
   const sizeClass =
     size === "sm" ? "cw-badge-sm" : size === "lg" ? "cw-badge-lg" : "cw-badge-md";
 
@@ -321,7 +396,9 @@ export function AnimatedBadge({ badgeId, size = "md", className = "" }) {
     >
       <span className="cw-cosmetic-stage">
         <CosmeticFxLayers cosmeticId={badgeId} />
-        <span className="cw-cosmetic-icon">{icon}</span>
+        <span className="cw-cosmetic-icon">
+          <BadgeFace badgeId={badgeId} icon={icon} />
+        </span>
       </span>
     </span>
   );

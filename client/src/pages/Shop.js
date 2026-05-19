@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Shop.css";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
-import { CosmeticFxLayers } from "../components/CosmeticFx";
+import { AnimatedBadge, CosmeticFxLayers } from "../components/CosmeticFx";
 import FramedAvatar from "../components/FramedAvatar";
 
 const API_BASE =
@@ -114,11 +114,8 @@ function ShopPreview({ item }) {
   }
 
   return (
-    <div className={`shop-preview-badge ${previewClass || animClass}`.trim()}>
-      <div className="cw-cosmetic-stage">
-        <CosmeticFxLayers cosmeticId={item.id} />
-        <span className="cw-cosmetic-icon">{item.icon}</span>
-      </div>
+    <div className={`shop-preview-badge ${[previewClass, animClass].filter(Boolean).join(" ")}`.trim()}>
+      <AnimatedBadge badgeId={item.id} size="lg" />
     </div>
   );
 }
