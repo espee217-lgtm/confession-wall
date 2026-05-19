@@ -137,7 +137,7 @@ export const COSMETIC_META = {
   },
   "frame-storm-eye-rogue": {
     icon: "\u26A1",
-    name: "Storm-Eye Rogue Frame",
+    name: "Venom Frame",
     type: "frame",
     animationClass: "cw-cosmetic-frame-storm-eye-rogue",
   },

@@ -257,8 +257,8 @@ const SHOP_ITEMS = [
   {
     id: "frame-storm-eye-rogue",
     type: "frame",
-    name: "Storm-Eye Rogue Frame",
-    description: "A dark rogue-warrior profile frame charged with violet storm energy.",
+    name: "Venom Frame",
+    description: "A living black symbiote frame that coils around your avatar.",
     price: 260,
     icon: "\u26A1",
     rarity: "Legendary",
