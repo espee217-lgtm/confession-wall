@@ -26,6 +26,11 @@ const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
 
 const getDisplayType = (type) => (type === "visualEffect" ? "frame" : type);
 
+function formatPreviewHandle(username) {
+  if (!username) return "@Anonymous";
+  return username.startsWith("@") ? username : `@${username}`;
+}
+
 function ShopIconSvg() {
   return (
     <svg
@@ -47,10 +52,24 @@ function ShopIconSvg() {
   );
 }
 
-
-function ShopPreview({ item }) {
+function ShopPreview({
+  item,
+  mode = "card",
+  isAnimating = false,
+  previewUser,
+  equipped,
+}) {
   const previewClass = item.previewClass || "";
   const animClass = getCosmeticAnimationClass(item.id) || "";
+  const isModal = mode === "modal";
+  const shellClassName = ["shop-preview-shell", `shop-preview-shell--${mode}`]
+    .filter(Boolean)
+    .join(" ");
+  const handle = formatPreviewHandle(previewUser?.username);
+  const avatarSrc = previewUser?.profilePicture || "";
+  const currentFrameId = equipped?.frame || "";
+  const currentEffectId = equipped?.visualEffect || "";
+  const currentBadgeId = equipped?.badge || "";
 
   if (item.type === "frame") {
     const containerClass = previewClass.startsWith("cw-cosmetic-preview-frame-")
@@ -58,30 +77,58 @@ function ShopPreview({ item }) {
       : "";
 
     return (
-      <div className={`shop-preview-frame ${containerClass}`.trim()}>
-        <FramedAvatar
-          username="Anonymous"
-          frameId={item.id}
-          size={62}
-          context="shop"
-          className={`shop-preview-avatar ${animClass}`.trim()}
-          placeholder="A"
-        />
+      <div
+        className={[shellClassName, "shop-preview-frame", containerClass]
+          .filter(Boolean)
+          .join(" ")}
+        data-animating={isAnimating ? "true" : "false"}
+      >
+        <div className="shop-preview-profile-sample">
+          <FramedAvatar
+            username={previewUser?.username || "Anonymous"}
+            src={avatarSrc}
+            frameId={item.id}
+            effectId=""
+            size={isModal ? 118 : 62}
+            context={isModal ? "profile" : "shop"}
+            className={["shop-preview-avatar", animClass].filter(Boolean).join(" ")}
+            placeholder="A"
+          />
+          {isModal && (
+            <div className="shop-preview-profile-meta">
+              <strong>{handle}</strong>
+              <span>Profile frame preview</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   if (item.type === "visualEffect") {
     return (
-      <div className="shop-preview-frame shop-preview-visual-effect">
-        <FramedAvatar
-          username="Anonymous"
-          effectId={item.id}
-          size={62}
-          context="shop"
-          className={`shop-preview-avatar ${animClass}`.trim()}
-          placeholder="A"
-        />
+      <div
+        className={[shellClassName, "shop-preview-frame", "shop-preview-visual-effect"].join(" ")}
+        data-animating={isAnimating ? "true" : "false"}
+      >
+        <div className="shop-preview-profile-sample">
+          <FramedAvatar
+            username={previewUser?.username || "Anonymous"}
+            src={avatarSrc}
+            frameId=""
+            effectId={item.id}
+            size={isModal ? 118 : 62}
+            context={isModal ? "profile" : "shop"}
+            className={["shop-preview-avatar", animClass].filter(Boolean).join(" ")}
+            placeholder="A"
+          />
+          {isModal && (
+            <div className="shop-preview-profile-meta">
+              <strong>{handle}</strong>
+              <span>Avatar aura preview</span>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -90,10 +137,47 @@ function ShopPreview({ item }) {
     const postClass = previewClass || animClass;
 
     return (
-      <div className={`shop-preview-post ${postClass}`.trim()}>
+      <div
+        className={[
+          shellClassName,
+          "shop-preview-post",
+          postClass,
+          isModal ? "shop-preview-post--modal" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        data-animating={isAnimating ? "true" : "false"}
+      >
+        {isModal && (
+          <div className="shop-preview-post-header">
+            <FramedAvatar
+              username={previewUser?.username || "Anonymous"}
+              src={avatarSrc}
+              frameId={currentFrameId}
+              effectId={currentEffectId}
+              size={40}
+              context="post"
+              className="shop-preview-post-avatar"
+              placeholder="A"
+            />
+            <div className="shop-preview-post-meta">
+              <div className="shop-preview-post-name-row">
+                <strong>{handle}</strong>
+                {currentBadgeId ? <AnimatedBadge badgeId={currentBadgeId} size="sm" /> : null}
+              </div>
+              <span>This is how your confession will look.</span>
+            </div>
+          </div>
+        )}
         <CosmeticFxLayers cosmeticId={item.id} />
         <div className="shop-preview-post-line wide" />
         <div className="shop-preview-post-line" />
+        {isModal && (
+          <p className="shop-preview-post-copy">
+            The forest keeps your words anonymous, but the card theme changes the
+            feeling around them.
+          </p>
+        )}
         <div className="shop-preview-post-actions">
           <span>🌱 12</span>
           <span>🔥 3</span>
@@ -104,18 +188,154 @@ function ShopPreview({ item }) {
 
   if (item.type === "title") {
     return (
-      <div className="shop-preview-title">
-        <span className="shop-preview-name">Anonymous</span>
-        <span className={`shop-preview-title-text ${previewClass || animClass}`.trim()}>
+      <div
+        className={[shellClassName, "shop-preview-title"].join(" ")}
+        data-animating={isAnimating ? "true" : "false"}
+      >
+        <span className="shop-preview-name">{handle}</span>
+        <span
+          className={`shop-preview-title-text ${previewClass || animClass}`.trim()}
+        >
           {item.name}
         </span>
+        {isModal && (
+          <p className="shop-preview-title-copy">
+            Display titles sit beside your profile wherever titles already
+            appear.
+          </p>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={`shop-preview-badge ${[previewClass, animClass].filter(Boolean).join(" ")}`.trim()}>
-      <AnimatedBadge badgeId={item.id} size="lg" />
+    <div
+      className={[
+        shellClassName,
+        "shop-preview-badge",
+        previewClass,
+        animClass,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-animating={isAnimating ? "true" : "false"}
+    >
+      {isModal ? (
+        <div className="shop-preview-profile-sample shop-preview-profile-sample--badge">
+          <FramedAvatar
+            username={previewUser?.username || "Anonymous"}
+            src={avatarSrc}
+            frameId={currentFrameId}
+            effectId={currentEffectId}
+            size={78}
+            context="profile"
+            className="shop-preview-avatar"
+            placeholder="A"
+          />
+          <div className="shop-preview-profile-meta">
+            <div className="shop-preview-name-row">
+              <strong>{handle}</strong>
+              <AnimatedBadge badgeId={item.id} size="lg" />
+            </div>
+            <span>Badge preview</span>
+          </div>
+        </div>
+      ) : (
+        <AnimatedBadge badgeId={item.id} size="lg" />
+      )}
+    </div>
+  );
+}
+
+function CosmeticPreviewModal({
+  item,
+  onClose,
+  previewUser,
+  equipped,
+  owned,
+  isEquipped,
+  busy,
+  canAfford,
+  onBuy,
+  onEquip,
+}) {
+  if (!item) return null;
+
+  return (
+    <div className="shop-preview-modal-backdrop" onClick={onClose}>
+      <div
+        className="shop-preview-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shop-preview-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="shop-preview-close"
+          aria-label="Close cosmetic preview"
+          onClick={onClose}
+        >
+          ×
+        </button>
+
+        <div className="shop-preview-modal-topline">
+          <span className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}>
+            {item.rarity || "Common"}
+          </span>
+          <span className="shop-item-type">
+            {TYPE_LABELS[getDisplayType(item.type)] || item.type}
+          </span>
+        </div>
+
+        <div className="shop-preview-modal-content">
+          <div className="shop-preview-modal-stage">
+            <ShopPreview
+              item={item}
+              mode="modal"
+              isAnimating
+              previewUser={previewUser}
+              equipped={equipped}
+            />
+          </div>
+
+          <div className="shop-preview-modal-copy">
+            <h2 id="shop-preview-modal-title">
+              <span>{item.icon}</span>
+              {item.name}
+            </h2>
+            <p>{item.description}</p>
+            <div className="shop-preview-modal-price">🌱 {item.price}</div>
+
+            <div className="shop-preview-modal-actions">
+              {isEquipped ? (
+                <button type="button" className="shop-equipped-btn" disabled>
+                  Equipped
+                </button>
+              ) : owned ? (
+                <button
+                  type="button"
+                  className="shop-equip-btn"
+                  onClick={() => onEquip(item)}
+                  disabled={busy}
+                >
+                  {busy ? "Equipping..." : "Equip"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="shop-buy-btn"
+                  onClick={() => onBuy(item)}
+                  disabled={busy || !canAfford}
+                  title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
+                >
+                  {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -142,6 +362,7 @@ function Shop() {
   const [busyItemId, setBusyItemId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [selectedPreviewCosmetic, setSelectedPreviewCosmetic] = useState(null);
 
   const [localEquipped, setLocalEquipped] = useState(
     user?.equippedCosmetics || {}
@@ -160,6 +381,8 @@ function Shop() {
   }, [user]);
 
   const equipped = localEquipped;
+  const previewUser = user || {};
+  const isPreviewOpen = Boolean(selectedPreviewCosmetic);
 
   const ownedSet = useMemo(() => {
     return new Set(localOwned.map((item) => item.itemId));
@@ -230,7 +453,28 @@ function Shop() {
     };
 
     loadShop();
-  }, [user?._id, token, navigate, refreshUser]);
+  }, [user, token, navigate, refreshUser]);
+
+  useEffect(() => {
+    if (!isPreviewOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedPreviewCosmetic(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isPreviewOpen]);
+
+  const openCosmeticPreview = (item) => {
+    setSelectedPreviewCosmetic(item);
+  };
+
+  const closeCosmeticPreview = () => {
+    setSelectedPreviewCosmetic(null);
+  };
 
   const handleBuy = async (item) => {
     if (!token || busyItemId) return;
@@ -319,6 +563,55 @@ function Shop() {
     }
   };
 
+  const renderItemAction = (item) => {
+    const owned = ownedSet.has(item.id);
+    const isEquipped =
+      item.type === "visualEffect"
+        ? equipped.visualEffect === item.id
+        : equipped[item.type] === item.id;
+    const canAfford = (localSeeds || 0) >= item.price;
+    const busy = busyItemId === item.id;
+
+    if (isEquipped) {
+      return (
+        <button type="button" className="shop-equipped-btn" disabled>
+          Equipped
+        </button>
+      );
+    }
+
+    if (owned) {
+      return (
+        <button
+          type="button"
+          className="shop-equip-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            handleEquip(item);
+          }}
+          disabled={busy || Boolean(busyItemId)}
+        >
+          {busy ? "Equipping..." : "Equip"}
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        className="shop-buy-btn"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleBuy(item);
+        }}
+        disabled={busy || Boolean(busyItemId) || !canAfford}
+        title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
+      >
+        {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}
+      </button>
+    );
+  };
+
   if (!user || !token) return null;
 
   return (
@@ -340,7 +633,7 @@ function Shop() {
 
         <div className="shop-seeds-panel">
           <span>Available Seeds</span>
-          <strong>🌱 {localSeeds || 0}</strong>
+          <strong>ðŸŒ± {localSeeds || 0}</strong>
         </div>
       </section>
 
@@ -412,79 +705,73 @@ function Shop() {
         <div className="shop-loading">Loading forest cosmetics...</div>
       ) : (
         <section className="shop-grid">
-          {filteredItems.map((item) => {
-            const owned = ownedSet.has(item.id);
-            const isEquipped =
-              item.type === "visualEffect"
-                ? equipped.visualEffect === item.id
-                : equipped[item.type] === item.id;
-            const canAfford = (localSeeds || 0) >= item.price;
-            const busy = busyItemId === item.id;
+          {filteredItems.map((item) => (
+            <article className="shop-item-card" key={item.id}>
+              <div className="shop-item-topline">
+                <span
+                  className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}
+                >
+                  {item.rarity || "Common"}
+                </span>
 
-            return (
-              <article className="shop-item-card" key={item.id}>
-                <div className="shop-item-topline">
-                  <span
-                    className={`shop-rarity ${
-                      item.rarity?.toLowerCase() || "common"
-                    }`}
-                  >
-                    {item.rarity || "Common"}
-                  </span>
+                <span className="shop-item-type">
+                  {TYPE_LABELS[getDisplayType(item.type)] || item.type}
+                </span>
+              </div>
 
-                  <span className="shop-item-type">
-                    {TYPE_LABELS[getDisplayType(item.type)] || item.type}
-                  </span>
-                </div>
+              <button
+                type="button"
+                className="shop-preview-trigger"
+                onClick={() => openCosmeticPreview(item)}
+                aria-label={`Preview ${item.name}`}
+              >
+                <ShopPreview
+                  item={item}
+                  mode="card"
+                  isAnimating={false}
+                  previewUser={previewUser}
+                  equipped={equipped}
+                />
+              </button>
 
-                <ShopPreview item={item} />
+              <div className="shop-item-body">
+                <h3>
+                  <span>{item.icon}</span>
+                  {item.name}
+                </h3>
 
-                <div className="shop-item-body">
-                  <h3>
-                    <span>{item.icon}</span>
-                    {item.name}
-                  </h3>
+                <p>{item.description}</p>
+              </div>
 
-                  <p>{item.description}</p>
-                </div>
-
-                <div className="shop-item-footer">
-                  <div className="shop-price">🌱 {item.price}</div>
-
-                  {isEquipped ? (
-                    <button
-                      type="button"
-                      className="shop-equipped-btn"
-                      disabled
-                    >
-                      Equipped
-                    </button>
-                  ) : owned ? (
-                    <button
-                      type="button"
-                      className="shop-equip-btn"
-                      onClick={() => handleEquip(item)}
-                      disabled={busy || Boolean(busyItemId)}
-                    >
-                      {busy ? "Equipping..." : "Equip"}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="shop-buy-btn"
-                      onClick={() => handleBuy(item)}
-                      disabled={busy || Boolean(busyItemId) || !canAfford}
-                      title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
-                    >
-                      {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+              <div className="shop-item-footer">
+                <div className="shop-price">ðŸŒ± {item.price}</div>
+                {renderItemAction(item)}
+              </div>
+            </article>
+          ))}
         </section>
       )}
+
+      {selectedPreviewCosmetic && (
+        <CosmeticPreviewModal
+          item={selectedPreviewCosmetic}
+          onClose={closeCosmeticPreview}
+          previewUser={previewUser}
+          equipped={equipped}
+          owned={ownedSet.has(selectedPreviewCosmetic.id)}
+          isEquipped={
+            selectedPreviewCosmetic.type === "visualEffect"
+              ? equipped.visualEffect === selectedPreviewCosmetic.id
+              : equipped[selectedPreviewCosmetic.type] ===
+                selectedPreviewCosmetic.id
+          }
+          busy={busyItemId === selectedPreviewCosmetic.id}
+          canAfford={(localSeeds || 0) >= selectedPreviewCosmetic.price}
+          onBuy={handleBuy}
+          onEquip={handleEquip}
+        />
+      )}
+
       <MobileBottomNav />
     </main>
   );

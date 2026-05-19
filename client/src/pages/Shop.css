@@ -285,6 +285,47 @@
   background: radial-gradient(circle at top, rgba(130, 255, 150, 0.1), rgba(255, 255, 255, 0.035));
 }
 
+.shop-preview-trigger {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.shop-preview-trigger:focus-visible {
+  outline: none;
+}
+
+.shop-preview-trigger:focus-visible .shop-preview-shell,
+.shop-preview-trigger:hover .shop-preview-shell {
+  border-color: rgba(185, 255, 140, 0.26);
+  box-shadow: 0 0 24px rgba(130, 255, 150, 0.08);
+}
+
+.shop-preview-shell {
+  --shop-preview-animation-state: paused;
+}
+
+.shop-preview-shell,
+.shop-preview-shell::before,
+.shop-preview-shell::after,
+.shop-preview-shell *,
+.shop-preview-shell *::before,
+.shop-preview-shell *::after {
+  animation-play-state: var(--shop-preview-animation-state, paused) !important;
+}
+
+.shop-preview-trigger:hover .shop-preview-shell,
+.shop-preview-trigger:focus .shop-preview-shell,
+.shop-preview-trigger:focus-visible .shop-preview-shell,
+.shop-preview-shell[data-animating="true"] {
+  --shop-preview-animation-state: running;
+}
+
 .shop-preview-badge > .cw-animated-badge > .cw-cosmetic-stage > .cw-cosmetic-icon,
 .shop-preview-badge > .cw-cosmetic-stage > .cw-cosmetic-icon {
   width: 72px;
@@ -360,6 +401,7 @@
   align-content: center;
   padding: 18px;
   gap: 10px;
+  overflow: hidden;
 }
 
 .shop-preview-post-line {
@@ -379,6 +421,105 @@
   margin-top: 8px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.74);
+}
+
+.shop-preview-shell--modal.shop-preview-frame,
+.shop-preview-shell--modal.shop-preview-title,
+.shop-preview-shell--modal.shop-preview-badge,
+.shop-preview-shell--modal.shop-preview-post {
+  min-height: 260px;
+  height: auto;
+  padding: 22px;
+}
+
+.shop-preview-profile-sample {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 100%;
+}
+
+.shop-preview-profile-sample--badge {
+  gap: 18px;
+}
+
+.shop-preview-profile-meta {
+  text-align: center;
+}
+
+.shop-preview-profile-meta strong {
+  display: block;
+  font-size: 18px;
+  color: #f5ffe8;
+}
+
+.shop-preview-profile-meta span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(236, 255, 226, 0.68);
+}
+
+.shop-preview-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shop-preview-post--modal {
+  align-content: flex-start;
+  gap: 12px;
+}
+
+.shop-preview-post-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shop-preview-post-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.shop-preview-post-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shop-preview-post-meta strong {
+  color: #f5ffe8;
+  font-size: 15px;
+}
+
+.shop-preview-post-meta span,
+.shop-preview-title-copy,
+.shop-preview-post-copy {
+  color: rgba(236, 255, 226, 0.68);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.shop-preview-post-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 94%;
+}
+
+.shop-preview-post--modal .shop-preview-post-line {
+  position: relative;
+  z-index: 2;
 }
 
 .shop-preview-post.cw-cosmetic-preview-post-moonlit {
@@ -453,6 +594,92 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.shop-preview-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(1, 10, 4, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.shop-preview-modal {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(150, 255, 165, 0.2);
+  background: linear-gradient(180deg, rgba(8, 32, 12, 0.98), rgba(2, 10, 4, 0.98));
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.42), 0 0 30px rgba(130, 255, 150, 0.08);
+}
+
+.shop-preview-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 150, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5ffe8;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.shop-preview-modal-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-right: 52px;
+}
+
+.shop-preview-modal-content {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(240px, 0.9fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.shop-preview-modal-stage {
+  min-width: 0;
+}
+
+.shop-preview-modal-copy h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 26px;
+  color: #f5ffe8;
+}
+
+.shop-preview-modal-copy p {
+  margin: 0;
+  color: rgba(236, 255, 226, 0.72);
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.shop-preview-modal-price {
+  margin-top: 18px;
+  color: #eaffc5;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.shop-preview-modal-actions {
+  margin-top: 18px;
+}
+
 @media (max-width: 980px) {
   .shop-hero,
   .shop-equipped-panel {
@@ -462,6 +689,10 @@
   .shop-equipped-grid,
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shop-preview-modal-content {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -487,5 +718,31 @@
 
   .shop-tabs button {
     white-space: nowrap;
+  }
+
+  .shop-preview-modal-backdrop {
+    padding: 12px;
+  }
+
+  .shop-preview-modal {
+    padding: 18px 16px;
+    max-height: 92vh;
+  }
+
+  .shop-preview-modal-topline {
+    padding-right: 44px;
+  }
+
+  .shop-preview-shell--modal.shop-preview-frame,
+  .shop-preview-shell--modal.shop-preview-title,
+  .shop-preview-shell--modal.shop-preview-badge,
+  .shop-preview-shell--modal.shop-preview-post {
+    min-height: 220px;
+    padding: 18px;
+  }
+
+  .shop-preview-profile-meta strong,
+  .shop-preview-modal-copy h2 {
+    font-size: 20px;
   }
 }
