@@ -23,8 +23,11 @@ const TYPE_LABELS = {
 };
 
 const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
+const SEED_ICON = "\uD83C\uDF31";
+const FIRE_ICON = "\uD83D\uDD25";
 
 const getDisplayType = (type) => (type === "visualEffect" ? "frame" : type);
+const hasAnimatedPreview = (item) => Boolean(getCosmeticAnimationClass(item?.id));
 
 function formatPreviewHandle(username) {
   if (!username) return "@Anonymous";
@@ -179,8 +182,8 @@ function ShopPreview({
           </p>
         )}
         <div className="shop-preview-post-actions">
-          <span>🌱 12</span>
-          <span>🔥 3</span>
+          <span>{SEED_ICON} 12</span>
+          <span>{FIRE_ICON} 3</span>
         </div>
       </div>
     );
@@ -276,7 +279,7 @@ function CosmeticPreviewModal({
           aria-label="Close cosmetic preview"
           onClick={onClose}
         >
-          ×
+          {"\u00D7"}
         </button>
 
         <div className="shop-preview-modal-topline">
@@ -305,7 +308,7 @@ function CosmeticPreviewModal({
               {item.name}
             </h2>
             <p>{item.description}</p>
-            <div className="shop-preview-modal-price">🌱 {item.price}</div>
+            <div className="shop-preview-modal-price">{SEED_ICON} {item.price}</div>
 
             <div className="shop-preview-modal-actions">
               {isEquipped ? (
@@ -355,6 +358,7 @@ function normalizeOwnedCosmetics(ownedCosmetics) {
 function Shop() {
   const navigate = useNavigate();
   const { user, token, updateUser, refreshUser } = useAuth();
+  const userId = user?._id || "";
 
   const [items, setItems] = useState([]);
   const [activeType, setActiveType] = useState("all");
@@ -393,6 +397,14 @@ function Shop() {
     return items.filter((item) => getDisplayType(item.type) === activeType);
   }, [items, activeType]);
 
+  const animatedItems = useMemo(() => {
+    return filteredItems.filter((item) => hasAnimatedPreview(item));
+  }, [filteredItems]);
+
+  const staticItems = useMemo(() => {
+    return filteredItems.filter((item) => !hasAnimatedPreview(item));
+  }, [filteredItems]);
+
   const typeCounts = useMemo(() => {
     const counts = { all: items.length };
 
@@ -421,7 +433,7 @@ function Shop() {
   };
 
   useEffect(() => {
-    if (!user || !token) {
+    if (!userId || !token) {
       navigate("/login");
       return;
     }
@@ -453,7 +465,7 @@ function Shop() {
     };
 
     loadShop();
-  }, [user, token, navigate, refreshUser]);
+  }, [userId, token, navigate, refreshUser]);
 
   useEffect(() => {
     if (!isPreviewOpen) return undefined;
@@ -612,6 +624,58 @@ function Shop() {
     );
   };
 
+  const renderItemCard = (item) => (
+    <article
+      className="shop-item-card"
+      key={item.id}
+      role="button"
+      tabIndex={0}
+      aria-label={`Preview ${item.name}`}
+      onClick={() => openCosmeticPreview(item)}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openCosmeticPreview(item);
+        }
+      }}
+    >
+      <div className="shop-item-topline">
+        <span
+          className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}
+        >
+          {item.rarity || "Common"}
+        </span>
+
+        <span className="shop-item-type">
+          {TYPE_LABELS[getDisplayType(item.type)] || item.type}
+        </span>
+      </div>
+
+      <ShopPreview
+        item={item}
+        mode="card"
+        isAnimating={false}
+        previewUser={previewUser}
+        equipped={equipped}
+      />
+
+      <div className="shop-item-body">
+        <h3>
+          <span>{item.icon}</span>
+          {item.name}
+        </h3>
+
+        <p>{item.description}</p>
+      </div>
+
+      <div className="shop-item-footer">
+        <div className="shop-price">{SEED_ICON} {item.price}</div>
+        {renderItemAction(item)}
+      </div>
+    </article>
+  );
+
   if (!user || !token) return null;
 
   return (
@@ -633,7 +697,7 @@ function Shop() {
 
         <div className="shop-seeds-panel">
           <span>Available Seeds</span>
-          <strong>ðŸŒ± {localSeeds || 0}</strong>
+          <strong>{SEED_ICON} {localSeeds || 0}</strong>
         </div>
       </section>
 
@@ -704,52 +768,33 @@ function Shop() {
       {loading ? (
         <div className="shop-loading">Loading forest cosmetics...</div>
       ) : (
-        <section className="shop-grid">
-          {filteredItems.map((item) => (
-            <article className="shop-item-card" key={item.id}>
-              <div className="shop-item-topline">
-                <span
-                  className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}
-                >
-                  {item.rarity || "Common"}
-                </span>
-
-                <span className="shop-item-type">
-                  {TYPE_LABELS[getDisplayType(item.type)] || item.type}
-                </span>
+        <>
+          {animatedItems.length > 0 && (
+            <section className="shop-cosmetic-section">
+              <div className="shop-section-header">
+                <h2>Animated Cosmetics</h2>
+                <p>Live frames, badges, and card themes that wake up when you hover them.</p>
               </div>
-
-              <button
-                type="button"
-                className="shop-preview-trigger"
-                onClick={() => openCosmeticPreview(item)}
-                aria-label={`Preview ${item.name}`}
-              >
-                <ShopPreview
-                  item={item}
-                  mode="card"
-                  isAnimating={false}
-                  previewUser={previewUser}
-                  equipped={equipped}
-                />
-              </button>
-
-              <div className="shop-item-body">
-                <h3>
-                  <span>{item.icon}</span>
-                  {item.name}
-                </h3>
-
-                <p>{item.description}</p>
+              <div className="shop-grid shop-grid--animated">
+                {animatedItems.map(renderItemCard)}
               </div>
+            </section>
+          )}
 
-              <div className="shop-item-footer">
-                <div className="shop-price">ðŸŒ± {item.price}</div>
-                {renderItemAction(item)}
+          {staticItems.length > 0 && (
+            <section className="shop-cosmetic-section">
+              {animatedItems.length > 0 ? (
+                <div className="shop-section-header">
+                  <h2>Static Cosmetics</h2>
+                  <p>Clean profile upgrades that stay still until you equip them.</p>
+                </div>
+              ) : null}
+              <div className="shop-grid">
+                {staticItems.map(renderItemCard)}
               </div>
-            </article>
-          ))}
-        </section>
+            </section>
+          )}
+        </>
       )}
 
       {selectedPreviewCosmetic && (
