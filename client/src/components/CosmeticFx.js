@@ -2,6 +2,7 @@ import React from "react";
 import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
 import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
 import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
+import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-full-effect-spritesheet.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -148,6 +149,18 @@ export function CosmeticFxLayers({ cosmeticId }) {
       >
         <span className="cw-venom-frame-fallback-glow" />
         <span className="cw-venom-frame-sprite" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-storm-hoodie") {
+    return (
+      <div
+        className="cw-cosmetic-fx-layer cw-storm-hoodie-frame-sprite-shell"
+        aria-hidden="true"
+        style={{ "--cw-storm-hoodie-sprite-image": `url(${stormHoodieFrameSprite})` }}
+      >
+        <span className="cw-storm-hoodie-frame-sprite" />
       </div>
     );
   }

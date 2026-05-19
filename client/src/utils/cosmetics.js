@@ -147,6 +147,12 @@ export const COSMETIC_META = {
     type: "frame",
     animationClass: "cw-cosmetic-frame-visor-lift-racer",
   },
+  "frame-storm-hoodie": {
+    icon: "\u26A1",
+    name: "Storm Hoodie Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-storm-hoodie",
+  },
   "frame-visor-lift-racer": {
     icon: "\uD83C\uDFC1",
     name: "Visor Lift Racer Frame",

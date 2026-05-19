@@ -276,6 +276,17 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-frame-visor-lift-racer",
   },
   {
+    id: "frame-storm-hoodie",
+    type: "frame",
+    name: "Storm Hoodie Frame",
+    description:
+      "A white storm-hood cloak charged with red lightning, flowing around your avatar.",
+    price: 260,
+    icon: "\u26A1",
+    rarity: "Legendary",
+    previewClass: "cw-cosmetic-frame-storm-hoodie",
+  },
+  {
     id: "post-theme-moonlit-vengeance",
     type: "postTheme",
     name: "Moonlit Vengeance Card",

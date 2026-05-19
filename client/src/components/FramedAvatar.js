@@ -33,6 +33,11 @@ function normalizeFrameId(frameId) {
     "frame-visor-lift-racer": "frame-victory-visor",
     frame_visor_lift_racer: "frame-victory-visor",
     visor_lift_racer_frame: "frame-victory-visor",
+    "frame-storm-hoodie": "frame-storm-hoodie",
+    frame_storm_hoodie: "frame-storm-hoodie",
+    "storm-hoodie-frame": "frame-storm-hoodie",
+    storm_hoodie_frame: "frame-storm-hoodie",
+    stormHoodieFrame: "frame-storm-hoodie",
   };
 
   return aliases[value] || value;
@@ -98,7 +103,8 @@ export default function FramedAvatar({
   const hasFrame = Boolean(normalized || activeEffectId === "visual-effect-cursed-violet-aura");
   const isAnimatedSpriteFrame =
     normalized === "frame-victory-visor" ||
-    normalized === "frame-storm-eye-rogue";
+    normalized === "frame-storm-eye-rogue" ||
+    normalized === "frame-storm-hoodie";
   const resolvedContext =
     context && context !== "auto"
       ? context
