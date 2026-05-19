@@ -3,6 +3,7 @@ import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.
 import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
 import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
 import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-greenkey-spritesheet.png";
+import groveButterflyFrameSprite from "../assets/avatarFrames/grove-butterfly-greenkey-spritesheet.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -161,6 +162,20 @@ export function CosmeticFxLayers({ cosmeticId }) {
         style={{ "--cw-storm-hoodie-sprite-image": `url(${stormHoodieFrameSprite})` }}
       >
         <span className="cw-storm-hoodie-frame-sprite" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-grove-butterfly") {
+    return (
+      <div
+        className="cw-cosmetic-fx-layer cw-grove-butterfly-frame-sprite-shell"
+        aria-hidden="true"
+        style={{
+          "--cw-grove-butterfly-sprite-image": `url(${groveButterflyFrameSprite})`,
+        }}
+      >
+        <span className="cw-grove-butterfly-frame-sprite" />
       </div>
     );
   }

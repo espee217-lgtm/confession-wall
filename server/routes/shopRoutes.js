@@ -287,6 +287,17 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-frame-storm-hoodie",
   },
   {
+    id: "frame-grove-butterfly",
+    type: "frame",
+    name: "Grove Butterfly Frame",
+    description:
+      "An enchanted vine frame with fluttering blue butterflies, glowing leaves, and soft forest fireflies around your avatar.",
+    price: 260,
+    icon: "\uD83E\uDD8B",
+    rarity: "Legendary",
+    previewClass: "cw-cosmetic-frame-grove-butterfly",
+  },
+  {
     id: "post-theme-moonlit-vengeance",
     type: "postTheme",
     name: "Moonlit Vengeance Card",

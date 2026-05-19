@@ -38,6 +38,11 @@ function normalizeFrameId(frameId) {
     "storm-hoodie-frame": "frame-storm-hoodie",
     storm_hoodie_frame: "frame-storm-hoodie",
     stormHoodieFrame: "frame-storm-hoodie",
+    "frame-grove-butterfly": "frame-grove-butterfly",
+    frame_grove_butterfly: "frame-grove-butterfly",
+    "grove-butterfly-frame": "frame-grove-butterfly",
+    grove_butterfly_frame: "frame-grove-butterfly",
+    groveButterflyFrame: "frame-grove-butterfly",
   };
 
   return aliases[value] || value;
@@ -104,7 +109,8 @@ export default function FramedAvatar({
   const isAnimatedSpriteFrame =
     normalized === "frame-victory-visor" ||
     normalized === "frame-storm-eye-rogue" ||
-    normalized === "frame-storm-hoodie";
+    normalized === "frame-storm-hoodie" ||
+    normalized === "frame-grove-butterfly";
   const resolvedContext =
     context && context !== "auto"
       ? context

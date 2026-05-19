@@ -153,6 +153,12 @@ export const COSMETIC_META = {
     type: "frame",
     animationClass: "cw-cosmetic-frame-storm-hoodie",
   },
+  "frame-grove-butterfly": {
+    icon: "\uD83E\uDD8B",
+    name: "Grove Butterfly Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-grove-butterfly",
+  },
   "frame-visor-lift-racer": {
     icon: "\uD83C\uDFC1",
     name: "Visor Lift Racer Frame",
