@@ -809,8 +809,12 @@ export default function Settings() {
         }}
       />
 
-      <div style={{ maxWidth: "520px", margin: "0 auto", position: "relative" }}>
+      <div
+        className="cw-settings-shell"
+        style={{ maxWidth: "520px", margin: "0 auto", position: "relative" }}
+      >
         <div
+          className="cw-settings-panel"
           style={{
             background: palette.panelBg,
             border: `1px solid ${palette.border}`,
@@ -880,6 +884,7 @@ export default function Settings() {
 
             <form onSubmit={handleProfileSubmit}>
               <div
+                className="cw-settings-profile-hero"
                 style={{
                   background:
                     "radial-gradient(circle at 50% 0%, rgba(140,255,150,0.12), transparent 45%), rgba(255,255,255,0.035)",
@@ -1021,6 +1026,7 @@ export default function Settings() {
             </div>
 
             <div
+              className="cw-settings-preview-card"
               style={{
                 ...previewCardStyle,
                 ...previewThemeStyle,
@@ -1056,6 +1062,7 @@ export default function Settings() {
             </div>
 
             <div
+              className="cw-settings-seed-row"
               style={{
                 marginTop: "14px",
                 padding: "12px",

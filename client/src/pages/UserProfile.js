@@ -1,6 +1,5 @@
 import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
-import MobileBottomNav from "../components/MobileBottomNav";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
@@ -29,7 +28,6 @@ function CosmeticChip({ item, fallback }) {
         <div style={cosmeticChipLabelStyle}>{fallback}</div>
         <strong style={cosmeticChipValueStyle}>{item?.name || "None"}</strong>
       </div>
-      <MobileBottomNav />
     </div>
   );
 }
@@ -109,12 +107,12 @@ export default function UserProfile() {
       <div style={ambientLeafStyle}>✦</div>
       <div style={ambientLeafTwoStyle}>❧</div>
 
-      <div style={containerStyle}>
+      <div className="cw-user-profile-shell" style={containerStyle}>
         <Link to="/" style={backButtonStyle}>
           ← Return to Grove
         </Link>
 
-        <section style={profileCardStyle}>
+        <section className="cw-user-profile-hero" style={profileCardStyle}>
           <div style={profileCardAuraStyle} />
 
           <div style={{ position: "relative", zIndex: 1 }}>
@@ -128,22 +126,23 @@ export default function UserProfile() {
             />
 
             <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    flexWrap: "wrap",
-    marginTop: "1rem",
-  }}
->
-  <h2 style={{ ...usernameStyle, margin: 0 }}>
-    {profile.username}{" "}
-    <AnimatedBadge badgeId={equipped.badge} size="lg" />
-  </h2>
+              className="cw-user-profile-name-row"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                flexWrap: "wrap",
+                marginTop: "1rem",
+              }}
+            >
+              <h2 style={{ ...usernameStyle, margin: 0 }}>
+                {profile.username}{" "}
+                <AnimatedBadge badgeId={equipped.badge} size="lg" />
+              </h2>
 
-  <DisplayTitlePill titleId={equipped.title} size="big" />
-</div>
+              <DisplayTitlePill titleId={equipped.title} size="big" />
+            </div>
 
             {profile.bio ? (
               <p style={bioStyle}>“{profile.bio}”</p>
@@ -159,6 +158,7 @@ export default function UserProfile() {
             </p>
             {profile.showSeedsOnProfile && typeof profile.seeds === "number" && (
   <div
+    className="cw-user-profile-seed-pill"
     style={{
       margin: "12px auto 0",
       display: "inline-flex",
@@ -179,7 +179,7 @@ export default function UserProfile() {
           </div>
         </section>
 
-        <section style={equippedPanelStyle}>
+        <section className="cw-user-profile-cosmetics" style={equippedPanelStyle}>
           <div style={sectionTitleRowStyle}>
             <div>
               <p style={smallKickerStyle}>active aura</p>
@@ -187,7 +187,7 @@ export default function UserProfile() {
             </div>
           </div>
 
-          <div style={cosmeticGridStyle}>
+          <div className="cw-user-profile-cosmetic-grid" style={cosmeticGridStyle}>
             <CosmeticChip item={badgeItem} fallback="Badge" />
             <CosmeticChip item={frameItem} fallback="Frame" />
             <CosmeticChip item={titleItem} fallback="Title" />
@@ -195,7 +195,7 @@ export default function UserProfile() {
           </div>
         </section>
 
-        <div style={sectionHeaderStyle}>
+        <div className="cw-user-profile-posts-header" style={sectionHeaderStyle}>
           <span>🌿 Forest Echoes</span>
           <span style={countStyle}>
             {posts.length} post{posts.length !== 1 ? "s" : ""}
@@ -222,6 +222,7 @@ export default function UserProfile() {
                 style={{ textDecoration: "none", color: "inherit" }}
               >
                 <article
+                  className="cw-user-profile-post-card"
                   style={{
                     ...postCardStyle,
                     ...themeStyle,

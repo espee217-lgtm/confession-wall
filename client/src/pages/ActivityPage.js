@@ -9,6 +9,9 @@ const API_BASE =
     ? "http://localhost:5000"
     : "https://confession-wall-hn63.onrender.com");
 
+const BELL_ICON = "\uD83D\uDD14";
+const BACK_ARROW = "\u2190";
+
 export default function ActivityPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -99,7 +102,7 @@ export default function ActivityPage() {
     return (
       <main className="activity-page-shell">
         <section className="activity-hero-card">
-          <p className="activity-kicker">🔔 activity</p>
+          <p className="activity-kicker">{BELL_ICON} activity</p>
           <h1>Log in to see notifications</h1>
           <p>Your comments, reactions, and report updates will appear here.</p>
           <button type="button" onClick={() => navigate("/login")}>Login</button>
@@ -114,11 +117,15 @@ export default function ActivityPage() {
     <main className="activity-page-shell">
       <section className="activity-hero-card">
         <button type="button" className="activity-back-btn" onClick={() => navigate(-1)}>
-          ← back
+          {BACK_ARROW} back
         </button>
-        <p className="activity-kicker">🔔 activity</p>
+        <p className="activity-kicker">{BELL_ICON} activity</p>
         <h1>Notifications</h1>
-        <p>{unread > 0 ? `${unread} unread update${unread === 1 ? "" : "s"}` : "You are all caught up."}</p>
+        <p>
+          {unread > 0
+            ? `${unread} unread update${unread === 1 ? "" : "s"}`
+            : "You are all caught up."}
+        </p>
 
         {notifications.length > 0 && (
           <button type="button" className="activity-read-all" onClick={markAllAsRead}>

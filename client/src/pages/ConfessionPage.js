@@ -417,42 +417,49 @@ const activeCommentPinPosition = isPhoneLayout
 
   const cardStyle = {
     background: theme.cardBg,
-    borderRadius: "18px",
+    borderRadius: isPhoneLayout ? "16px" : "18px",
     border: theme.cardBorder,
-    padding: "24px",
-    marginBottom: "28px",
-    boxShadow: theme.cardShadow,
+    padding: isPhoneLayout ? "18px 16px" : "24px",
+    marginBottom: isPhoneLayout ? "20px" : "28px",
+    boxShadow: isPhoneLayout
+      ? "0 14px 44px rgba(0,0,0,0.34)"
+      : theme.cardShadow,
     color: theme.text,
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
+    backdropFilter: isPhoneLayout ? "blur(12px)" : "blur(16px)",
+    WebkitBackdropFilter: isPhoneLayout ? "blur(12px)" : "blur(16px)",
     ...authorPostThemeStyle,
   };
 
   const commentCardStyle = {
     background: theme.cardBg,
-    borderRadius: "14px",
+    borderRadius: isPhoneLayout ? "12px" : "14px",
     border: theme.cardBorder,
-    padding: "14px 18px",
-    marginBottom: "10px",
-    boxShadow: theme.cardShadow,
+    padding: isPhoneLayout ? "12px 14px" : "14px 18px",
+    marginBottom: isPhoneLayout ? "8px" : "10px",
+    boxShadow: isPhoneLayout
+      ? "0 12px 36px rgba(0,0,0,0.3)"
+      : theme.cardShadow,
     color: theme.text,
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
+    backdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
+    WebkitBackdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
   };
 
   const inputRowStyle = {
-  position: "relative",
-  display: "flex",
-    gap: "8px",
-    alignItems: "center",
-    marginTop: "20px",
+    position: "relative",
+    display: "flex",
+    gap: isPhoneLayout ? "10px" : "8px",
+    alignItems: isPhoneLayout ? "stretch" : "center",
+    flexWrap: isPhoneLayout ? "wrap" : "nowrap",
+    marginTop: isPhoneLayout ? "16px" : "20px",
     background: theme.inputBg,
-    borderRadius: "50px",
+    borderRadius: isPhoneLayout ? "22px" : "50px",
     border: theme.cardBorder,
-    padding: "6px 6px 6px 18px",
-    boxShadow: theme.cardShadow,
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
+    padding: isPhoneLayout ? "10px" : "6px 6px 6px 18px",
+    boxShadow: isPhoneLayout
+      ? "0 14px 36px rgba(0,0,0,0.26)"
+      : theme.cardShadow,
+    backdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
+    WebkitBackdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
     ...viewerPostThemeStyle,
   };
   const insertEmoji = (emoji) => {
@@ -803,7 +810,14 @@ const activeCommentPinPosition = isPhoneLayout
             className={authorPostThemeClass || undefined}
           >
             <PostThemeFxLayers themeId={confessionThemeId} />
-            <div style={styles.avatarRow}>
+            <div
+              style={{
+                ...styles.avatarRow,
+                gap: isPhoneLayout ? "8px" : "10px",
+                alignItems: isPhoneLayout ? "flex-start" : "center",
+                marginBottom: isPhoneLayout ? "12px" : "14px",
+              }}
+            >
               <Link
                 to={confession.userId ? `/user/${confession.userId._id}` : "#"}
                 style={{
@@ -823,40 +837,40 @@ const activeCommentPinPosition = isPhoneLayout
               </Link>
 
               <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    flexWrap: "wrap",
-  }}
->
-  <Link
-    to={confession.userId ? `/user/${confession.userId._id}` : "#"}
-    style={{
-      fontWeight: 600,
-      fontSize: "14px",
-      color: theme.username,
-      textDecoration: "none",
-      display: "inline-flex",
-      alignItems: "center",
-      gap: "4px",
-    }}
-  >
-    @{confession.userId?.username || "anonymous"}{" "}
-    <AnimatedBadge badgeId={authorEquipped.badge} size="sm" />
-  </Link>
+                style={{
+                  display: "flex",
+                  alignItems: isPhoneLayout ? "flex-start" : "center",
+                  gap: isPhoneLayout ? "6px" : "8px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link
+                  to={confession.userId ? `/user/${confession.userId._id}` : "#"}
+                  style={{
+                    fontWeight: 600,
+                    fontSize: isPhoneLayout ? "13px" : "14px",
+                    color: theme.username,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  @{confession.userId?.username || "anonymous"}{" "}
+                  <AnimatedBadge badgeId={authorEquipped.badge} size="sm" />
+                </Link>
 
-  <DisplayTitlePill titleId={authorEquipped.title} />
-  {moodStyle && <span style={moodStyle}>{confession.mood}</span>}
-</div>
+                <DisplayTitlePill titleId={authorEquipped.title} />
+                {moodStyle && <span style={moodStyle}>{confession.mood}</span>}
+              </div>
             </div>
 
             <p
               style={{
-                fontSize: "16px",
+                fontSize: isPhoneLayout ? "15px" : "16px",
                 color: theme.text,
-                lineHeight: 1.7,
-                margin: "0 0 12px",
+                lineHeight: isPhoneLayout ? 1.62 : 1.7,
+                margin: isPhoneLayout ? "0 0 10px" : "0 0 12px",
               }}
             >
               {confession.message}
@@ -879,9 +893,9 @@ const activeCommentPinPosition = isPhoneLayout
               Array.isArray(confession.poll.options) && (
                 <div
                   style={{
-                    marginTop: "14px",
-                    padding: "14px",
-                    borderRadius: "16px",
+                    marginTop: isPhoneLayout ? "12px" : "14px",
+                    padding: isPhoneLayout ? "12px" : "14px",
+                    borderRadius: isPhoneLayout ? "14px" : "16px",
                     border: "1px solid rgba(180, 210, 255, 0.18)",
                     background: "rgba(255,255,255,0.04)",
                   }}
@@ -902,7 +916,7 @@ const activeCommentPinPosition = isPhoneLayout
                     style={{
                       margin: "0 0 10px",
                       color: theme.text,
-                      fontSize: "14px",
+                      fontSize: isPhoneLayout ? "13px" : "14px",
                       lineHeight: 1.55,
                     }}
                   >
@@ -920,14 +934,14 @@ const activeCommentPinPosition = isPhoneLayout
                           alignItems: "center",
                           justifyContent: "space-between",
                           gap: "10px",
-                          padding: "9px 12px",
-                          borderRadius: "12px",
+                          padding: isPhoneLayout ? "8px 10px" : "9px 12px",
+                          borderRadius: isPhoneLayout ? "10px" : "12px",
                           border: `1px solid ${theme.reactionBorder}`,
                           background: "rgba(255,255,255,0.05)",
                           color: theme.text,
                           cursor: "pointer",
                           fontFamily: "Georgia, serif",
-                          fontSize: "12px",
+                          fontSize: isPhoneLayout ? "11px" : "12px",
                         }}
                       >
                         <span>{option.text}</span>
@@ -1110,14 +1124,14 @@ const activeCommentPinPosition = isPhoneLayout
 
           <div
             style={{
-              fontSize: "12px",
+              fontSize: isPhoneLayout ? "11px" : "12px",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
               color: theme.section,
-              marginBottom: "14px",
+              marginBottom: isPhoneLayout ? "12px" : "14px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: isPhoneLayout ? "6px" : "8px",
             }}
           >
             <span>✦</span>
@@ -1143,7 +1157,9 @@ const activeCommentPinPosition = isPhoneLayout
                 <div
                   key={c._id || i}
                   id={`comment-${c._id}`}
-                  className={commentPostThemeClass || undefined}
+                  className={`cw-confession-comment-card${
+                    commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
+                  }`}
                   style={{
   ...commentCardStyle,
   ...commentPostThemeStyle,
@@ -1159,11 +1175,18 @@ const activeCommentPinPosition = isPhoneLayout
                   }}
                 >
                   <PostThemeFxLayers themeId={commentThemeId} />
-                  <div style={{ display: "flex", alignItems: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: isPhoneLayout ? "flex-start" : "center",
+                      flexWrap: "wrap",
+                      gap: isPhoneLayout ? "6px" : "0",
+                    }}
+                  >
                     <Link
                       to={c.userId ? `/user/${c.userId._id}` : "#"}
                       style={{
-                        marginRight: "10px",
+                        marginRight: isPhoneLayout ? "6px" : "10px",
                         display: "inline-flex",
                         alignItems: "center",
                         textDecoration: "none",
@@ -1183,7 +1206,7 @@ const activeCommentPinPosition = isPhoneLayout
                       to={c.userId ? `/user/${c.userId._id}` : "#"}
                       style={{
                         fontWeight: 600,
-                        fontSize: "13px",
+                        fontSize: isPhoneLayout ? "12px" : "13px",
                         color: theme.username,
                         textDecoration: "none",
                         display: "inline-flex",
@@ -1200,10 +1223,10 @@ const activeCommentPinPosition = isPhoneLayout
                   {c.text && (
                     <p
                       style={{
-                        fontSize: "14px",
+                        fontSize: isPhoneLayout ? "13px" : "14px",
                         color: commentTextColor,
-                        lineHeight: 1.65,
-                        margin: "5px 0 0",
+                        lineHeight: isPhoneLayout ? 1.58 : 1.65,
+                        margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
                       }}
                     >
                       {c.text}
@@ -1232,8 +1255,8 @@ const activeCommentPinPosition = isPhoneLayout
                       border: theme.reportBorder,
                       color: theme.reportColor,
                       borderRadius: "12px",
-                      padding: "5px 11px",
-                      fontSize: "11px",
+                      padding: isPhoneLayout ? "5px 10px" : "5px 11px",
+                      fontSize: isPhoneLayout ? "10px" : "11px",
                       cursor: "pointer",
                       fontFamily: "Georgia, serif",
                     }}
@@ -1322,7 +1345,7 @@ const activeCommentPinPosition = isPhoneLayout
                   src={commentPreview}
                   alt="preview"
                   style={{
-                    maxHeight: "100px",
+                    maxHeight: isPhoneLayout ? "84px" : "100px",
                     borderRadius: "10px",
                   }}
                 />
@@ -1360,10 +1383,12 @@ const activeCommentPinPosition = isPhoneLayout
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 style={{
-                  flex: 1,
+                  flex: isPhoneLayout ? "1 1 100%" : 1,
+                  width: isPhoneLayout ? "100%" : "auto",
+                  minHeight: isPhoneLayout ? "42px" : undefined,
                   border: "none",
                   outline: "none",
-                  fontSize: "14px",
+                  fontSize: isPhoneLayout ? "15px" : "14px",
                   color: viewerHasPostTheme
                     ? "rgba(240,255,235,0.95)"
                     : theme.inputText,
@@ -1552,9 +1577,9 @@ onMouseLeave={(e) => {
                     ? "1px solid rgba(150, 200, 255, 0.45)"
                     : "none",
                   borderRadius: "50px",
-                  padding: "8px 20px",
+                  padding: isPhoneLayout ? "8px 16px" : "8px 20px",
                   color: realm === "scorched" ? "#1d0704" : "white",
-                  fontSize: "13px",
+                  fontSize: isPhoneLayout ? "12px" : "13px",
                   cursor: "pointer",
                   fontFamily: "Georgia, serif",
                   letterSpacing: "0.05em",

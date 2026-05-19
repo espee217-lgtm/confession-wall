@@ -751,7 +751,15 @@
   }
 
   .shop-tabs button {
+    padding: 8px 11px;
+    min-height: 38px;
+    font-size: 11px;
     white-space: nowrap;
+  }
+
+  .shop-tabs button span {
+    padding: 2px 6px;
+    font-size: 10px;
   }
 
   .shop-preview-modal-backdrop {
@@ -759,8 +767,17 @@
   }
 
   .shop-preview-modal {
-    padding: 18px 16px;
+    padding: 16px 14px;
     max-height: 92vh;
+    border-radius: 24px;
+  }
+
+  .shop-preview-close {
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
   }
 
   .shop-preview-modal-topline {
@@ -771,13 +788,17 @@
   .shop-preview-shell--modal.shop-preview-title,
   .shop-preview-shell--modal.shop-preview-badge,
   .shop-preview-shell--modal.shop-preview-post {
-    min-height: 220px;
-    padding: 18px;
+    min-height: 200px;
+    padding: 16px;
   }
 
   .shop-preview-profile-meta strong,
   .shop-preview-modal-copy h2 {
     font-size: 20px;
+  }
+
+  .shop-preview-modal-copy p {
+    font-size: 13px;
   }
 
   .shop-section-header h2 {

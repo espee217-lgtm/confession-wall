@@ -823,18 +823,20 @@ a.chip {
     background: transparent;
     color: rgba(244,255,230,0.74);
     font-family: Georgia, serif;
-    font-size: 20px;
+    font-size: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    min-height: 48px;
+    gap: 2px;
+    min-height: 44px;
+    padding: 0 2px;
     cursor: pointer;
   }
 
   .mobile-home-bottom-nav button span {
-    font-size: 10px;
+    font-size: 9px;
+    line-height: 1.1;
   }
 
   .mobile-home-bottom-nav button.active {
@@ -842,10 +844,10 @@ a.chip {
   }
 
   .mobile-home-bottom-nav button.confess {
-    width: 66px;
-    height: 66px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    margin: -28px auto 0;
+    margin: -24px auto 0;
     background: radial-gradient(circle at 35% 22%, #a7e95a, #3a750d 68%, #173b08);
     color: #f7ffe9;
     border: 1px solid rgba(227,255,170,0.55);
@@ -868,49 +870,61 @@ a.chip {
 
   .mobile-compose-card {
     width: 100%;
-    border-radius: 26px;
+    max-width: min(100%, 420px);
+    max-height: min(88dvh, 760px);
+    overflow-y: auto;
+    border-radius: 24px;
     background: linear-gradient(180deg, rgba(9,35,12,0.98), rgba(4,18,7,0.98));
     border: 1px solid rgba(214,255,169,0.18);
     box-shadow: 0 -12px 50px rgba(0,0,0,0.55);
-    padding: 22px;
+    padding: 18px 16px 16px;
     position: relative;
     box-sizing: border-box;
   }
 
   .mobile-compose-close {
     position: absolute;
-    right: 18px;
-    top: 16px;
-    border: 0;
-    background: transparent;
+    right: 12px;
+    top: 12px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid rgba(220,255,180,0.16);
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
     color: rgba(255,255,235,0.65);
-    font-size: 18px;
+    font-size: 20px;
+    line-height: 1;
   }
 
   .mobile-compose-kicker {
     margin: 0 0 6px;
     color: #e7ff99;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .mobile-compose-card h2 {
-    margin: 0 0 14px;
-    font-size: 20px;
+    margin: 0 0 12px;
+    padding-right: 38px;
+    font-size: 18px;
+    line-height: 1.25;
   }
 
   .mobile-compose-card textarea {
     width: 100%;
-    min-height: 130px;
+    min-height: 112px;
     resize: vertical;
-    border-radius: 18px;
+    border-radius: 16px;
     border: 1px solid rgba(220,255,180,0.18);
     background: rgba(255,255,255,0.06);
     color: #f7ffe8;
-    padding: 14px;
+    padding: 12px;
     font-family: Georgia, serif;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.5;
     outline: none;
     box-sizing: border-box;
@@ -1155,6 +1169,8 @@ a.chip {
 .search-input-wrap button {
   width: 30px;
   height: 30px;
+  display: grid;
+  place-items: center;
   margin: 0;
   padding: 0;
   border-radius: 50%;
@@ -1886,7 +1902,10 @@ a.chip {
 
   .shop-tabs button {
     flex: 0 0 auto !important;
-    min-height: 42px !important;
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    gap: 6px !important;
   }
 
   .shop-grid {
@@ -1992,6 +2011,12 @@ a.chip {
     padding: 0 12px !important;
   }
 
+  .cw-confession-page .cw-confession-comment-card,
+  .cw-confession-page .cw-confession-comment-card p,
+  .cw-confession-page .cw-confession-comment-card a {
+    overflow-wrap: anywhere !important;
+  }
+
   .cw-confession-page div[style*="border-radius: 50px"] button,
   .cw-confession-page button {
     min-height: 38px !important;
@@ -2044,6 +2069,11 @@ a.chip {
     gap: 8px !important;
   }
 
+  .search-filter-row button {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
   .activity-item {
     padding: 14px !important;
   }
@@ -2080,6 +2110,50 @@ a.chip {
     max-width: 100% !important;
   }
 
+  .cw-user-profile-shell {
+    width: 100% !important;
+  }
+
+  .cw-user-profile-hero {
+    padding: 20px 16px !important;
+    border-radius: 24px !important;
+  }
+
+  .cw-user-profile-hero h2 {
+    font-size: 1.55rem !important;
+    line-height: 1.12 !important;
+  }
+
+  .cw-user-profile-name-row {
+    gap: 8px !important;
+    margin-top: 14px !important;
+  }
+
+  .cw-user-profile-seed-pill {
+    font-size: 12px !important;
+    padding: 7px 12px !important;
+  }
+
+  .cw-user-profile-cosmetics {
+    margin-bottom: 18px !important;
+  }
+
+  .cw-user-profile-cosmetic-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .cw-user-profile-posts-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .cw-user-profile-post-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
   /* ===== Settings / profile editor ===== */
   .cw-settings-page {
     padding: 16px 12px 96px !important;
@@ -2112,6 +2186,44 @@ a.chip {
 
   .cw-settings-page div[style*="grid-template-columns"] {
     grid-template-columns: 1fr !important;
+  }
+
+  .cw-settings-shell {
+    width: 100% !important;
+  }
+
+  .cw-settings-panel {
+    padding: 22px 16px !important;
+    border-radius: 24px !important;
+  }
+
+  .cw-settings-profile-hero {
+    padding: 16px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .cw-settings-profile-hero h3 {
+    font-size: 1.05rem !important;
+  }
+
+  .cw-settings-preview-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .cw-settings-preview-card > div:first-child {
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .cw-settings-seed-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .cw-settings-seed-row button {
+    align-self: flex-start !important;
   }
 
   /* ===== Admin dashboard ===== */

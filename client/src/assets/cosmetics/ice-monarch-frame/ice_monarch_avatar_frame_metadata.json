@@ -1,0 +1,21 @@
+{
+  "name": "Ice Monarch Frame",
+  "type": "profile_frame",
+  "frameCount": 72,
+  "fps": 12,
+  "columns": 8,
+  "rows": 9,
+  "cellWidth": 512,
+  "cellHeight": 512,
+  "spriteSheetWidth": 4096,
+  "spriteSheetHeight": 4608,
+  "sourceVideoFps": 24.0,
+  "sourceVideoFrames": 144,
+  "greenRemoved": true,
+  "transparentAreas": [
+    "outer background",
+    "center avatar/profile-picture hole",
+    "any chroma green pixels inside the artwork"
+  ],
+  "notes": "All visible chrome green was aggressively keyed to transparency; minor chroma spill was de-greened. Frames are square 512x512 and packed into an 8x9 grid."
+}

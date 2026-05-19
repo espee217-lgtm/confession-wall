@@ -1015,17 +1015,17 @@ function MobileHomePage({
         >
           <div className="mobile-compose-card">
             <button
-  type="button"
-  className="mobile-compose-close"
-  onClick={() => setShowCompose(false)}
-  style={{
-    top: "-5px",
-    right: "-4px",
-  }}
->
-  ✕
-</button>
-            <p className="mobile-compose-kicker">✦ plant a confession</p>
+              type="button"
+              className="mobile-compose-close"
+              onClick={() => setShowCompose(false)}
+              aria-label="Close compose"
+            >
+              {"\u00D7"}
+            </button>
+            <p className="mobile-compose-kicker">{"\u2726"} plant a confession</p>
+
+
+
             <h2>What do you need to confess?</h2>
             <textarea
   ref={postInputRef}

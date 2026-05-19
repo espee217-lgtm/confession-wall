@@ -10,11 +10,17 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const FILTERS = [
-  { key: "all", label: "All", icon: "✦" },
-  { key: "grove", label: "Grove", icon: "🌿" },
-  { key: "budding", label: "Budding", icon: "🌱" },
-  { key: "scorched", label: "Scorched", icon: "🔥" },
+  { key: "all", label: "All", icon: "\u2726" },
+  { key: "grove", label: "Grove", icon: "\uD83C\uDF3F" },
+  { key: "budding", label: "Budding", icon: "\uD83C\uDF31" },
+  { key: "scorched", label: "Scorched", icon: "\uD83D\uDD25" },
 ];
+
+const BACK_ARROW = "\u2190";
+const SEARCH_ICON = "\uD83D\uDD0D";
+const CLOSE_ICON = "\u00D7";
+const LEFT_QUOTE = "\u201C";
+const RIGHT_QUOTE = "\u201D";
 
 const getRealm = (post) => {
   const watered = post.wateredBy?.length || 0;
@@ -47,9 +53,12 @@ export default function SearchPage() {
         if (trimmedQuery) params.set("q", trimmedQuery);
         if (filter !== "all") params.set("type", filter);
 
-        const res = await fetch(`${API_BASE}/api/confessions/search?${params.toString()}`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(
+          `${API_BASE}/api/confessions/search?${params.toString()}`,
+          {
+            signal: controller.signal,
+          }
+        );
 
         const data = await res.json();
 
@@ -81,15 +90,15 @@ export default function SearchPage() {
     <main className="search-page-shell">
       <section className="search-hero-card">
         <button type="button" className="search-back-btn" onClick={() => navigate(-1)}>
-          ← back
+          {BACK_ARROW} back
         </button>
 
-        <p className="search-kicker">✦ find whispers</p>
+        <p className="search-kicker">{"\u2726"} find whispers</p>
         <h1>Search Confessions</h1>
         <p>Look through posts by text, username, or realm.</p>
 
         <div className="search-input-wrap">
-          <span>🔍</span>
+          <span>{SEARCH_ICON}</span>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -98,7 +107,7 @@ export default function SearchPage() {
           />
           {query && (
             <button type="button" onClick={() => setQuery("")} aria-label="Clear search">
-              ✕
+              {CLOSE_ICON}
             </button>
           )}
         </div>
@@ -120,8 +129,16 @@ export default function SearchPage() {
 
       <section className="search-results-head">
         <div>
-          <strong>{loading ? "Searching..." : `${results.length} result${results.length === 1 ? "" : "s"}`}</strong>
-          <span>{trimmedQuery ? `for “${trimmedQuery}”` : "showing recent confessions"}</span>
+          <strong>
+            {loading
+              ? "Searching..."
+              : `${results.length} result${results.length === 1 ? "" : "s"}`}
+          </strong>
+          <span>
+            {trimmedQuery
+              ? `for ${LEFT_QUOTE}${trimmedQuery}${RIGHT_QUOTE}`
+              : "showing recent confessions"}
+          </span>
         </div>
       </section>
 
