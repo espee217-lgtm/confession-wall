@@ -43,6 +43,16 @@ function normalizeFrameId(frameId) {
     "grove-butterfly-frame": "frame-grove-butterfly",
     grove_butterfly_frame: "frame-grove-butterfly",
     groveButterflyFrame: "frame-grove-butterfly",
+    "frame-demon-thorn": "frame-demon-thorn",
+    frame_demon_thorn: "frame-demon-thorn",
+    "demon-thorn-frame": "frame-demon-thorn",
+    demon_thorn_frame: "frame-demon-thorn",
+    demonThornFrame: "frame-demon-thorn",
+    "frame-lotus-aura": "frame-lotus-aura",
+    frame_lotus_aura: "frame-lotus-aura",
+    "lotus-aura-frame": "frame-lotus-aura",
+    lotus_aura_frame: "frame-lotus-aura",
+    lotusAuraFrame: "frame-lotus-aura",
   };
 
   return aliases[value] || value;
@@ -110,7 +120,9 @@ export default function FramedAvatar({
     normalized === "frame-victory-visor" ||
     normalized === "frame-storm-eye-rogue" ||
     normalized === "frame-storm-hoodie" ||
-    normalized === "frame-grove-butterfly";
+    normalized === "frame-grove-butterfly" ||
+    normalized === "frame-demon-thorn" ||
+    normalized === "frame-lotus-aura";
   const resolvedContext =
     context && context !== "auto"
       ? context

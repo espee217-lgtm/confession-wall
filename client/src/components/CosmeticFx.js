@@ -4,6 +4,8 @@ import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-ava
 import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
 import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-greenkey-spritesheet.png";
 import groveButterflyFrameSprite from "../assets/avatarFrames/grove-butterfly-greenkey-spritesheet.png";
+import demonThornFrameSprite from "../assets/avatarFrames/demon-thorn-greenkey-fixed-spritesheet.png";
+import lotusAuraFrameSprite from "../assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_7x7.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -176,6 +178,34 @@ export function CosmeticFxLayers({ cosmeticId }) {
         }}
       >
         <span className="cw-grove-butterfly-frame-sprite" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-demon-thorn") {
+    return (
+      <div
+        className="cw-cosmetic-fx-layer cw-demon-thorn-frame-sprite-shell"
+        aria-hidden="true"
+        style={{
+          "--cw-demon-thorn-sprite-image": `url(${demonThornFrameSprite})`,
+        }}
+      >
+        <span className="cw-demon-thorn-frame-sprite" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-lotus-aura") {
+    return (
+      <div
+        className="cw-cosmetic-fx-layer cw-lotus-aura-frame-sprite-shell"
+        aria-hidden="true"
+        style={{
+          "--cw-lotus-aura-sprite-image": `url(${lotusAuraFrameSprite})`,
+        }}
+      >
+        <span className="cw-lotus-aura-frame-sprite" />
       </div>
     );
   }

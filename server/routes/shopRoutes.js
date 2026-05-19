@@ -298,6 +298,28 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-frame-grove-butterfly",
   },
   {
+    id: "frame-demon-thorn",
+    type: "frame",
+    name: "Demon Thorn Frame",
+    description:
+      "A cursed black thorn frame with crimson ember veins, flickering flames, drifting ash, and a dark demonic aura around your avatar.",
+    price: 260,
+    icon: "\uD83D\uDD25",
+    rarity: "Legendary",
+    previewClass: "cw-cosmetic-frame-demon-thorn",
+  },
+  {
+    id: "frame-lotus-aura",
+    type: "frame",
+    name: "Lotus Aura Frame",
+    description:
+      "A luminous lotus aura frame with blooming petals and enchanted still-water glow around your avatar.",
+    price: 260,
+    icon: "\uD83E\uDEB7",
+    rarity: "Legendary",
+    previewClass: "cw-cosmetic-frame-lotus-aura",
+  },
+  {
     id: "post-theme-moonlit-vengeance",
     type: "postTheme",
     name: "Moonlit Vengeance Card",

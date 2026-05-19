@@ -159,6 +159,18 @@ export const COSMETIC_META = {
     type: "frame",
     animationClass: "cw-cosmetic-frame-grove-butterfly",
   },
+  "frame-demon-thorn": {
+    icon: "\uD83D\uDD25",
+    name: "Demon Thorn Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-demon-thorn",
+  },
+  "frame-lotus-aura": {
+    icon: "\uD83E\uDEB7",
+    name: "Lotus Aura Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-lotus-aura",
+  },
   "frame-visor-lift-racer": {
     icon: "\uD83C\uDFC1",
     name: "Visor Lift Racer Frame",

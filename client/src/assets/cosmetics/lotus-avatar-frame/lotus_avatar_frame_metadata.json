@@ -1,0 +1,25 @@
+{
+  "name": "lotus_avatar_frame",
+  "frame_count": 49,
+  "source_video_fps": 24,
+  "extracted_every_n_frames": 2,
+  "suggested_animation_fps": 12,
+  "frame_width": 512,
+  "frame_height": 512,
+  "grid_sprite_sheet": {
+    "file": "lotus_avatar_frame_spritesheet_49f_7x7.png",
+    "columns": 7,
+    "rows": 7,
+    "width": 3584,
+    "height": 3584
+  },
+  "horizontal_sprite_sheet": {
+    "file": "lotus_avatar_frame_spritesheet_49f_horizontal.png",
+    "columns": 49,
+    "rows": 1,
+    "width": 25088,
+    "height": 512
+  },
+  "transparent_areas": "outer chroma green background and center profile-picture hole",
+  "notes": "Cropped to square around the lotus frame to remove the right-side generated text/watermark area."
+}
