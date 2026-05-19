@@ -1,0 +1,61 @@
+.venomScreenRecordFrame {
+  width: 258px;
+  height: 258px;
+  background-image: url("../assets/avatarFrames/venom-screen-record-spritesheet.png");
+  background-repeat: no-repeat;
+  background-size: 2064px 1548px;
+  animation: venomScreenRecordAnim 4.90s steps(1) infinite;
+  pointer-events: none;
+}
+
+@keyframes venomScreenRecordAnim {
+  0.0000% { background-position: 0px 0px; }
+  2.0833% { background-position: -258px 0px; }
+  4.1667% { background-position: -516px 0px; }
+  6.2500% { background-position: -774px 0px; }
+  8.3333% { background-position: -1032px 0px; }
+  10.4167% { background-position: -1290px 0px; }
+  12.5000% { background-position: -1548px 0px; }
+  14.5833% { background-position: -1806px 0px; }
+  16.6667% { background-position: 0px -258px; }
+  18.7500% { background-position: -258px -258px; }
+  20.8333% { background-position: -516px -258px; }
+  22.9167% { background-position: -774px -258px; }
+  25.0000% { background-position: -1032px -258px; }
+  27.0833% { background-position: -1290px -258px; }
+  29.1667% { background-position: -1548px -258px; }
+  31.2500% { background-position: -1806px -258px; }
+  33.3333% { background-position: 0px -516px; }
+  35.4167% { background-position: -258px -516px; }
+  37.5000% { background-position: -516px -516px; }
+  39.5833% { background-position: -774px -516px; }
+  41.6667% { background-position: -1032px -516px; }
+  43.7500% { background-position: -1290px -516px; }
+  45.8333% { background-position: -1548px -516px; }
+  47.9167% { background-position: -1806px -516px; }
+  50.0000% { background-position: 0px -774px; }
+  52.0833% { background-position: -258px -774px; }
+  54.1667% { background-position: -516px -774px; }
+  56.2500% { background-position: -774px -774px; }
+  58.3333% { background-position: -1032px -774px; }
+  60.4167% { background-position: -1290px -774px; }
+  62.5000% { background-position: -1548px -774px; }
+  64.5833% { background-position: -1806px -774px; }
+  66.6667% { background-position: 0px -1032px; }
+  68.7500% { background-position: -258px -1032px; }
+  70.8333% { background-position: -516px -1032px; }
+  72.9167% { background-position: -774px -1032px; }
+  75.0000% { background-position: -1032px -1032px; }
+  77.0833% { background-position: -1290px -1032px; }
+  79.1667% { background-position: -1548px -1032px; }
+  81.2500% { background-position: -1806px -1032px; }
+  83.3333% { background-position: 0px -1290px; }
+  85.4167% { background-position: -258px -1290px; }
+  87.5000% { background-position: -516px -1290px; }
+  89.5833% { background-position: -774px -1290px; }
+  91.6667% { background-position: -1032px -1290px; }
+  93.7500% { background-position: -1290px -1290px; }
+  95.8333% { background-position: -1548px -1290px; }
+  97.9167% { background-position: -1806px -1290px; }
+  100% { background-position: 0px 0px; }
+}

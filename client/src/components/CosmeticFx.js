@@ -1,7 +1,7 @@
 import React from "react";
 import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
 import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
-import venomFrameSprite from "../assets/avatarFrames/venom-frame-spritesheet.png";
+import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
