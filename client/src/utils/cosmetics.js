@@ -171,6 +171,12 @@ export const COSMETIC_META = {
     type: "frame",
     animationClass: "cw-cosmetic-frame-lotus-aura",
   },
+  "frame-ice-monarch": {
+    icon: "\uD83E\uDDCA",
+    name: "Ice Monarch Frame",
+    type: "frame",
+    animationClass: "cw-cosmetic-frame-ice-monarch",
+  },
   "frame-visor-lift-racer": {
     icon: "\uD83C\uDFC1",
     name: "Visor Lift Racer Frame",

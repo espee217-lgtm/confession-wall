@@ -6,6 +6,7 @@ import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-greenkey
 import groveButterflyFrameSprite from "../assets/avatarFrames/grove-butterfly-greenkey-spritesheet.png";
 import demonThornFrameSprite from "../assets/avatarFrames/demon-thorn-greenkey-fixed-spritesheet.png";
 import lotusAuraFrameSprite from "../assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_7x7.png";
+import iceMonarchFrameSheet from "../assets/cosmetics/ice-monarch-frame/ice_monarch_avatar_frame_spritesheet_72f_8x9.png";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -206,6 +207,20 @@ export function CosmeticFxLayers({ cosmeticId }) {
         }}
       >
         <span className="cw-lotus-aura-frame-sprite" />
+      </div>
+    );
+  }
+
+  if (cosmeticId === "frame-ice-monarch") {
+    return (
+      <div
+        className="cw-cosmetic-fx-layer cw-ice-monarch-frame-sprite-shell"
+        aria-hidden="true"
+        style={{
+          "--cw-ice-monarch-sprite-image": `url(${iceMonarchFrameSheet})`,
+        }}
+      >
+        <span className="cw-ice-monarch-frame-sprite" />
       </div>
     );
   }

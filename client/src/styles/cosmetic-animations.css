@@ -1785,6 +1785,88 @@
   100% { background-position: 0px 0px; }
 }
 
+/* Ice Monarch sprite sheet:
+   - 512px per frame
+   - 8 columns x 9 rows
+   - 72 animated frames
+   - suggested 12 FPS from metadata
+   - scaled only with a static transform on the shell */
+@keyframes iceMonarchFrameAnim {
+  0.00000% { background-position: 0px 0px; }
+  1.38889% { background-position: -512px 0px; }
+  2.77778% { background-position: -1024px 0px; }
+  4.16667% { background-position: -1536px 0px; }
+  5.55556% { background-position: -2048px 0px; }
+  6.94444% { background-position: -2560px 0px; }
+  8.33333% { background-position: -3072px 0px; }
+  9.72222% { background-position: -3584px 0px; }
+  11.11111% { background-position: 0px -512px; }
+  12.50000% { background-position: -512px -512px; }
+  13.88889% { background-position: -1024px -512px; }
+  15.27778% { background-position: -1536px -512px; }
+  16.66667% { background-position: -2048px -512px; }
+  18.05556% { background-position: -2560px -512px; }
+  19.44444% { background-position: -3072px -512px; }
+  20.83333% { background-position: -3584px -512px; }
+  22.22222% { background-position: 0px -1024px; }
+  23.61111% { background-position: -512px -1024px; }
+  25.00000% { background-position: -1024px -1024px; }
+  26.38889% { background-position: -1536px -1024px; }
+  27.77778% { background-position: -2048px -1024px; }
+  29.16667% { background-position: -2560px -1024px; }
+  30.55556% { background-position: -3072px -1024px; }
+  31.94444% { background-position: -3584px -1024px; }
+  33.33333% { background-position: 0px -1536px; }
+  34.72222% { background-position: -512px -1536px; }
+  36.11111% { background-position: -1024px -1536px; }
+  37.50000% { background-position: -1536px -1536px; }
+  38.88889% { background-position: -2048px -1536px; }
+  40.27778% { background-position: -2560px -1536px; }
+  41.66667% { background-position: -3072px -1536px; }
+  43.05556% { background-position: -3584px -1536px; }
+  44.44444% { background-position: 0px -2048px; }
+  45.83333% { background-position: -512px -2048px; }
+  47.22222% { background-position: -1024px -2048px; }
+  48.61111% { background-position: -1536px -2048px; }
+  50.00000% { background-position: -2048px -2048px; }
+  51.38889% { background-position: -2560px -2048px; }
+  52.77778% { background-position: -3072px -2048px; }
+  54.16667% { background-position: -3584px -2048px; }
+  55.55556% { background-position: 0px -2560px; }
+  56.94444% { background-position: -512px -2560px; }
+  58.33333% { background-position: -1024px -2560px; }
+  59.72222% { background-position: -1536px -2560px; }
+  61.11111% { background-position: -2048px -2560px; }
+  62.50000% { background-position: -2560px -2560px; }
+  63.88889% { background-position: -3072px -2560px; }
+  65.27778% { background-position: -3584px -2560px; }
+  66.66667% { background-position: 0px -3072px; }
+  68.05556% { background-position: -512px -3072px; }
+  69.44444% { background-position: -1024px -3072px; }
+  70.83333% { background-position: -1536px -3072px; }
+  72.22222% { background-position: -2048px -3072px; }
+  73.61111% { background-position: -2560px -3072px; }
+  75.00000% { background-position: -3072px -3072px; }
+  76.38889% { background-position: -3584px -3072px; }
+  77.77778% { background-position: 0px -3584px; }
+  79.16667% { background-position: -512px -3584px; }
+  80.55556% { background-position: -1024px -3584px; }
+  81.94444% { background-position: -1536px -3584px; }
+  83.33333% { background-position: -2048px -3584px; }
+  84.72222% { background-position: -2560px -3584px; }
+  86.11111% { background-position: -3072px -3584px; }
+  87.50000% { background-position: -3584px -3584px; }
+  88.88889% { background-position: 0px -4096px; }
+  90.27778% { background-position: -512px -4096px; }
+  91.66667% { background-position: -1024px -4096px; }
+  93.05556% { background-position: -1536px -4096px; }
+  94.44444% { background-position: -2048px -4096px; }
+  95.83333% { background-position: -2560px -4096px; }
+  97.22222% { background-position: -3072px -4096px; }
+  98.61111% { background-position: -3584px -4096px; }
+  100% { background-position: 0px 0px; }
+}
+
 @keyframes cw-victory-shell-breathe {
   0%, 100% {
     filter: drop-shadow(0 0 10px rgba(112, 168, 255, 0.18));
@@ -2240,10 +2322,104 @@
   --cw-lotus-aura-scale: 0.34;
 }
 
+.cw-framed-avatar.cw-cosmetic-frame-ice-monarch,
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch {
+  /* Ice Monarch sheet is 512px cells, so the overlay is scaled as one unit. */
+  --cw-ice-monarch-scale: 0.3;
+  --cw-ice-monarch-ring-padding: 2px;
+  --cw-ice-monarch-glow-inset: -10%;
+  position: relative;
+  border-radius: 50%;
+  padding: 4px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.cw-framed-avatar--nav.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.17;
+  --cw-ice-monarch-glow-inset: -6%;
+}
+
+.cw-framed-avatar--post.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.23;
+  --cw-ice-monarch-glow-inset: -8%;
+}
+
+.cw-framed-avatar--comment.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.16;
+  --cw-ice-monarch-glow-inset: -7%;
+}
+
+.cw-framed-avatar--shop.cw-cosmetic-frame-ice-monarch,
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.33;
+  --cw-ice-monarch-glow-inset: -18%;
+}
+
+.cw-framed-avatar--profile.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.48;
+  --cw-ice-monarch-glow-inset: -16%;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.58;
+  --cw-ice-monarch-glow-inset: -28%;
+}
+
+.cw-cosmetic-frame-ice-monarch::before,
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: var(--cw-ice-monarch-ring-padding, 2px);
+  background: conic-gradient(
+    from 0deg,
+    rgba(232, 246, 255, 0.96),
+    rgba(122, 190, 255, 0.92),
+    rgba(70, 124, 214, 0.94),
+    rgba(220, 243, 255, 0.96),
+    rgba(232, 246, 255, 0.96)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cw-cosmetic-frame-ice-monarch::after,
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch::after {
+  content: "";
+  position: absolute;
+  inset: var(--cw-ice-monarch-glow-inset, -10%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(170, 222, 255, 0.16), transparent 58%),
+    radial-gradient(circle at 34% 22%, rgba(245, 252, 255, 0.14), transparent 20%),
+    radial-gradient(circle at 72% 74%, rgba(92, 166, 255, 0.12), transparent 24%);
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 0;
+}
+
 .cw-cosmetic-frame-lotus-aura .cw-cosmetic-fx-layer,
 .shop-preview-avatar.cw-cosmetic-frame-lotus-aura .cw-cosmetic-fx-layer {
   z-index: 3;
   overflow: visible;
+}
+
+.cw-cosmetic-frame-ice-monarch .cw-cosmetic-fx-layer,
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch .cw-cosmetic-fx-layer {
+  z-index: 3;
+  overflow: visible;
+}
+
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch::after {
+  inset: var(--cw-ice-monarch-glow-inset, -18%);
+  filter: blur(12px);
 }
 
 .cw-cosmetic-frame-demon-thorn .cw-cosmetic-fx-layer,
@@ -2349,6 +2525,20 @@
   z-index: 2;
 }
 
+.cw-ice-monarch-frame-sprite-shell {
+  position: absolute;
+  width: 512px;
+  height: 512px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--cw-ice-monarch-scale, 0.26));
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: visible;
+  background: transparent;
+  z-index: 2;
+}
+
 .cw-venom-frame-fallback-glow {
   position: absolute;
   inset: 8%;
@@ -2432,6 +2622,57 @@
   will-change: background-position;
 }
 
+.cw-ice-monarch-frame-sprite {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--cw-ice-monarch-sprite-image, none);
+  background-repeat: no-repeat;
+  background-size: 4096px 4608px;
+  background-position: 0px 0px;
+  animation: iceMonarchFrameAnim 6s steps(1) infinite;
+  filter:
+    drop-shadow(0 0 10px rgba(170, 228, 255, 0.18))
+    drop-shadow(0 0 18px rgba(98, 176, 255, 0.1));
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 1) 0 82%,
+    rgba(0, 0, 0, 0.92) 88%,
+    rgba(0, 0, 0, 0.5) 95%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 1) 0 82%,
+    rgba(0, 0, 0, 0.92) 88%,
+    rgba(0, 0, 0, 0.5) 95%,
+    transparent 100%
+  );
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: background-position;
+}
+
+.shop-preview-avatar.cw-cosmetic-frame-ice-monarch .cw-ice-monarch-frame-sprite {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 1) 0 76%,
+    rgba(0, 0, 0, 0.94) 84%,
+    rgba(0, 0, 0, 0.5) 91%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 1) 0 76%,
+    rgba(0, 0, 0, 0.94) 84%,
+    rgba(0, 0, 0, 0.5) 91%,
+    transparent 100%
+  );
+}
+
 .cw-visor-lift-sprite-shell::after {
   content: "";
   position: absolute;
@@ -2499,6 +2740,10 @@
   }
 
   .cw-lotus-aura-frame-sprite {
+    animation: none !important;
+  }
+
+  .cw-ice-monarch-frame-sprite {
     animation: none !important;
   }
 }

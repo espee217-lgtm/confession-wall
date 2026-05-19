@@ -320,6 +320,17 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-frame-lotus-aura",
   },
   {
+    id: "frame-ice-monarch",
+    type: "frame",
+    name: "Ice Monarch Frame",
+    description:
+      "A frost-crowned monarch aura frame with icy wings, royal shimmer, and crystalline winter glow around your avatar.",
+    price: 260,
+    icon: "\uD83E\uDDCA",
+    rarity: "Legendary",
+    previewClass: "cw-cosmetic-frame-ice-monarch",
+  },
+  {
     id: "post-theme-moonlit-vengeance",
     type: "postTheme",
     name: "Moonlit Vengeance Card",
