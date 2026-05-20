@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -25,6 +25,60 @@ const TYPE_LABELS = {
 const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
 const SEED_ICON = "\uD83C\uDF31";
 const FIRE_ICON = "\uD83D\uDD25";
+// Keep this list synced with server/utils/seedRewards.js and weeklyForestEvents constants.
+const SEED_EARNING_RULES = [
+  {
+    id: "daily-login",
+    type: "daily_login",
+    action: "Daily login",
+    reward: "+10 Seeds",
+    limit: "1 time per day",
+    notes: ["Resets on IST day boundary."],
+  },
+  {
+    id: "create-post",
+    type: "create_confession",
+    action: "Create confession",
+    reward: "+5 Seeds",
+    limit: "5 rewarded posts per day",
+    notes: [],
+  },
+  {
+    id: "create-comment",
+    type: "create_comment",
+    action: "Create comment",
+    reward: "+2 Seeds",
+    limit: "10 rewarded comments per day",
+    notes: [],
+  },
+  {
+    id: "receive-reaction",
+    type: "receive_reaction",
+    action: "Receive reaction on your post",
+    reward: "+1 Seed",
+    limit: "20 rewarded reactions per day",
+    notes: [
+      "Reward goes to the post owner, not the person reacting.",
+      "The same reactor cannot repeatedly farm reward on the same post.",
+    ],
+  },
+  {
+    id: "accepted-report",
+    type: "accepted_report",
+    action: "Accepted report",
+    reward: "+15 Seeds",
+    limit: "5 rewarded accepted reports per day",
+    notes: ["Only when admin accepts/resolves/removes valid reported content."],
+  },
+  {
+    id: "weekly-winner",
+    type: "weekly_winner",
+    action: "Weekly event winner (most watered)",
+    reward: "+1000 Seeds",
+    limit: "Weekly event payout",
+    notes: ["Paid by the weekly event system."],
+  },
+];
 
 const getDisplayType = (type) => (type === "visualEffect" ? "frame" : type);
 const hasAnimatedPreview = (item) => Boolean(getCosmeticAnimationClass(item?.id));
@@ -53,6 +107,112 @@ function ShopIconSvg() {
       <path d="M15 13h.01" />
     </svg>
   );
+}
+
+function EarnIcon({ type }) {
+  const uid = useId();
+  const sunId = `${uid}-earn-sun-gradient`;
+  const docId = `${uid}-earn-doc-gradient`;
+  const chatId = `${uid}-earn-chat-gradient`;
+  const sproutId = `${uid}-earn-sprout-gradient`;
+  const shieldId = `${uid}-earn-shield-gradient`;
+  const trophyId = `${uid}-earn-trophy-gradient`;
+
+  switch (type) {
+    case "daily_login":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={sunId} x1="10" y1="8" x2="38" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#fff3b0" />
+              <stop offset="46%" stopColor="#ffd96a" />
+              <stop offset="100%" stopColor="#9af56f" />
+            </linearGradient>
+          </defs>
+          <circle cx="24" cy="24" r="10" fill={`url(#${sunId})`} stroke="#f7ffd8" strokeWidth="1.5" />
+          <path d="M24 5.5v5.5M24 37v5.5M8.5 24H14M34 24h5.5M13 13l3.9 3.9M31.1 30.1l3.9 3.9M35 13l-3.9 3.9M16.9 30.1 13 34" stroke="#f7ffd8" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "create_confession":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={docId} x1="8" y1="8" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#f9ffd8" />
+              <stop offset="55%" stopColor="#dff7b8" />
+              <stop offset="100%" stopColor="#94d879" />
+            </linearGradient>
+          </defs>
+          <path d="M15 7h13l7 7v27H15z" fill={`url(#${docId})`} stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M28 7v8h8" stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M19 21h10M19 27h7" stroke="#24411f" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M31.5 23.5l-5.5 5.5-1.5 4 4-1.5 5.5-5.5-2.5-2.5Z" fill="#ffd86a" stroke="#fff7cc" strokeWidth="1" strokeLinejoin="round" />
+        </svg>
+      );
+    case "create_comment":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={chatId} x1="8" y1="10" x2="40" y2="38" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#f8ffd7" />
+              <stop offset="100%" stopColor="#8cdf76" />
+            </linearGradient>
+          </defs>
+          <path d="M10 13.5h28a5.5 5.5 0 0 1 5.5 5.5v9A5.5 5.5 0 0 1 38 33.5H24l-8.5 7v-7H10A5.5 5.5 0 0 1 4.5 28v-9A5.5 5.5 0 0 1 10 13.5Z" fill={`url(#${chatId})`} stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M15 21h18M15 26h12" stroke="#24411f" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      );
+    case "receive_reaction":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={sproutId} x1="10" y1="35" x2="36" y2="10" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#8fdc79" />
+              <stop offset="52%" stopColor="#bdf5a7" />
+              <stop offset="100%" stopColor="#f7ffcc" />
+            </linearGradient>
+          </defs>
+          <path d="M24 35c0-8 0-13 0-19" stroke="#f7ffd8" strokeWidth="2" strokeLinecap="round" />
+          <path d="M24 22c-5 0-8.5-3.8-8.5-8.5 4.8 0 8.5 3.5 8.5 8.5Z" fill={`url(#${sproutId})`} stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M24 20c5 0 8.5-3.8 8.5-8.5-4.8 0-8.5 3.5-8.5 8.5Z" fill={`url(#${sproutId})`} stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M17.5 34.5h13" stroke="#ffd86a" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+    case "accepted_report":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={shieldId} x1="9" y1="8" x2="38" y2="39" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#f9ffd8" />
+              <stop offset="52%" stopColor="#d0f1a9" />
+              <stop offset="100%" stopColor="#7bc86b" />
+            </linearGradient>
+          </defs>
+          <path d="M24 7 36 11v10c0 8.5-5.5 15.2-12 19-6.5-3.8-12-10.5-12-19V11Z" fill={`url(#${shieldId})`} stroke="#f7ffd8" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="m18.5 24 4 4.2 7-7.2" stroke="#24411f" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "weekly_winner":
+      return (
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={trophyId} x1="12" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#fff1b6" />
+              <stop offset="45%" stopColor="#ffd46a" />
+              <stop offset="100%" stopColor="#9eec73" />
+            </linearGradient>
+          </defs>
+          <path d="M16 10h16v5c0 6-4 10-8 12-4-2-8-6-8-12v-5Z" fill={`url(#${trophyId})`} stroke="#fff7cc" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M15 12H10c0 6 3 9 8 10" stroke="#f7ffd8" strokeWidth="2" strokeLinecap="round" />
+          <path d="M33 12h5c0 6-3 9-8 10" stroke="#f7ffd8" strokeWidth="2" strokeLinecap="round" />
+          <path d="M24 27v6" stroke="#fff7cc" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M18 36h12" stroke="#f7ffd8" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M20 39h8" stroke="#ffd86a" strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }
 
 function ShopPreview({
@@ -367,6 +527,8 @@ function Shop() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selectedPreviewCosmetic, setSelectedPreviewCosmetic] = useState(null);
+  const speedOverlayUrl = `${process.env.PUBLIC_URL}/assets/speed.png`;
+  const blowOverlayUrl = `${process.env.PUBLIC_URL}/assets/blow.png`;
 
   const [localEquipped, setLocalEquipped] = useState(
     user?.equippedCosmetics || {}
@@ -698,6 +860,58 @@ function Shop() {
         <div className="shop-seeds-panel">
           <span>Available Seeds</span>
           <strong>{SEED_ICON} {localSeeds || 0}</strong>
+        </div>
+      </section>
+      
+      <section
+        className="shop-earn-panel"
+        aria-label="How to Earn Seeds"
+        style={{
+          "--speed-overlay-url": `url(${speedOverlayUrl})`,
+          "--blow-overlay-url": `url(${blowOverlayUrl})`,
+        }}
+      >
+        <div className="shop-earn-head">
+          <div>
+            <p className="shop-kicker">Seeds Economy</p>
+            <h2>How to Earn Seeds</h2>
+            <p>Complete actions around the wall and earn Seeds daily.</p>
+          </div>
+        </div>
+
+        <div className="shop-earn-grid">
+          {SEED_EARNING_RULES.map((rule) => (
+            <article
+              className="shop-earn-item"
+              key={rule.id}
+            >
+              <div className="shop-earn-item-top">
+                <div className="shop-earn-icon" aria-hidden="true">
+                  <EarnIcon type={rule.type} />
+                </div>
+                <div>
+                  <strong>{rule.action}</strong>
+                  <span>{rule.limit}</span>
+                </div>
+              </div>
+
+              <div className="shop-earn-reward">{rule.reward}</div>
+
+              {rule.notes.length > 0 && (
+                <ul className="shop-earn-notes">
+                  {rule.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
+        </div>
+
+        <div className="shop-earn-footer">
+          <span>Daily caps help prevent farming.</span>
+          <span>Shop purchases spend Seeds.</span>
+          <span>Notifications report when Seeds are gained/lost.</span>
         </div>
       </section>
 
