@@ -1,10 +1,47 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 
 const BASE_URL = process.env.REACT_APP_API_URL;
+const PAGE_LIMIT = 10;
+
+const normalizeFeedResponse = (data) => {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      page: 1,
+      hasMore: false,
+    };
+  }
+
+  return {
+    items: Array.isArray(data?.items) ? data.items : [],
+    page: Number(data?.page) > 0 ? Number(data.page) : 1,
+    hasMore: Boolean(data?.hasMore),
+  };
+};
+
+const isScorchedPost = (post) => {
+  const watered = post?.wateredBy?.length || 0;
+  const burned = post?.burnedBy?.length || 0;
+  return burned > watered;
+};
+
+const appendUniquePosts = (current, incoming) => {
+  const seen = new Set(current.map((post) => String(post?._id)));
+  const merged = [...current];
+
+  incoming.forEach((post) => {
+    const id = String(post?._id || "");
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    merged.push(post);
+  });
+
+  return merged;
+};
 
 export default function ScorchedLands() {
   const { user } = useAuth();
@@ -13,9 +50,13 @@ export default function ScorchedLands() {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   const targetPostId = new URLSearchParams(location.search).get("post");
   const [highlightedPost, setHighlightedPost] = useState(null);
+  const fetchedTargetPostRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -23,14 +64,109 @@ export default function ScorchedLands() {
       return;
     }
 
-    fetch(`${BASE_URL}/realm/scorched`)
-      .then((r) => r.json())
-      .then((data) => {
-        setPosts(data);
-        setLoading(false);
-      })
-      .catch(console.error);
+    let cancelled = false;
+
+    const fetchInitialPage = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${BASE_URL}/realm/scorched?page=1&limit=${PAGE_LIMIT}`
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.message || "Could not load scorched posts.");
+        }
+
+        if (cancelled) return;
+
+        const normalized = normalizeFeedResponse(data);
+        const scorchedOnly = normalized.items.filter(isScorchedPost);
+        setPosts(scorchedOnly);
+        setPage(normalized.page);
+        setHasMore(normalized.hasMore);
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
+          setPosts([]);
+          setHasMore(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchInitialPage();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, navigate]);
+
+  useEffect(() => {
+    fetchedTargetPostRef.current = null;
+  }, [targetPostId]);
+
+  useEffect(() => {
+    if (!targetPostId || loading) return;
+    if (posts.some((post) => String(post._id) === targetPostId)) return;
+    if (fetchedTargetPostRef.current === targetPostId) return;
+
+    fetchedTargetPostRef.current = targetPostId;
+    let cancelled = false;
+
+    const fetchTargetPost = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/${targetPostId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isScorchedPost(data)) return;
+        if (cancelled) return;
+
+        setPosts((prev) => {
+          if (prev.some((post) => String(post._id) === String(data._id))) {
+            return prev;
+          }
+          return [data, ...prev];
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchTargetPost();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [targetPostId, loading, posts]);
+
+  const handleLoadMore = async () => {
+    if (loadingMore || loading || !hasMore) return;
+
+    const nextPage = page + 1;
+    try {
+      setLoadingMore(true);
+      const res = await fetch(
+        `${BASE_URL}/realm/scorched?page=${nextPage}&limit=${PAGE_LIMIT}`
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || "Could not load more scorched posts.");
+      }
+
+      const normalized = normalizeFeedResponse(data);
+      const scorchedOnly = normalized.items.filter(isScorchedPost);
+      setPosts((prev) => appendUniquePosts(prev, scorchedOnly));
+      setPage(normalized.page || nextPage);
+      setHasMore(normalized.hasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!targetPostId || loading || posts.length === 0) return;
@@ -176,15 +312,40 @@ export default function ScorchedLands() {
             nothing burns here yet…
           </div>
         ) : (
-          posts.map((p) => (
-            <PostCard
-              key={p._id}
-              post={p}
-              realm="scorched"
-              highlighted={highlightedPost === p._id}
-              onOpen={() => navigate(`/confession/${p._id}?realm=scorched`)}
-            />
-          ))
+          <>
+            {posts.map((p) => (
+              <PostCard
+                key={p._id}
+                post={p}
+                realm="scorched"
+                highlighted={highlightedPost === p._id}
+                onOpen={() => navigate(`/confession/${p._id}?realm=scorched`)}
+              />
+            ))}
+
+            {(hasMore || loadingMore) && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "10px" }}>
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore || !hasMore}
+                  style={{
+                    border: "1px solid rgba(216,90,48,0.45)",
+                    background: "rgba(35,10,4,0.82)",
+                    color: "#F79D7C",
+                    borderRadius: "999px",
+                    fontSize: "12px",
+                    padding: "7px 14px",
+                    fontFamily: "Georgia, serif",
+                    cursor: loadingMore || !hasMore ? "default" : "pointer",
+                    opacity: loadingMore || !hasMore ? 0.65 : 1,
+                  }}
+                >
+                  {loadingMore ? "loading..." : "Load More"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
       <MobileBottomNav />

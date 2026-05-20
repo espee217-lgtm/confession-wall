@@ -205,15 +205,104 @@ const serializePoll = (poll) => {
   };
 };
 
+const PAGINATION_DEFAULT_LIMIT = 10;
+const PAGINATION_MAX_LIMIT = 50;
+const SEARCH_DEFAULT_LIMIT = 10;
+
+const hasPaginationQuery = (query = {}) =>
+  Object.prototype.hasOwnProperty.call(query, "page") ||
+  Object.prototype.hasOwnProperty.call(query, "limit");
+
+const parsePagination = (query = {}, defaultLimit = PAGINATION_DEFAULT_LIMIT) => {
+  const rawPage = Number.parseInt(query.page, 10);
+  const rawLimit = Number.parseInt(query.limit, 10);
+
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const requestedLimit =
+    Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : defaultLimit;
+  const limit = Math.max(1, Math.min(PAGINATION_MAX_LIMIT, requestedLimit));
+
+  return {
+    page,
+    limit,
+    skip: (page - 1) * limit,
+  };
+};
+
+const buildPaginatedResponse = ({ items, page, limit, total }) => ({
+  items,
+  page,
+  limit,
+  total,
+  totalPages: Math.ceil(total / limit),
+  hasMore: page * limit < total,
+});
+
+const arraySizeExpr = (field) => ({ $size: { $ifNull: [`$${field}`, []] } });
+
+const REALM_QUERY = {
+  grove: {
+    $expr: {
+      $gt: [arraySizeExpr("wateredBy"), arraySizeExpr("burnedBy")],
+    },
+  },
+  thriving: {
+    $expr: {
+      $gt: [arraySizeExpr("wateredBy"), arraySizeExpr("burnedBy")],
+    },
+  },
+  scorched: {
+    $expr: {
+      $gt: [arraySizeExpr("burnedBy"), arraySizeExpr("wateredBy")],
+    },
+  },
+  budding: {
+    $expr: {
+      $eq: [arraySizeExpr("wateredBy"), arraySizeExpr("burnedBy")],
+    },
+  },
+};
+
+const getRealmQuery = (realm) => REALM_QUERY[realm] || null;
+
+const getRealmType = (post) => {
+  const watered = post?.wateredBy?.length || 0;
+  const burned = post?.burnedBy?.length || 0;
+
+  if (watered > burned) return "grove";
+  if (burned > watered) return "scorched";
+  return "budding";
+};
+
+const buildPublicQuery = (realm) => {
+  const realmQuery = getRealmQuery(realm);
+  return realmQuery ? { ...PUBLIC_VISIBLE_FILTER, ...realmQuery } : { ...PUBLIC_VISIBLE_FILTER };
+};
+
 // GET all confessions
 router.get("/", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
+    const shouldPaginate = hasPaginationQuery(req.query);
+
+    if (!shouldPaginate) {
+      const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
+        .sort({ createdAt: -1 })
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      return res.json(stripHiddenCommentsFromList(confessions));
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, PAGINATION_DEFAULT_LIMIT);
+    const total = await Confession.countDocuments(PUBLIC_VISIBLE_FILTER);
     const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate("userId", USER_PUBLIC_SELECT);
 
-    res.json(stripHiddenCommentsFromList(confessions));
+    const items = stripHiddenCommentsFromList(confessions);
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -223,17 +312,27 @@ router.get("/", async (req, res) => {
 router.get("/realm/thriving", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
+    const query = buildPublicQuery("thriving");
+    const shouldPaginate = hasPaginationQuery(req.query);
+
+    if (!shouldPaginate) {
+      const confessions = await Confession.find(query)
+        .sort({ createdAt: -1 })
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      return res.json(stripHiddenCommentsFromList(confessions));
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, PAGINATION_DEFAULT_LIMIT);
+    const total = await Confession.countDocuments(query);
+    const confessions = await Confession.find(query)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate("userId", USER_PUBLIC_SELECT);
 
-    const thriving = confessions.filter((p) => {
-      const total = p.wateredBy.length + p.burnedBy.length;
-      if (total === 0) return true;
-      return p.wateredBy.length / total >= 0.5;
-    });
-
-    res.json(stripHiddenCommentsFromList(thriving));
+    const items = stripHiddenCommentsFromList(confessions);
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -243,17 +342,57 @@ router.get("/realm/thriving", async (req, res) => {
 router.get("/realm/scorched", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
+    const query = buildPublicQuery("scorched");
+    const shouldPaginate = hasPaginationQuery(req.query);
+
+    if (!shouldPaginate) {
+      const confessions = await Confession.find(query)
+        .sort({ createdAt: -1 })
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      return res.json(stripHiddenCommentsFromList(confessions));
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, PAGINATION_DEFAULT_LIMIT);
+    const total = await Confession.countDocuments(query);
+    const confessions = await Confession.find(query)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate("userId", USER_PUBLIC_SELECT);
 
-    const scorched = confessions.filter((p) => {
-      const total = p.wateredBy.length + p.burnedBy.length;
-      if (total === 0) return false;
-      return p.burnedBy.length / total > 0.5;
-    });
+    const items = stripHiddenCommentsFromList(confessions);
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    res.json(stripHiddenCommentsFromList(scorched));
+// GET budding confessions
+router.get("/realm/budding", async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+    const query = buildPublicQuery("budding");
+    const shouldPaginate = hasPaginationQuery(req.query);
+
+    if (!shouldPaginate) {
+      const confessions = await Confession.find(query)
+        .sort({ createdAt: -1 })
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      return res.json(stripHiddenCommentsFromList(confessions));
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, PAGINATION_DEFAULT_LIMIT);
+    const total = await Confession.countDocuments(query);
+    const confessions = await Confession.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("userId", USER_PUBLIC_SELECT);
+
+    const items = stripHiddenCommentsFromList(confessions);
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -269,31 +408,54 @@ router.get("/search", async (req, res) => {
     await ensureWeeklyEventMaintenance();
     const q = String(req.query.q || "").trim();
     const type = String(req.query.type || "all").trim().toLowerCase();
+    const shouldPaginate = hasPaginationQuery(req.query);
+    const realm = ["grove", "budding", "scorched"].includes(type) ? type : null;
+    const baseQuery = buildPublicQuery(realm);
 
     const safeRegex = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const query = q
+    const textQuery = q
       ? {
-          isHidden: { $ne: true },
+          ...baseQuery,
           $or: [
             { message: { $regex: safeRegex, $options: "i" } },
             { "comments.text": { $regex: safeRegex, $options: "i" } },
           ],
         }
-      : { isHidden: { $ne: true } };
+      : { ...baseQuery };
 
-    let confessions = await Confession.find(query)
-      .sort({ createdAt: -1 })
-      .limit(80)
-      .populate("userId", USER_PUBLIC_SELECT);
+    if (shouldPaginate && !q) {
+      const { page, limit, skip } = parsePagination(req.query, SEARCH_DEFAULT_LIMIT);
+      const total = await Confession.countDocuments(baseQuery);
+      const confessions = await Confession.find(baseQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      const items = stripHiddenCommentsFromList(confessions);
+      return res.json(buildPaginatedResponse({ items, page, limit, total }));
+    }
+
+    const textLimit = shouldPaginate ? 0 : 80;
+    const usernameLimit = shouldPaginate ? 0 : 120;
+    const textMatchQuery = Confession.find(textQuery).sort({ createdAt: -1 });
+
+    if (textLimit > 0) {
+      textMatchQuery.limit(textLimit);
+    }
+
+    let confessions = await textMatchQuery.populate("userId", USER_PUBLIC_SELECT);
 
     // Also allow searching by username after population.
     if (q) {
       const lower = q.toLowerCase();
-      const usernameMatches = await Confession.find(PUBLIC_VISIBLE_FILTER)
-        .sort({ createdAt: -1 })
-        .limit(120)
-        .populate("userId", USER_PUBLIC_SELECT);
+      const usernameQuery = Confession.find(baseQuery).sort({ createdAt: -1 });
 
+      if (usernameLimit > 0) {
+        usernameQuery.limit(usernameLimit);
+      }
+
+      const usernameMatches = await usernameQuery.populate("userId", USER_PUBLIC_SELECT);
       const byUsername = usernameMatches.filter((post) =>
         String(post.userId?.username || "").toLowerCase().includes(lower)
       );
@@ -305,21 +467,19 @@ router.get("/search", async (req, res) => {
       );
     }
 
-    const getRealm = (post) => {
-      const watered = post.wateredBy?.length || 0;
-      const burned = post.burnedBy?.length || 0;
-      const total = watered + burned;
-
-      if (total === 0) return "budding";
-      if (burned / total > 0.5) return "scorched";
-      return "grove";
-    };
-
-    if (["grove", "budding", "scorched"].includes(type)) {
-      confessions = confessions.filter((post) => getRealm(post) === type);
+    if (realm) {
+      confessions = confessions.filter((post) => getRealmType(post) === realm);
     }
 
-    res.json(stripHiddenCommentsFromList(confessions.slice(0, 60)));
+    if (!shouldPaginate) {
+      return res.json(stripHiddenCommentsFromList(confessions.slice(0, 60)));
+    }
+
+    const { page, limit, skip } = parsePagination(req.query, SEARCH_DEFAULT_LIMIT);
+    const total = confessions.length;
+    const pageItems = confessions.slice(skip, skip + limit);
+    const items = stripHiddenCommentsFromList(pageItems);
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
   } catch (err) {
     console.error("Search confessions error:", err);
     res.status(500).json({ message: "Could not search confessions right now." });

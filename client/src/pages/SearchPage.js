@@ -21,15 +21,45 @@ const SEARCH_ICON = "\uD83D\uDD0D";
 const CLOSE_ICON = "\u00D7";
 const LEFT_QUOTE = "\u201C";
 const RIGHT_QUOTE = "\u201D";
+const PAGE_LIMIT = 10;
+
+const normalizeSearchResponse = (data) => {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      page: 1,
+      hasMore: false,
+    };
+  }
+
+  return {
+    items: Array.isArray(data?.items) ? data.items : [],
+    page: Number(data?.page) > 0 ? Number(data.page) : 1,
+    hasMore: Boolean(data?.hasMore),
+  };
+};
+
+const appendUniquePosts = (current, incoming) => {
+  const seen = new Set(current.map((post) => String(post?._id)));
+  const merged = [...current];
+
+  incoming.forEach((post) => {
+    const id = String(post?._id || "");
+    if (!id || seen.has(id)) return;
+    seen.add(id);
+    merged.push(post);
+  });
+
+  return merged;
+};
 
 const getRealm = (post) => {
   const watered = post.wateredBy?.length || 0;
   const burned = post.burnedBy?.length || 0;
-  const total = watered + burned;
 
-  if (total === 0) return "budding";
-  if (burned / total > 0.5) return "scorched";
-  return "grove";
+  if (watered > burned) return "grove";
+  if (burned > watered) return "scorched";
+  return "budding";
 };
 
 export default function SearchPage() {
@@ -38,46 +68,77 @@ export default function SearchPage() {
   const [filter, setFilter] = useState("all");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
 
   const trimmedQuery = useMemo(() => query.trim(), [query]);
 
+  const fetchResults = async ({ pageToLoad = 1, append = false, signal } = {}) => {
+    try {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setError("");
+        setPage(1);
+        setHasMore(false);
+      }
+
+      const params = new URLSearchParams();
+      if (trimmedQuery) params.set("q", trimmedQuery);
+      if (filter !== "all") params.set("type", filter);
+      params.set("page", String(pageToLoad));
+      params.set("limit", String(PAGE_LIMIT));
+
+      const res = await fetch(`${API_BASE}/api/confessions/search?${params.toString()}`, {
+        signal,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (!append) {
+          setError(data.message || "Could not search right now.");
+          setResults([]);
+        }
+        return;
+      }
+
+      const normalized = normalizeSearchResponse(data);
+      setResults((prev) =>
+        append ? appendUniquePosts(prev, normalized.items) : normalized.items
+      );
+      setPage(normalized.page || pageToLoad);
+      setHasMore(normalized.hasMore);
+      if (!append) {
+        setError("");
+      }
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("Search error:", err);
+        if (!append) {
+          setError("Could not connect to search.");
+          setResults([]);
+          setHasMore(false);
+        }
+      }
+    } finally {
+      if (!signal?.aborted) {
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     const delay = setTimeout(async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const params = new URLSearchParams();
-        if (trimmedQuery) params.set("q", trimmedQuery);
-        if (filter !== "all") params.set("type", filter);
-
-        const res = await fetch(
-          `${API_BASE}/api/confessions/search?${params.toString()}`,
-          {
-            signal: controller.signal,
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          setError(data.message || "Could not search right now.");
-          setResults([]);
-          return;
-        }
-
-        setResults(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Search error:", err);
-          setError("Could not connect to search.");
-          setResults([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
+      await fetchResults({ pageToLoad: 1, append: false, signal: controller.signal });
     }, 250);
 
     return () => {
@@ -85,6 +146,11 @@ export default function SearchPage() {
       clearTimeout(delay);
     };
   }, [trimmedQuery, filter]);
+
+  const handleLoadMore = async () => {
+    if (loading || loadingMore || !hasMore) return;
+    await fetchResults({ pageToLoad: page + 1, append: true });
+  };
 
   return (
     <main className="search-page-shell">
@@ -164,6 +230,31 @@ export default function SearchPage() {
           );
         })}
       </section>
+
+      {(hasMore || loadingMore) && (
+        <section
+          className="search-results-head"
+          style={{ justifyContent: "center", marginTop: "8px" }}
+        >
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            disabled={loading || loadingMore || !hasMore}
+            style={{
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.06)",
+              color: "#efeaf6",
+              borderRadius: "999px",
+              fontSize: "12px",
+              padding: "7px 14px",
+              cursor: loading || loadingMore || !hasMore ? "default" : "pointer",
+              opacity: loading || loadingMore || !hasMore ? 0.65 : 1,
+            }}
+          >
+            {loadingMore ? "Loading..." : "Load More"}
+          </button>
+        </section>
+      )}
       <MobileBottomNav />
     </main>
   );
