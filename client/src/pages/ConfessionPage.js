@@ -536,6 +536,13 @@ const activeCommentPinPosition = isPhoneLayout
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 409) {
+          const duplicateMessage =
+            data.message || "You already reported this comment.";
+          window.cwToast?.(duplicateMessage, "warning") || alert(duplicateMessage);
+          return;
+        }
+
         window.cwToast?.(
           data.message || data.error || "Could not submit report.",
           "error"

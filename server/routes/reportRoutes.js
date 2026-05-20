@@ -80,6 +80,32 @@ router.post("/", protect, blockSuspended, reportLimiter, async (req, res) => {
         (reportedComment.image ? "[Image comment]" : "[Empty comment]");
     }
 
+    // TODO: add DB unique indexes after existing duplicate report rows are cleaned.
+    const duplicateQuery =
+      targetType === "comment"
+        ? {
+            reportedBy: req.user._id,
+            targetType: "comment",
+            confessionId,
+            commentId,
+          }
+        : {
+            reportedBy: req.user._id,
+            targetType: "confession",
+            confessionId,
+          };
+
+    const existingReport = await Report.findOne(duplicateQuery).select("_id");
+
+    if (existingReport) {
+      return res.status(409).json({
+        message:
+          targetType === "comment"
+            ? "You already reported this comment."
+            : "You already reported this confession.",
+      });
+    }
+
     const report = await Report.create({
       targetType,
       confessionId,
