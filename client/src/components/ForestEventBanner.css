@@ -1,72 +1,77 @@
 .forest-event-strip {
   --event-strip-border: rgba(120, 255, 150, 0.25);
   --event-strip-accent: #cce9bd;
-  --event-strip-background: linear-gradient(
-    135deg,
-    rgba(10, 34, 16, 0.9),
-    rgba(4, 16, 9, 0.96)
-  );
+  --event-strip-background:
+    linear-gradient(135deg, rgba(18, 42, 31, 0.76), rgba(5, 18, 12, 0.88)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   position: relative;
   display: block;
   width: min(352px, 100%);
   min-height: 70px;
-  padding: 10px 22px 12px 18px;
+  padding: 11px 18px 12px;
   color: #f6f2df;
   text-decoration: none;
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
+  background: var(--event-strip-background);
+  border: 1px solid rgba(164, 237, 168, 0.16);
+  border-radius: 24px;
   isolation: isolate;
-  overflow: visible;
+  overflow: hidden;
   cursor: pointer;
   pointer-events: auto;
   z-index: 0;
-  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -1px 0 rgba(10, 22, 16, 0.42);
+  backdrop-filter: blur(12px) saturate(118%);
+  -webkit-backdrop-filter: blur(12px) saturate(118%);
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    opacity 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .forest-event-strip:hover {
   transform: translateY(-1px) scale(1.01);
-  filter: brightness(1.05);
+  filter: brightness(1.04);
+  border-color: rgba(182, 255, 173, 0.28);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.25),
+    0 0 22px rgba(98, 190, 118, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11);
 }
 
 .forest-event-strip::before {
   content: "";
   position: absolute;
-  left: 24px;
-  right: 18px;
-  bottom: -10px;
-  height: 20px;
-  border-radius: 999px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.36) 0%,
-    rgba(0, 0, 0, 0.18) 48%,
-    transparent 78%
-  );
-  filter: blur(9px);
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 14% 50%, rgba(114, 210, 120, 0.14), transparent 24%),
+    radial-gradient(circle at 82% 48%, rgba(102, 209, 127, 0.1), transparent 26%);
   pointer-events: none;
-  z-index: -3;
+  z-index: -1;
 }
 
 .forest-event-strip::after {
   content: "";
   position: absolute;
-  left: 18px;
-  right: 34px;
-  top: 10px;
-  bottom: 10px;
-  border-radius: 999px;
+  inset: 1px;
+  border-radius: 22px;
+  border: 1px solid rgba(209, 255, 218, 0.04);
   background:
-    radial-gradient(circle at 12% 50%, rgba(124, 201, 112, 0.12), transparent 20%),
-    radial-gradient(circle at 78% 42%, rgba(160, 255, 170, 0.06), transparent 18%);
-  filter: blur(12px);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 38%),
+    radial-gradient(circle at 88% 16%, rgba(146, 255, 170, 0.1), transparent 22%);
   pointer-events: none;
   z-index: -2;
 }
 
 .forest-event-strip__art {
   position: absolute;
-  inset: -3px -8px -6px -8px;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
 }
@@ -74,107 +79,33 @@
 .forest-event-strip__svg {
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: hidden;
   display: block;
-  filter:
-    drop-shadow(0 14px 18px rgba(0, 0, 0, 0.28))
-    drop-shadow(0 0 18px rgba(86, 134, 82, 0.14));
-  animation: forest-event-branch-breathe 8.8s ease-in-out infinite;
-}
-
-.forest-event-strip__branch-shadow {
-  fill: rgba(13, 9, 7, 0.34);
-  transform: translate(2px, 4px);
+  opacity: 0.96;
 }
 
 .forest-event-strip__branch-shape,
 .forest-event-strip__branch-rim,
 .forest-event-strip__branch-sheen,
+.forest-event-strip__branch-shadow,
 .forest-event-strip__branch-moss,
 .forest-event-strip__branch-grain,
 .forest-event-strip__branch-knot,
-.forest-event-strip__vine,
-.forest-event-strip__twig,
-.forest-event-strip__leaf,
-.forest-event-strip__leaf-vein {
-  vector-effect: non-scaling-stroke;
-}
-
-.forest-event-strip__branch-shape {
-  stroke: rgba(28, 18, 12, 0.92);
-  stroke-width: 2.1;
-}
-
-.forest-event-strip__branch-rim {
-  fill: none;
-  stroke-width: 2.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.92;
-}
-
-.forest-event-strip__branch-sheen {
-  fill: none;
-  stroke-width: 6.8;
-  stroke-linecap: round;
-  opacity: 0.82;
-}
-
-.forest-event-strip__branch-moss {
-  fill: none;
-  stroke-width: 9;
-  stroke-linecap: round;
-  opacity: 0.64;
-}
-
-.forest-event-strip__branch-grain {
-  fill: none;
-  stroke: rgba(24, 16, 11, 0.58);
-  stroke-width: 1.45;
-  stroke-linecap: round;
-}
-
-.forest-event-strip__branch-grain.grain-b {
-  opacity: 0.84;
-}
-
-.forest-event-strip__branch-grain.grain-c {
-  opacity: 0.56;
-}
-
 .forest-event-strip__twig {
-  fill: none;
-  stroke: rgba(52, 33, 22, 0.94);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  opacity: 0.92;
-}
-
-.forest-event-strip__twig.twig-top {
-  stroke-width: 1.9;
-  opacity: 0.86;
-}
-
-.forest-event-strip__branch-knot {
-  fill: rgba(38, 25, 17, 0.5);
-  stroke: rgba(110, 78, 52, 0.4);
-  stroke-width: 1.1;
-}
-
-.forest-event-strip__branch-knot.knot-b,
-.forest-event-strip__branch-knot.knot-c {
-  fill: rgba(28, 18, 12, 0.44);
+  display: none;
 }
 
 .forest-event-strip__vine {
   fill: none;
-  stroke-width: 2.9;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2.7;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: var(--vine-length, 360);
   stroke-dashoffset: var(--vine-length, 360);
-  opacity: 0.9;
-  animation: forest-event-vine-draw 8.8s ease-in-out infinite;
+  opacity: 0.84;
+  filter: drop-shadow(0 0 8px rgba(110, 233, 132, 0.22));
+  animation: forest-event-vine-draw 8.2s ease-in-out infinite;
 }
 
 .forest-event-strip__vine.vine-a {
@@ -196,7 +127,7 @@
 .forest-event-strip__leaf-group {
   opacity: 0;
   transform-origin: center;
-  animation: forest-event-leaf-bloom 8.8s ease-in-out infinite;
+  animation: forest-event-leaf-bloom 8.2s ease-in-out infinite;
 }
 
 .forest-event-strip__leaf-group.leaf-group-a {
@@ -220,12 +151,14 @@
 }
 
 .forest-event-strip__leaf {
+  vector-effect: non-scaling-stroke;
   fill: rgba(121, 200, 101, 0.95);
   stroke: rgba(230, 255, 210, 0.52);
   stroke-width: 1.05;
 }
 
 .forest-event-strip__leaf-vein {
+  vector-effect: non-scaling-stroke;
   fill: none;
   stroke: rgba(231, 255, 211, 0.46);
   stroke-width: 0.75;
@@ -235,7 +168,7 @@
 .forest-event-strip__mote {
   fill: rgba(208, 255, 174, 0.78);
   opacity: 0;
-  animation: forest-event-mote-flicker 8.8s ease-in-out infinite;
+  animation: forest-event-mote-flicker 8.2s ease-in-out infinite;
 }
 
 .forest-event-strip__mote.mote-a {
@@ -257,22 +190,22 @@
   flex-direction: column;
   justify-content: center;
   min-height: 50px;
-  padding: 7px 18px 7px 14px;
-  border-radius: 999px;
+  padding: 8px 14px 8px 13px;
+  border-radius: 20px;
 }
 
 .forest-event-strip__content::before {
   content: "";
   position: absolute;
-  inset: 2px 8px 2px 4px;
-  border-radius: 999px;
+  inset: 0;
+  border-radius: inherit;
   background:
     linear-gradient(180deg, rgba(255, 246, 221, 0.06), rgba(255, 246, 221, 0.01)),
-    radial-gradient(circle at 20% 50%, rgba(163, 215, 145, 0.08), transparent 18%),
-    linear-gradient(90deg, rgba(9, 24, 12, 0.08), rgba(9, 24, 12, 0));
+    radial-gradient(circle at 20% 50%, rgba(163, 215, 145, 0.07), transparent 18%),
+    linear-gradient(90deg, rgba(9, 24, 12, 0.06), rgba(9, 24, 12, 0));
   box-shadow:
     inset 0 1px 0 rgba(255, 247, 225, 0.08),
-    inset 0 -1px 0 rgba(24, 12, 8, 0.24);
+    inset 0 -1px 0 rgba(24, 12, 8, 0.18);
   pointer-events: none;
   z-index: -1;
 }
@@ -317,7 +250,7 @@
   border-radius: 999px;
   border: 1px solid var(--event-strip-border);
   background:
-    linear-gradient(180deg, rgba(28, 56, 28, 0.74), rgba(13, 28, 13, 0.82));
+    linear-gradient(180deg, rgba(25, 58, 38, 0.66), rgba(11, 28, 18, 0.78));
   color: var(--event-strip-accent);
   box-shadow:
     inset 0 1px 0 rgba(236, 255, 221, 0.08),
@@ -394,35 +327,15 @@
   }
 }
 
-@keyframes forest-event-branch-breathe {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.98;
-  }
-  50% {
-    transform: translateY(-0.35px);
-    opacity: 1;
-  }
-}
-
 @media (max-width: 720px) {
   .forest-event-strip {
     width: 100%;
     min-height: 62px;
-    padding: 9px 16px 10px 14px;
-  }
-
-  .forest-event-strip__art {
-    inset: -2px -6px -5px -6px;
+    padding: 9px 14px 10px;
   }
 
   .forest-event-strip__content {
-    padding: 7px 12px 7px 12px;
-  }
-
-  .forest-event-strip__content::before {
-    inset: 2px 6px 2px 3px;
+    padding: 7px 12px;
   }
 
   .forest-event-strip__title {
@@ -442,34 +355,13 @@
 @media (max-width: 520px) {
   .forest-event-strip {
     min-height: 58px;
-    padding: 8px 12px 9px 11px;
-  }
-
-  .forest-event-strip::before {
-    left: 16px;
-    right: 16px;
-    bottom: -8px;
-    height: 16px;
-  }
-
-  .forest-event-strip::after {
-    left: 12px;
-    right: 18px;
-    top: 8px;
-    bottom: 8px;
-  }
-
-  .forest-event-strip__art {
-    inset: -1px -4px -3px -4px;
+    padding: 8px 12px 9px;
+    border-radius: 22px;
   }
 
   .forest-event-strip__content {
     min-height: 46px;
-    padding: 6px 10px 6px 10px;
-  }
-
-  .forest-event-strip__content::before {
-    inset: 2px 5px 2px 3px;
+    padding: 6px 10px;
   }
 
   .forest-event-strip__kicker {

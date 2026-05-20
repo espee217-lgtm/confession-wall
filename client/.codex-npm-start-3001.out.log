@@ -14,7 +14,137 @@ Note that the development build is not optimized.
 To create a production build, use npm run build.
 
 webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
 Compiled successfully!
 webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Failed to compile.
+
+Module not found: Error: Can't resolve '../components/SplitBouquetHero' in 'C:\Users\espee\OneDrive\Desktop\confession-wall\client\src\pages'
+[1m[31mERROR[39m[22m in [1m./src/pages/Home.js[39m[22m [1m[32m13:0-62[39m[22m
+[1mModule [1m[31mnot found[39m[22m[1m: [1m[31mError[39m[22m[1m: Can't resolve '../components/SplitBouquetHero' in 'C:\Users\espee\OneDrive\Desktop\confession-wall\client\src\pages'[39m[22m
+
+webpack compiled with [1m[31m1 error[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Failed to compile.
+
+[eslint] 
+src\components\SplitBouquetHero.js
+Syntax error: Unexpected token, expected "," (428:5) (428:5)
+[1m[31mERROR[39m[22m in [1m./src/components/SplitBouquetHero.js[39m[22m
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: C:\Users\espee\OneDrive\Desktop\confession-wall\client\src\components\SplitBouquetHero.js: Unexpected token, expected "," (428:5)
+
+[0m [90m 426 |[39m     window[33m.[39maddEventListener([32m"keydown"[39m[33m,[39m handleKeyDown)[33m;[39m
+ [90m 427 |[39m     [36mreturn[39m () [33m=>[39m window[33m.[39mremoveEventListener([32m"keydown"[39m[33m,[39m handleKeyDown)[33m;[39m
+[31m[1m>[22m[39m[90m 428 |[39m     }[33m;[39m
+ [90m     |[39m      [31m[1m^[22m[39m
+ [90m 429 |[39m
+ [90m 430 |[39m     window[33m.[39maddEventListener([32m"keydown"[39m[33m,[39m handleKeyDown)[33m;[39m
+ [90m 431 |[39m     [36mreturn[39m () [33m=>[39m window[33m.[39mremoveEventListener([32m"keydown"[39m[33m,[39m handleKeyDown)[33m;[39m[0m
+    at constructor (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:367:19)
+    at FlowParserMixin.raise (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:6624:19)
+    at FlowParserMixin.unexpected (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:6644:16)
+    at FlowParserMixin.expect (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:6924:12)
+    at FlowParserMixin.parseCallExpressionArguments (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11307:14)
+    at FlowParserMixin.parseCoverCallAndAsyncArrowHead (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11250:29)
+    at FlowParserMixin.parseSubscript (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11184:19)
+    at FlowParserMixin.parseSubscript (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:3679:18)
+    at FlowParserMixin.parseSubscripts (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11158:19)
+    at FlowParserMixin.parseSubscripts (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:3645:18)
+    at FlowParserMixin.parseExprSubscripts (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11149:17)
+    at FlowParserMixin.parseUpdate (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11130:21)
+    at FlowParserMixin.parseMaybeUnary (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:11110:23)
+    at FlowParserMixin.parseMaybeUnaryOrPrivate (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10963:61)
+    at FlowParserMixin.parseExprOps (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10968:23)
+    at FlowParserMixin.parseMaybeConditional (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10945:23)
+    at FlowParserMixin.parseMaybeAssign (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10895:21)
+    at FlowParserMixin.parseMaybeAssign (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:3578:18)
+    at FlowParserMixin.parseExpressionBase (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10848:23)
+    at C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10844:39
+    at FlowParserMixin.allowInAnd (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12495:16)
+    at FlowParserMixin.parseExpression (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:10844:17)
+    at FlowParserMixin.parseStatementContent (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12971:23)
+    at FlowParserMixin.parseStatementLike (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12843:17)
+    at FlowParserMixin.parseStatementLike (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:2945:24)
+    at FlowParserMixin.parseStatementListItem (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12823:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13392:61)
+    at FlowParserMixin.parseBlockBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13385:10)
+    at FlowParserMixin.parseBlock (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13373:10)
+    at FlowParserMixin.parseFunctionBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12174:24)
+    at FlowParserMixin.parseFunctionBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:2922:11)
+    at FlowParserMixin.parseFunctionBodyAndFinish (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12160:10)
+    at FlowParserMixin.parseFunctionBodyAndFinish (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:2930:18)
+    at C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13521:12
+    at FlowParserMixin.withSmartMixTopicForbiddingContext (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12477:14)
+    at FlowParserMixin.parseFunction (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13520:10)
+    at FlowParserMixin.parseExportDefaultExpression (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13983:19)
+    at FlowParserMixin.parseExportDefaultExpression (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:2993:18)
+    at FlowParserMixin.parseExport (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13904:25)
+    at FlowParserMixin.parseStatementContent (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12954:27)
+    at FlowParserMixin.parseStatementLike (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12843:17)
+    at FlowParserMixin.parseStatementLike (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:2945:24)
+    at FlowParserMixin.parseModuleItem (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12820:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13392:36)
+    at FlowParserMixin.parseBlockBody (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:13385:10)
+    at FlowParserMixin.parseProgram (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12698:10)
+    at FlowParserMixin.parseTopLevel (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:12688:25)
+    at FlowParserMixin.parseTopLevel (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:3714:28)
+    at FlowParserMixin.parse (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:14568:25)
+    at parse (C:\Users\espee\OneDrive\Desktop\confession-wall\client\node_modules\@babel\parser\lib\index.js:14602:38)
+
+[1m[31mERROR[39m[22m in [1m[eslint] 
+src\components\SplitBouquetHero.js
+  Line 428:5:  Parsing [1m[31merror[39m[22m[1m: [1m[31mUnexpected[39m[22m[1m token, expected "," (428:5)
+
+[39m[22m
+
+webpack compiled with [1m[31m2 errors[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Failed to compile.
+
+Module not found: Error: Can't resolve '../components/SplitBouquetHero' in 'C:\Users\espee\OneDrive\Desktop\confession-wall\client\src\pages'
+[1m[31mERROR[39m[22m in [1m./src/pages/Home.js[39m[22m [1m[32m13:0-62[39m[22m
+[1mModule [1m[31mnot found[39m[22m[1m: [1m[31mError[39m[22m[1m: Can't resolve '../components/SplitBouquetHero' in 'C:\Users\espee\OneDrive\Desktop\confession-wall\client\src\pages'[39m[22m
+
+webpack compiled with [1m[31m1 error[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
 Compiled successfully!
 webpack compiled [1m[32msuccessfully[39m[22m

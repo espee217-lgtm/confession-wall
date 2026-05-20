@@ -514,6 +514,8 @@ function Navbar() {
     <header
       className="navbar"
       style={{
+        position: "relative",
+        zIndex: 30,
         height: "64px",
         display: "flex",
         alignItems: "center",
@@ -671,7 +673,10 @@ function Navbar() {
 function Footer() {
   return (
     <div
+      className="site-footer"
       style={{
+        position: "relative",
+        zIndex: 30,
         textAlign: "center",
         padding: "22px",
         backgroundImage:

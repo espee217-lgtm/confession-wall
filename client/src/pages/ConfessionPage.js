@@ -371,6 +371,11 @@ export default function ConfessionPage() {
 
   const realm = realmFromUrl || inferredRealm;
   const theme = realmThemes[realm] || realmThemes.grove;
+  let bgVideo = "/forest3.mp4";
+
+  if (realm === "scorched") bgVideo = "/Burnt.mp4";
+  if (realm === "budding") bgVideo = "/budding.mp4";
+
   const authorEquipped = getDisplayCosmetics(confession?.userId);
   const confessionThemeId = getConfessionThemeId(
     confession,
@@ -406,14 +411,6 @@ const activeCommentPinPosition = isPhoneLayout
       x: COMMENT_IMAGE_PIN_DESKTOP_X,
       y: COMMENT_IMAGE_PIN_DESKTOP_Y,
     };
-
-  let bgVideo = "/forest3.mp4";
-
-  if (realm === "scorched") {
-    bgVideo = "/Burnt.mp4";
-  } else if (realm === "budding") {
-    bgVideo = "/budding.mp4";
-  }
 
   const cardStyle = {
     background: theme.cardBg,
@@ -750,16 +747,18 @@ const activeCommentPinPosition = isPhoneLayout
     <div className="cw-confession-page" style={{ position: "relative", minHeight: "100vh" }}>
       <video
         autoPlay
-        loop
         muted
+        loop
         playsInline
+        preload="metadata"
         style={{
           position: "fixed",
-          inset: 0,
+          top: 0,
+          left: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          opacity: 0.46,
+          opacity: 0.45,
           zIndex: 0,
           pointerEvents: "none",
         }}
@@ -771,8 +770,8 @@ const activeCommentPinPosition = isPhoneLayout
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 0,
           background: theme.pageTint,
+          zIndex: 0,
           pointerEvents: "none",
         }}
       />

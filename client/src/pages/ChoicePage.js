@@ -58,12 +58,10 @@ const ChoicePage = () => {
 
   return (
     <div className="choice-page">
-      <video className="choice-bg-video" autoPlay muted loop playsInline>
+      <video className="choice-bg-video" autoPlay muted loop playsInline preload="metadata">
         <source src="/reena-choice/choicesbg.mp4" type="video/mp4" />
       </video>
-
       <div className="choice-vignette" />
-
       <div className="private-badge">
         <span className="badge-lock">🔒</span>
         <span>Private Path Unlocked</span>

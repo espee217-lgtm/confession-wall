@@ -25,6 +25,10 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 /* ===== NAVBAR ===== */
 .navbar {
   background: linear-gradient(90deg, var(--primary), #00bfff);
@@ -92,6 +96,31 @@ button:hover {
 .confession-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+@supports (content-visibility: auto) {
+  .confession-card,
+  .mobile-home-card,
+  .search-state-card,
+  .activity-state-card,
+  .activity-item,
+  .shop-item-card,
+  .shop-equipped-card,
+  .cw-confession-page .cw-confession-comment-card,
+  .cw-user-profile-post-card {
+    content-visibility: auto;
+    contain: layout paint;
+    contain-intrinsic-size: 320px;
+  }
+
+  .activity-item,
+  .shop-equipped-card {
+    contain-intrinsic-size: 110px;
+  }
+
+  .cw-confession-page .cw-confession-comment-card {
+    contain-intrinsic-size: 180px;
+  }
 }
 
 .confession-text {
@@ -1422,6 +1451,7 @@ a.chip {
   .navbar::after {
     display: none !important;
   }
+
 }
 /* ===== COSMETIC SHOP NAV BUTTON ===== */
 .nav-shop-btn {

@@ -63,6 +63,27 @@ export default function ThrivingGrove() {
 
   return (
     <div className="cw-realm-page cw-grove-page" style={{ position: "relative", minHeight: "100vh" }}>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.45,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <source src="/forest3.mp4" type="video/mp4" />
+      </video>
+
       <style>{`
         @keyframes groveBlink {
           0% {
@@ -80,24 +101,16 @@ export default function ThrivingGrove() {
         }
       `}</style>
 
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
+      <div
         style={{
           position: "fixed",
           inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: 0.45,
-          zIndex: 0,
           pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 50% 20%, rgba(110,255,160,0.08), transparent 60%)",
+          zIndex: 0,
         }}
-      >
-        <source src="/forest3.mp4" type="video/mp4" />
-      </video>
+      />
 
       <div
         style={{

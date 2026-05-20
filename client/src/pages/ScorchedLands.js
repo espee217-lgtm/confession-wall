@@ -57,6 +57,27 @@ export default function ScorchedLands() {
 
   return (
     <div className="cw-realm-page cw-scorched-page" style={{ position: "relative", minHeight: "100vh" }}>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.45,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <source src="/Burnt.mp4" type="video/mp4" />
+      </video>
+
       <style>{`
         @keyframes scorchedBlink {
           0% {
@@ -74,33 +95,14 @@ export default function ScorchedLands() {
         }
       `}</style>
 
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "fixed",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: 0.45,
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <source src="/Burnt.mp4" type="video/mp4" />
-      </video>
-
       <div
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 0,
           pointerEvents: "none",
           background:
             "radial-gradient(ellipse at 50% 0%, rgba(180,50,20,0.18) 0%, transparent 70%)",
+          zIndex: 0,
         }}
       />
 

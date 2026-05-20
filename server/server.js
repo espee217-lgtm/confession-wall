@@ -31,6 +31,8 @@ const allowedOrigins = new Set(
   [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "https://confession-wall-ooqkkrirq-espee217-lgtms-projects.vercel.app",
     "https://confession-wall-325.pages.dev",
     process.env.CLIENT_URL,

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import ForestEventBanner from "../components/ForestEventBanner";
 import MobileBottomNav from "../components/MobileBottomNav";
+import SplitBouquetHero from "../components/SplitBouquetHero";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import DaisyScene from "../DaisyScene";
 import FramedAvatar from "../components/FramedAvatar";
 import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import {
@@ -49,6 +49,48 @@ const POST_EMOJI_GROUPS = [
     emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵", "🙏", "💪", "🫱", "🫲"],
   },
 ];
+
+function HomeBackgroundVideo() {
+  return (
+    <>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: "50%",
+          top: "50%",
+          width: "100vw",
+          height: "100vh",
+          minWidth: "100vw",
+          minHeight: "100vh",
+          objectFit: "cover",
+          objectPosition: "center center",
+          transform: "translate(-50%, -50%)",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <source src="/daisy-bg.mp4" type="video/mp4" />
+      </video>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0, 0, 0, 0.35)",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
+    </>
+  );
+}
 
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
   const handlePick = (emoji) => {
@@ -955,7 +997,9 @@ function MobileHomePage({
   };
 
   return (
-    <main className="mobile-home-shell">
+    <main className="mobile-home-shell" style={{ position: "relative", zIndex: 2 }}>
+      <HomeBackgroundVideo />
+
       <section className="mobile-home-event-strip">
         <ForestEventBanner compact />
       </section>
@@ -1158,9 +1202,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
       if (e.target.closest('[data-ui="true"]')) return;
   
       if (isOpaqueAt(leftImgRef.current, e)) {
-        // stopPropagation prevents DaisyScene's click handler from also firing.
-        // No preventDefault() — that was suppressing the click event entirely,
-        // breaking daisy flower navigation.
+        // Keep spirit-layer clicks from also hitting underlying page handlers.
         e.stopPropagation();
         onLeftClick();
         return;
@@ -1176,7 +1218,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
   setRightHover(isOpaqueAt(rightImgRef.current, e));
 };
     // Use click (capture) instead of pointerdown so we don't suppress
-    // the click event that DaisyScene depends on for flower navigation.
+    // the normal click behavior on the rest of the page.
     window.addEventListener("click", handleSpiritClick, true);
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
@@ -1304,10 +1346,7 @@ const [image, setImage] = useState(null);
   const [showPollComposer, setShowPollComposer] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", "", "", ""]);
-  const [muted, setMuted] = useState(true);
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 720);
-
-  const videoRef = useRef(null);
   const availablePostThemes = useMemo(() => getAvailablePostThemes(user), [user]);
 
   useEffect(() => {
@@ -1319,7 +1358,9 @@ const [image, setImage] = useState(null);
 
   useEffect(() => {
     document.body.classList.add("mobile-home-page");
-    return () => document.body.classList.remove("mobile-home-page");
+    return () => {
+      document.body.classList.remove("mobile-home-page");
+    };
   }, []);
 
 useEffect(() => {
@@ -1375,37 +1416,6 @@ useEffect(() => {
     setSelectedPostTheme(nextTheme);
   }, [availablePostThemes, selectedPostTheme, user?.equippedCosmetics?.postTheme]);
 
-  // 🔊 Auto-unmute on first interaction
-  useEffect(() => {
-    const tryUnmute = () => {
-      setMuted(false);
-      if (videoRef.current) videoRef.current.muted = false;
-      document.removeEventListener('click', tryUnmute);
-      document.removeEventListener('keydown', tryUnmute);
-      document.removeEventListener('touchstart', tryUnmute);
-    };
-
-    document.addEventListener('click', tryUnmute);
-    document.addEventListener('keydown', tryUnmute);
-    document.addEventListener('touchstart', tryUnmute);
-
-    return () => {
-      document.removeEventListener('click', tryUnmute);
-      document.removeEventListener('keydown', tryUnmute);
-      document.removeEventListener('touchstart', tryUnmute);
-    };
-  }, []);
-
-  // 👁️ Pause/resume on tab switch
-  useEffect(() => {
-  const handleVisibility = () => {
-    if (!videoRef.current || muted) return; // ← add muted check
-    document.hidden ? videoRef.current.pause() : videoRef.current.play().catch(() => {});
-  };
-
-  document.addEventListener('visibilitychange', handleVisibility);
-  return () => document.removeEventListener('visibilitychange', handleVisibility);
-}, [muted]);
   const insertPostEmoji = (emoji) => {
   const input = postInputRef.current;
 
@@ -1451,6 +1461,11 @@ useEffect(() => {
     const file = e.target.files[0];
     setImage(file);
     if (file) setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleOpenConfession = () => {
+    setShowPostEmojiPicker(false);
+    setShowCompose(true);
   };
 
   const handleSubmit = async () => {
@@ -1574,62 +1589,12 @@ useEffect(() => {
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "#050f04" }}>
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted={muted}
-        playsInline
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: 0.6,
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <source src="/green.mp4" type="video/mp4" />
-      </video>
-
-      <button
-        onClick={() => setMuted((m) => !m)}
-        style={{
-          position: "absolute",
-          bottom: "20px",
-          right: "20px",
-          zIndex: 100,
-          background: "rgba(10,30,12,0.7)",
-          border: "1px solid rgba(120,200,90,0.3)",
-          borderRadius: "50%",
-          width: "40px",
-          height: "40px",
-          cursor: "pointer",
-          color: "rgba(200,255,180,0.8)",
-          fontSize: "16px",
-          backdropFilter: "blur(8px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          lineHeight: 1,
-          padding: 0,
-        }}
-      >
-        {muted ? "🔇" : "🔊"}
-      </button>
-
-      <div style={{ position: "absolute", inset: 0, zIndex: 20 }}>
-  <DaisyScene
-    confessions={freshPosts}
-    user={user}
-    onPostClick={(id) => id ? navigate(`/budding?post=${id}`) : navigate("/budding")}
-    onCompose={() => setShowCompose(true)}
-    onProfile={() => navigate("/settings")}
-  />
-</div>
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative", background: "transparent" }}>
+      <HomeBackgroundVideo />
+      <SplitBouquetHero
+        posts={confessions}
+        onHandClick={handleOpenConfession}
+      />
 <div
   data-ui="true"
   style={{
@@ -1645,8 +1610,7 @@ useEffect(() => {
     type="button"
     onClick={(e) => {
       e.stopPropagation();
-      setShowPostEmojiPicker(false);
-      setShowCompose(true);
+      handleOpenConfession();
     }}
     onMouseEnter={(e) => {
       e.currentTarget.style.transform = "translateY(-2px) scale(1.035)";

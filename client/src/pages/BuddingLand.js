@@ -64,6 +64,27 @@ export default function BuddingLand() {
 
   return (
     <div className="cw-realm-page cw-budding-page" style={{ position: "relative", minHeight: "100vh" }}>
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          opacity: 0.45,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      >
+        <source src="/budding.mp4" type="video/mp4" />
+      </video>
+
       <style>{`
         @keyframes buddingBlink {
           0% {
@@ -82,33 +103,14 @@ export default function BuddingLand() {
         }
       `}</style>
 
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          position: "fixed",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: 0.5,
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      >
-        <source src="/budding.mp4" type="video/mp4" />
-      </video>
-
       <div
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 0,
           pointerEvents: "none",
           background:
             "radial-gradient(circle at 50% 20%, rgba(120,255,180,0.12), transparent 60%)",
+          zIndex: 0,
         }}
       />
 
