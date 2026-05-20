@@ -167,6 +167,78 @@ router.delete("/reports/cleanup-resolved", adminProtect, async (req, res) => {
   }
 });
 
+// DELETE /api/admin/reports/clear-resolved
+// Removes all resolved report records (does not touch posts/comments).
+router.delete("/reports/clear-resolved", adminProtect, async (req, res) => {
+  try {
+    const result = await Report.deleteMany({ status: "resolved" });
+
+    res.json({
+      message: `Cleared ${result.deletedCount || 0} resolved report(s).`,
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (err) {
+    console.error("Clear resolved reports error:", err);
+    res.status(500).json({ message: "Could not clear resolved reports" });
+  }
+});
+
+// DELETE /api/admin/reports/:id
+// Deletes only the report record (does not touch posts/comments).
+router.delete("/reports/:id", adminProtect, async (req, res) => {
+  try {
+    const deletedReport = await Report.findByIdAndDelete(req.params.id);
+
+    if (!deletedReport) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    res.json({
+      message: "Report record deleted.",
+      deletedId: deletedReport._id,
+    });
+  } catch (err) {
+    console.error("Delete report record error:", err);
+    res.status(500).json({ message: "Could not delete report record" });
+  }
+});
+
+// DELETE /api/admin/logs/clear
+// Clears AdminLog records only.
+router.delete("/logs/clear", adminProtect, async (req, res) => {
+  try {
+    const result = await AdminLog.deleteMany({});
+
+    res.json({
+      message: `Cleared ${result.deletedCount || 0} admin log(s).`,
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (err) {
+    console.error("Clear admin logs error:", err);
+    res.status(500).json({ message: "Could not clear admin logs" });
+  }
+});
+
+// DELETE /api/admin/logs/:id
+// Deletes one AdminLog record only.
+router.delete("/logs/:id", adminProtect, async (req, res) => {
+  try {
+    const deletedLog = await AdminLog.findByIdAndDelete(req.params.id);
+
+    if (!deletedLog) {
+      return res.status(404).json({ message: "Admin log not found" });
+    }
+
+    res.json({
+      message: "Admin log deleted.",
+      deletedId: deletedLog._id,
+    });
+  } catch (err) {
+    console.error("Delete admin log error:", err);
+    res.status(500).json({ message: "Could not delete admin log" });
+  }
+});
+
 // GET /api/admin/users
 router.get("/users", adminProtect, async (req, res) => {
   try {
@@ -202,6 +274,65 @@ router.get("/confessions", adminProtect, async (req, res) => {
   } catch (err) {
     console.error("Fetch confessions error:", err);
     res.status(500).json({ message: "Could not fetch confessions" });
+  }
+});
+
+// PATCH /api/admin/confessions/:id/hide
+router.patch("/confessions/:id/hide", adminProtect, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.id);
+
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found" });
+    }
+
+    const reason =
+      typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+
+    confession.isHidden = true;
+    confession.hiddenReason = reason || "";
+    confession.hiddenBy = req.admin?.id || null;
+    confession.hiddenAt = new Date();
+
+    await confession.save();
+
+    const updatedConfession = await Confession.findById(confession._id).populate(
+      "userId",
+      "username profilePicture isAdmin role"
+    );
+
+    res.json(updatedConfession);
+  } catch (err) {
+    console.error("Hide confession error:", err);
+    res.status(500).json({ message: "Could not hide confession" });
+  }
+});
+
+// PATCH /api/admin/confessions/:id/unhide
+router.patch("/confessions/:id/unhide", adminProtect, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.id);
+
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found" });
+    }
+
+    confession.isHidden = false;
+    confession.hiddenReason = "";
+    confession.hiddenBy = null;
+    confession.hiddenAt = null;
+
+    await confession.save();
+
+    const updatedConfession = await Confession.findById(confession._id).populate(
+      "userId",
+      "username profilePicture isAdmin role"
+    );
+
+    res.json(updatedConfession);
+  } catch (err) {
+    console.error("Unhide confession error:", err);
+    res.status(500).json({ message: "Could not unhide confession" });
   }
 });
 
@@ -250,6 +381,77 @@ router.delete("/confessions/:id", adminProtect, async (req, res) => {
     res.status(500).json({ message: "Could not delete confession" });
   }
 });
+
+// PATCH /api/admin/confessions/:confessionId/comments/:commentId/hide
+// PATCH /api/admin/confessions/:confessionId/comments/:commentId/unhide
+router.patch(
+  "/confessions/:confessionId/comments/:commentId/hide",
+  adminProtect,
+  async (req, res) => {
+    try {
+      const { confessionId, commentId } = req.params;
+      const confession = await Confession.findById(confessionId);
+
+      if (!confession) {
+        return res.status(404).json({ message: "Confession not found" });
+      }
+
+      const comment = confession.comments.id(commentId);
+
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      const reason =
+        typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+
+      comment.isHidden = true;
+      comment.hiddenReason = reason || "";
+      comment.hiddenBy = req.admin?.id || null;
+      comment.hiddenAt = new Date();
+
+      await confession.save();
+
+      res.json({ message: "Comment hidden", confession });
+    } catch (err) {
+      console.error("Hide comment error:", err);
+      res.status(500).json({ message: "Could not hide comment" });
+    }
+  }
+);
+
+router.patch(
+  "/confessions/:confessionId/comments/:commentId/unhide",
+  adminProtect,
+  async (req, res) => {
+    try {
+      const { confessionId, commentId } = req.params;
+      const confession = await Confession.findById(confessionId);
+
+      if (!confession) {
+        return res.status(404).json({ message: "Confession not found" });
+      }
+
+      const comment = confession.comments.id(commentId);
+
+      if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      comment.isHidden = false;
+      comment.hiddenReason = "";
+      comment.hiddenBy = null;
+      comment.hiddenAt = null;
+
+      await confession.save();
+
+      res.json({ message: "Comment unhidden", confession });
+    } catch (err) {
+      console.error("Unhide comment error:", err);
+      res.status(500).json({ message: "Could not unhide comment" });
+    }
+  }
+);
 
 // DELETE /api/admin/confessions/:confessionId/comments/:commentId
 router.delete(

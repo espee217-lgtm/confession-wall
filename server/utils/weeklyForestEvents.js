@@ -514,14 +514,20 @@ function serializeLeadConfession(leader) {
 
 async function computeWeeklyLeaderboardForContext(
   context,
-  { useRawFallback = true } = {}
+  { useRawFallback = true, includeHidden = true } = {}
 ) {
-  const confessions = await Confession.find({
+  const query = {
     createdAt: {
       $gte: context.rankingStartAt,
       $lt: context.rankingEndAt,
     },
-  })
+  };
+
+  if (!includeHidden) {
+    query.isHidden = { $ne: true };
+  }
+
+  const confessions = await Confession.find(query)
     .sort({ createdAt: 1 })
     .populate("userId", USER_PUBLIC_SELECT);
 
@@ -737,11 +743,17 @@ function serializeCurrentEventStatus(context, date = new Date()) {
   };
 }
 
-async function getWeeklyEventStatus(date = new Date()) {
+async function getWeeklyEventStatus(
+  date = new Date(),
+  { includeHidden = true } = {}
+) {
   const currentContext = getCurrentWeeklyEventContext(date);
   const activeResultsContext = getActiveResultsContext(date);
   const [currentBoard, currentCycle] = await Promise.all([
-    computeWeeklyLeaderboardForContext(currentContext, { useRawFallback: true }),
+    computeWeeklyLeaderboardForContext(currentContext, {
+      useRawFallback: true,
+      includeHidden,
+    }),
     getOrCreateCycleRecord(currentContext),
   ]);
 
@@ -754,6 +766,7 @@ async function getWeeklyEventStatus(date = new Date()) {
         ? Promise.resolve(currentBoard)
         : computeWeeklyLeaderboardForContext(activeResultsContext, {
             useRawFallback: true,
+            includeHidden,
           }),
       getOrCreateCycleRecord(activeResultsContext),
     ]);

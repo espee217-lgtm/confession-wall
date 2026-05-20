@@ -90,6 +90,24 @@ const COMFORT_CARD_OPTIONS = [
 ];
 
 const PRIVATE_ENGAGEMENT_SELECT = "+comfortCards.sentBy +poll.voterIds";
+const PUBLIC_VISIBLE_FILTER = { isHidden: { $ne: true } };
+
+const toPlainConfession = (confession) =>
+  confession?.toObject ? confession.toObject() : confession;
+
+const stripHiddenCommentsFromConfession = (confession) => {
+  const plain = toPlainConfession(confession);
+
+  if (!plain || !Array.isArray(plain.comments)) {
+    return plain;
+  }
+
+  plain.comments = plain.comments.filter((comment) => !comment?.isHidden);
+  return plain;
+};
+
+const stripHiddenCommentsFromList = (confessions = []) =>
+  confessions.map(stripHiddenCommentsFromConfession);
 
 const normalizeOwnedCosmeticIds = (user) =>
   new Set(
@@ -191,11 +209,11 @@ const serializePoll = (poll) => {
 router.get("/", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confessions = await Confession.find()
+    const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
       .sort({ createdAt: -1 })
       .populate("userId", USER_PUBLIC_SELECT);
 
-    res.json(confessions);
+    res.json(stripHiddenCommentsFromList(confessions));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -205,7 +223,7 @@ router.get("/", async (req, res) => {
 router.get("/realm/thriving", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confessions = await Confession.find()
+    const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
       .sort({ createdAt: -1 })
       .populate("userId", USER_PUBLIC_SELECT);
 
@@ -215,7 +233,7 @@ router.get("/realm/thriving", async (req, res) => {
       return p.wateredBy.length / total >= 0.5;
     });
 
-    res.json(thriving);
+    res.json(stripHiddenCommentsFromList(thriving));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -225,7 +243,7 @@ router.get("/realm/thriving", async (req, res) => {
 router.get("/realm/scorched", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confessions = await Confession.find()
+    const confessions = await Confession.find(PUBLIC_VISIBLE_FILTER)
       .sort({ createdAt: -1 })
       .populate("userId", USER_PUBLIC_SELECT);
 
@@ -235,7 +253,7 @@ router.get("/realm/scorched", async (req, res) => {
       return p.burnedBy.length / total > 0.5;
     });
 
-    res.json(scorched);
+    res.json(stripHiddenCommentsFromList(scorched));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -255,12 +273,13 @@ router.get("/search", async (req, res) => {
     const safeRegex = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const query = q
       ? {
+          isHidden: { $ne: true },
           $or: [
             { message: { $regex: safeRegex, $options: "i" } },
             { "comments.text": { $regex: safeRegex, $options: "i" } },
           ],
         }
-      : {};
+      : { isHidden: { $ne: true } };
 
     let confessions = await Confession.find(query)
       .sort({ createdAt: -1 })
@@ -270,7 +289,7 @@ router.get("/search", async (req, res) => {
     // Also allow searching by username after population.
     if (q) {
       const lower = q.toLowerCase();
-      const usernameMatches = await Confession.find()
+      const usernameMatches = await Confession.find(PUBLIC_VISIBLE_FILTER)
         .sort({ createdAt: -1 })
         .limit(120)
         .populate("userId", USER_PUBLIC_SELECT);
@@ -300,7 +319,7 @@ router.get("/search", async (req, res) => {
       confessions = confessions.filter((post) => getRealm(post) === type);
     }
 
-    res.json(confessions.slice(0, 60));
+    res.json(stripHiddenCommentsFromList(confessions.slice(0, 60)));
   } catch (err) {
     console.error("Search confessions error:", err);
     res.status(500).json({ message: "Could not search confessions right now." });
@@ -311,7 +330,9 @@ router.get("/search", async (req, res) => {
 router.get("/weekly-event", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const status = await getWeeklyEventStatus();
+    const status = await getWeeklyEventStatus(new Date(), {
+      includeHidden: false,
+    });
     res.json(status);
   } catch (err) {
     console.error("Weekly event status error:", err.message);
@@ -325,7 +346,10 @@ router.get("/weekly-event", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     await ensureWeeklyEventMaintenance();
-    const confession = await Confession.findById(req.params.id)
+    const confession = await Confession.findOne({
+      _id: req.params.id,
+      isHidden: { $ne: true },
+    })
       .populate("userId", USER_PUBLIC_SELECT)
       .populate("comments.userId", USER_PUBLIC_SELECT);
 
@@ -333,7 +357,7 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Confession not found" });
     }
 
-    res.json(confession);
+    res.json(stripHiddenCommentsFromConfession(confession));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -634,7 +658,7 @@ router.post(
         .populate("userId", USER_PUBLIC_SELECT)
         .populate("comments.userId", USER_PUBLIC_SELECT);
 
-      const responsePost = updated?.toObject ? updated.toObject() : updated;
+      const responsePost = stripHiddenCommentsFromConfession(updated);
       responsePost.seedReward = seedReward;
 
       res.json(responsePost);

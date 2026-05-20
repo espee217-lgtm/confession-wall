@@ -86,6 +86,23 @@ const commentSchema = new mongoose.Schema({
   image: { type: String, default: null },
   wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  isHidden: {
+    type: Boolean,
+    default: false,
+  },
+  hiddenReason: {
+    type: String,
+    default: "",
+  },
+  hiddenBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
+    default: null,
+  },
+  hiddenAt: {
+    type: Date,
+    default: null,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -131,6 +148,23 @@ const confessionSchema = new mongoose.Schema(
     weeklyEventTracking: {
       type: [weeklyEventTrackingSchema],
       default: [],
+    },
+    isHidden: {
+      type: Boolean,
+      default: false,
+    },
+    hiddenReason: {
+      type: String,
+      default: "",
+    },
+    hiddenBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
+    },
+    hiddenAt: {
+      type: Date,
+      default: null,
     },
     comments: [commentSchema],
   },

@@ -1,0 +1,434 @@
+.adminDash-root {
+  min-height: 100vh;
+  background: radial-gradient(1200px 700px at 15% -10%, #232842 0%, #111422 45%, #0a0c14 100%);
+  color: #eef2ff;
+  padding: 24px;
+}
+
+.adminDash-shell {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.adminDash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.adminDash-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.adminDash-subtitle {
+  margin: 8px 0 0;
+  color: #9aa5cc;
+  font-size: 0.95rem;
+}
+
+.adminDash-headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.adminDash-statsGrid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.adminDash-statCard {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.adminDash-statLabel {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: #a9b3d8;
+}
+
+.adminDash-statValue {
+  margin: 8px 0 0;
+  font-size: 1.62rem;
+  font-weight: 700;
+  color: #f8faff;
+}
+
+.adminDash-surface {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.adminDash-section {
+  padding: 16px;
+}
+
+.adminDash-sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.adminDash-sectionHeader h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  letter-spacing: 0.01em;
+}
+
+.adminDash-countPill {
+  font-size: 0.78rem;
+  color: #c5cef5;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+.adminDash-weeklyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.adminDash-weeklyCard {
+  background: rgba(8, 11, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.adminDash-weeklyCard h3 {
+  margin: 6px 0;
+  font-size: 1rem;
+}
+
+.adminDash-weeklyCard p {
+  margin: 0;
+}
+
+.adminDash-kicker {
+  margin: 0 0 6px;
+  color: #9cabdb;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+}
+
+.adminDash-muted {
+  color: #a3aed1;
+  margin-top: 8px !important;
+}
+
+.adminDash-mutedSmall {
+  color: #9ea8cc;
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+}
+
+.adminDash-onlineList {
+  display: grid;
+  gap: 10px;
+}
+
+.adminDash-onlineCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(9, 12, 22, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.adminDash-onlineIdentity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adminDash-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.adminDash-avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: rgba(87, 170, 255, 0.25);
+  color: #dce9ff;
+}
+
+.adminDash-onlineName {
+  margin: 0;
+  font-weight: 600;
+}
+
+.adminDash-tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adminDash-tab {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #dbe3ff;
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.adminDash-tab.is-active {
+  background: rgba(95, 140, 255, 0.3);
+  border-color: rgba(124, 161, 255, 0.68);
+  color: #f4f7ff;
+}
+
+.adminDash-tabSpecial {
+  background: rgba(255, 197, 91, 0.15);
+  border-color: rgba(255, 197, 91, 0.35);
+  color: #ffe29a;
+}
+
+.adminDash-toolbar {
+  margin-bottom: 10px;
+}
+
+.adminDash-input {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 12px;
+  background: rgba(7, 10, 20, 0.7);
+  color: #eff3ff;
+  outline: none;
+}
+
+.adminDash-input::placeholder {
+  color: #8f9dc5;
+}
+
+.adminDash-chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.adminDash-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.045);
+  color: #d8e2ff;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.adminDash-chip.is-active {
+  background: rgba(96, 140, 255, 0.34);
+  border-color: rgba(124, 161, 255, 0.72);
+}
+
+.adminDash-cardList {
+  display: grid;
+  gap: 10px;
+}
+
+.adminDash-itemCard {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(7, 10, 20, 0.56);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.adminDash-itemTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.adminDash-itemBodyText {
+  margin: 8px 0 0;
+  line-height: 1.45;
+  color: #e5e9f8;
+}
+
+.adminDash-itemMeta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #9ea8ca;
+  font-size: 0.82rem;
+}
+
+.adminDash-userName {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.adminDash-actionRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.adminDash-btn {
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  color: #edf2ff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.84rem;
+  transition: 0.2s ease;
+}
+
+.adminDash-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.adminDash-btnSecondary {
+  border-color: rgba(126, 174, 255, 0.5);
+  background: rgba(90, 144, 255, 0.2);
+}
+
+.adminDash-btnAccent {
+  border-color: rgba(125, 195, 255, 0.5);
+  background: rgba(75, 161, 255, 0.25);
+}
+
+.adminDash-btnSuccess {
+  border-color: rgba(113, 224, 161, 0.52);
+  background: rgba(73, 189, 124, 0.22);
+}
+
+.adminDash-btnWarn {
+  border-color: rgba(255, 205, 122, 0.52);
+  background: rgba(245, 183, 70, 0.22);
+}
+
+.adminDash-btnDanger {
+  border-color: rgba(255, 136, 136, 0.52);
+  background: rgba(238, 79, 79, 0.22);
+}
+
+.adminDash-btnGhost {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.adminDash-statusBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.adminDash-statusInfo {
+  background: rgba(95, 158, 255, 0.24);
+  border-color: rgba(120, 173, 255, 0.56);
+  color: #d8e7ff;
+}
+
+.adminDash-statusSuccess {
+  background: rgba(95, 214, 152, 0.24);
+  border-color: rgba(113, 224, 161, 0.56);
+  color: #dbffec;
+}
+
+.adminDash-statusWarn {
+  background: rgba(248, 192, 86, 0.23);
+  border-color: rgba(248, 206, 117, 0.56);
+  color: #ffe9b8;
+}
+
+.adminDash-statusDanger {
+  background: rgba(244, 99, 99, 0.24);
+  border-color: rgba(255, 136, 136, 0.56);
+  color: #ffd9d9;
+}
+
+.adminDash-statusHidden {
+  background: rgba(193, 154, 255, 0.22);
+  border-color: rgba(205, 173, 255, 0.56);
+  color: #efddff;
+}
+
+.adminDash-statusOnline {
+  background: rgba(83, 222, 157, 0.24);
+  border-color: rgba(108, 236, 175, 0.56);
+  color: #d7ffea;
+}
+
+.adminDash-emptyText {
+  margin: 0;
+  color: #9da7cb;
+}
+
+@media (max-width: 920px) {
+  .adminDash-root {
+    padding: 16px;
+  }
+
+  .adminDash-header {
+    flex-direction: column;
+  }
+
+  .adminDash-headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .adminDash-itemTop {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adminDash-actionRow {
+    justify-content: flex-start;
+  }
+
+  .adminDash-tabRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}

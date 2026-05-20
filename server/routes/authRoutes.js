@@ -669,14 +669,28 @@ router.get("/pressed-leaves", protect, async (req, res) => {
       return res.json([]);
     }
 
-    const confessions = await Confession.find({ _id: { $in: savedIds } })
+    const confessions = await Confession.find({
+      _id: { $in: savedIds },
+      isHidden: { $ne: true },
+    })
       .sort({ createdAt: -1 })
       .populate(
         "userId",
         "username profilePicture isAdmin role equippedCosmetics temporaryCosmeticOverride"
       );
 
-    res.json(confessions);
+    const visibleConfessions = confessions.map((confession) => {
+      const plain = confession?.toObject ? confession.toObject() : confession;
+
+      if (!Array.isArray(plain?.comments)) {
+        return plain;
+      }
+
+      plain.comments = plain.comments.filter((comment) => !comment?.isHidden);
+      return plain;
+    });
+
+    res.json(visibleConfessions);
   } catch (err) {
     console.error("Pressed leaves fetch error:", err.message);
     res.status(500).json({ message: "Could not load your pressed leaves right now." });

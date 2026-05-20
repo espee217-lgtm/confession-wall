@@ -291,7 +291,10 @@ function NotificationBell() {
   if (!user || !token) return null;
 
   return (
-    <div ref={bellRef} style={{ position: "relative", justifySelf: "end" }}>
+    <div
+      ref={bellRef}
+      style={{ position: "relative", justifySelf: "end", zIndex: 4600 }}
+    >
       <button
         type="button"
         onClick={openDropdown}
@@ -356,7 +359,7 @@ function NotificationBell() {
             border: "1px solid rgba(145,220,145,0.28)",
             borderRadius: "16px",
             boxShadow: "0 18px 50px rgba(0,0,0,0.65)",
-            zIndex: 5000,
+            zIndex: 4700,
             color: "#efffde",
             textAlign: "left",
             padding: "10px",
@@ -515,7 +518,7 @@ function Navbar() {
       className="navbar"
       style={{
         position: "relative",
-        zIndex: 30,
+        zIndex: 4500,
         height: "64px",
         display: "flex",
         alignItems: "center",

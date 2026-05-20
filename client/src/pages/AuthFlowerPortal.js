@@ -393,7 +393,7 @@ function AdminForm({ scrollToPanel }) {
         return;
       }
       adminLogin(data.token);
-      navigate("/admin/dashboard");
+      navigate("/admin/dashboard", { replace: true });
     } catch (err) {
       setError("Something went wrong. Try again.");
     } finally {

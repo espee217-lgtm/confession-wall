@@ -18,7 +18,7 @@ import {
 } from "../utils/engagement";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -287,6 +287,7 @@ function ReactionBar({
 export default function ConfessionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const targetCommentId = searchParams.get("comment");
   const { token, user, refreshUser, updateUser } = useAuth();
@@ -365,6 +366,9 @@ export default function ConfessionPage() {
 
   const realmFromUrl = searchParams.get("realm");
   const from = searchParams.get("from");
+  const isAdminReturn =
+    from === "admin" || Boolean(location.state?.fromAdmin);
+  const adminReturnTo = location.state?.returnTo || "/admin/dashboard";
 
   const inferredRealm =
     burned > watered ? "scorched" : watered === burned ? "budding" : "grove";
@@ -792,20 +796,34 @@ const activeCommentPinPosition = isPhoneLayout
         }}
       >
         <div style={styles.inner}>
-          <Link
-            to={
-              from === "admin"
-                ? "/admin/dashboard"
-                : realm === "budding"
-                ? "/budding"
-                : realm === "scorched"
-                ? "/scorched"
-                : "/grove"
-            }
-            style={{ ...styles.backBtn, color: theme.accent }}
+          <button
+            type="button"
+            onClick={() => {
+              if (isAdminReturn) {
+                navigate(adminReturnTo, { replace: true });
+                return;
+              }
+
+              const fallbackRoute =
+                realm === "budding"
+                  ? "/budding"
+                  : realm === "scorched"
+                  ? "/scorched"
+                  : "/grove";
+
+              navigate(fallbackRoute);
+            }}
+            style={{
+              ...styles.backBtn,
+              color: theme.accent,
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
           >
             ← back
-          </Link>
+          </button>
 
           <div style={{ marginBottom: "16px", maxWidth: "360px" }}>
             <ForestEventBanner compact />

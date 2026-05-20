@@ -1,27 +1,84 @@
-import { useEffect, useState } from "react";
-import { connectSocket } from "../socket";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAdminAuth } from "../context/AdminAuthContext";
+import { connectSocket } from "../socket";
+import { getStoredAdminToken, useAdminAuth } from "../context/AdminAuthContext";
 import { useAuth } from "../context/AuthContext";
+import "./AdminDashboard.css";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
-
 const API_URL = `${API_BASE}/api/admin`;
 const REPORT_URL = `${API_BASE}/api/reports`;
 
+const reportTypeLabel = {
+  confession: "Post",
+  comment: "Comment",
+};
+
+const safeText = (value) => String(value || "").trim();
+
+const formatDateTime = (value) => {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleString();
+};
+
+const formatDateOnly = (value) => {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleDateString();
+};
+
 export default function AdminDashboard() {
-  const { adminToken, adminLogout } = useAdminAuth();
+  const { adminToken, adminLogout, syncAdminToken } = useAdminAuth();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [tab, setTab] = useState("reports");
+
+  const [confessions, setConfessions] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [logs, setLogs] = useState([]);
+
+  const [weeklyEventStatus, setWeeklyEventStatus] = useState(null);
+  const [weeklyBusy, setWeeklyBusy] = useState(false);
+
+  const [reportSearch, setReportSearch] = useState("");
+  const [reportTypeFilter, setReportTypeFilter] = useState("all");
+  const [reportStatusFilter, setReportStatusFilter] = useState("pending");
+
+  const [confessionSearch, setConfessionSearch] = useState("");
+  const [confessionVisibilityFilter, setConfessionVisibilityFilter] = useState("all");
+
+  const [userSearch, setUserSearch] = useState("");
+  const [logSearch, setLogSearch] = useState("");
+
+  const effectiveAdminToken = adminToken || getStoredAdminToken();
+  const headers = { Authorization: `Bearer ${effectiveAdminToken}` };
 
   useEffect(() => {
-    if (!adminToken) return;
+    if (!adminToken) {
+      syncAdminToken?.();
+    }
+  }, [adminToken, syncAdminToken]);
 
-    const socket = connectSocket(adminToken, "admin");
+  useEffect(() => {
+    if (!effectiveAdminToken) {
+      navigate("/admin", { replace: true });
+    }
+  }, [effectiveAdminToken, navigate]);
 
+  useEffect(() => {
+    if (!effectiveAdminToken) return;
+
+    const socket = connectSocket(effectiveAdminToken, "admin");
     if (!socket) return;
 
-    const handleOnlineUsers = (users) => {
-      setOnlineUsers(Array.isArray(users) ? users : []);
+    const handleOnlineUsers = (incomingUsers) => {
+      setOnlineUsers(Array.isArray(incomingUsers) ? incomingUsers : []);
     };
 
     socket.emit("admin:request_online_users");
@@ -35,49 +92,35 @@ export default function AdminDashboard() {
       clearInterval(activePing);
       socket.off("online_users:update", handleOnlineUsers);
     };
-  }, [adminToken]);
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const [tab, setTab] = useState("reports");
-  const [reportView, setReportView] = useState("pending");
-  const [confessions, setConfessions] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [reports, setReports] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [weeklyEventStatus, setWeeklyEventStatus] = useState(null);
-  const [weeklyBusy, setWeeklyBusy] = useState(false);
-
-  const headers = { Authorization: `Bearer ${adminToken}` };
-
-  useEffect(() => {
-    if (!adminToken) navigate("/admin");
-  }, [adminToken, navigate]);
+  }, [effectiveAdminToken]);
 
   const fetchConfessions = async () => {
     const res = await fetch(`${API_URL}/confessions`, { headers });
-    setConfessions(await res.json());
+    const data = await res.json().catch(() => []);
+    setConfessions(Array.isArray(data) ? data : []);
   };
 
   const fetchUsers = async () => {
     const res = await fetch(`${API_URL}/users`, { headers });
-    setUsers(await res.json());
+    const data = await res.json().catch(() => []);
+    setUsers(Array.isArray(data) ? data : []);
   };
 
   const fetchReports = async () => {
     const res = await fetch(REPORT_URL, { headers });
-    setReports(await res.json());
+    const data = await res.json().catch(() => []);
+    setReports(Array.isArray(data) ? data : []);
   };
 
   const fetchLogs = async () => {
     const res = await fetch(`${API_URL}/logs?limit=100`, { headers });
-    const data = await res.json();
+    const data = await res.json().catch(() => []);
     setLogs(Array.isArray(data) ? data : []);
   };
 
   const fetchWeeklyEventStatus = async () => {
     const res = await fetch(`${API_URL}/weekly-event/status`, { headers });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       throw new Error(data.message || "Could not load weekly event status.");
@@ -98,26 +141,29 @@ export default function AdminDashboard() {
     }
   };
 
- useEffect(() => {
-  if (!adminToken) return;
+  useEffect(() => {
+    if (!effectiveAdminToken) return;
 
-  const loadAdminData = async () => {
-    await Promise.allSettled([
-      fetchReports(),
-      fetchConfessions(),
-      fetchUsers(),
-      fetchLogs(),
-      fetchWeeklyEventStatus(),
-    ]);
-  };
+    const loadAdminData = async () => {
+      await Promise.allSettled([
+        fetchReports(),
+        fetchConfessions(),
+        fetchUsers(),
+        fetchLogs(),
+        fetchWeeklyEventStatus(),
+      ]);
+    };
 
-  loadAdminData();
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [adminToken]);
+    loadAdminData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveAdminToken]);
 
   const finalizeWeeklyEvent = async () => {
-    if (!window.confirm("Run weekly event maintenance now and apply any pending automated rewards?")) {
+    if (
+      !window.confirm(
+        "Run weekly event maintenance now and apply any pending automated rewards?"
+      )
+    ) {
       return;
     }
 
@@ -127,7 +173,6 @@ export default function AdminDashboard() {
         method: "POST",
         headers,
       });
-
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
@@ -140,6 +185,7 @@ export default function AdminDashboard() {
 
       setWeeklyEventStatus(data.status || null);
       await fetchUsers();
+
       window.cwToast?.(
         data.message || "Weekly event maintenance completed.",
         "success"
@@ -149,18 +195,66 @@ export default function AdminDashboard() {
       window.cwToast?.(
         "Something went wrong while finalizing the weekly event.",
         "error"
-      ) ||
-        alert("Something went wrong while finalizing the weekly event.");
+      ) || alert("Something went wrong while finalizing the weekly event.");
     } finally {
       setWeeklyBusy(false);
     }
   };
 
-  const pendingReports = reports.filter((r) => r.status !== "resolved");
-  const resolvedReports = reports.filter((r) => r.status === "resolved");
+  const pendingReports = useMemo(
+    () => reports.filter((report) => report.status !== "resolved"),
+    [reports]
+  );
+  const resolvedReports = useMemo(
+    () => reports.filter((report) => report.status === "resolved"),
+    [reports]
+  );
+  const hiddenConfessionCount = useMemo(
+    () => confessions.filter((confession) => confession?.isHidden).length,
+    [confessions]
+  );
 
-  const visibleReports =
-    reportView === "pending" ? pendingReports : resolvedReports;
+  const onlineUsernameSet = useMemo(
+    () =>
+      new Set(
+        onlineUsers
+          .map((user) => safeText(user?.username).toLowerCase())
+          .filter(Boolean)
+      ),
+    [onlineUsers]
+  );
+
+  const updateConfessionInAdminState = (updatedConfession) => {
+    if (!updatedConfession?._id) return;
+
+    setConfessions((prev) =>
+      prev.map((confession) =>
+        confession._id === updatedConfession._id ? updatedConfession : confession
+      )
+    );
+
+    setReports((prev) =>
+      prev.map((report) =>
+        report.confessionId?._id === updatedConfession._id
+          ? { ...report, confessionId: updatedConfession }
+          : report
+      )
+    );
+  };
+
+  const getReportedComment = (report) => {
+    if (report?.targetType !== "comment" || !report?.commentId) return null;
+
+    const comments = Array.isArray(report?.confessionId?.comments)
+      ? report.confessionId.comments
+      : [];
+
+    return (
+      comments.find(
+        (comment) => String(comment?._id) === String(report.commentId)
+      ) || null
+    );
+  };
 
   const deleteConfession = async (id) => {
     if (!window.confirm("Delete this confession?")) return;
@@ -170,19 +264,165 @@ export default function AdminDashboard() {
       headers,
     });
 
-    setConfessions((prev) => prev.filter((c) => c._id !== id));
+    setConfessions((prev) =>
+      prev.filter((confession) => confession._id !== id)
+    );
     setReports((prev) =>
-      prev.map((r) =>
-        r.confessionId?._id === id
+      prev.map((report) =>
+        report.confessionId?._id === id
           ? {
-              ...r,
+              ...report,
               status: "resolved",
               resolvedNote: "Post deleted by admin.",
               resolvedAt: new Date().toISOString(),
             }
-          : r
+          : report
       )
     );
+  };
+
+  const hideConfession = async (id) => {
+    const reason = window.prompt(
+      "Reason for hiding this confession (optional):",
+      ""
+    );
+    if (reason === null) return;
+
+    const res = await fetch(`${API_URL}/confessions/${id}/hide`, {
+      method: "PATCH",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not hide confession.", "error") ||
+        alert(data.message || "Could not hide confession.");
+      return;
+    }
+
+    updateConfessionInAdminState(data);
+  };
+
+  const unhideConfession = async (id) => {
+    const res = await fetch(`${API_URL}/confessions/${id}/unhide`, {
+      method: "PATCH",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not unhide confession.", "error") ||
+        alert(data.message || "Could not unhide confession.");
+      return;
+    }
+
+    updateConfessionInAdminState(data);
+  };
+
+  const hideReportedPost = async (report) => {
+    const confessionId = report?.confessionId?._id;
+    if (!confessionId) return;
+
+    const reason = window.prompt(
+      "Reason for hiding this post (optional):",
+      ""
+    );
+    if (reason === null) return;
+
+    const res = await fetch(`${API_URL}/confessions/${confessionId}/hide`, {
+      method: "PATCH",
+      headers: {
+        ...headers,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not hide post.", "error") ||
+        alert(data.message || "Could not hide post.");
+      return;
+    }
+
+    updateConfessionInAdminState(data);
+  };
+
+  const unhideReportedPost = async (report) => {
+    const confessionId = report?.confessionId?._id;
+    if (!confessionId) return;
+
+    const res = await fetch(`${API_URL}/confessions/${confessionId}/unhide`, {
+      method: "PATCH",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not unhide post.", "error") ||
+        alert(data.message || "Could not unhide post.");
+      return;
+    }
+
+    updateConfessionInAdminState(data);
+  };
+
+  const hideReportedComment = async (report) => {
+    const confessionId = report?.confessionId?._id;
+    if (!confessionId || !report?.commentId) return;
+
+    const reason = window.prompt(
+      "Reason for hiding this comment (optional):",
+      ""
+    );
+    if (reason === null) return;
+
+    const res = await fetch(
+      `${API_URL}/confessions/${confessionId}/comments/${report.commentId}/hide`,
+      {
+        method: "PATCH",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not hide comment.", "error") ||
+        alert(data.message || "Could not hide comment.");
+      return;
+    }
+
+    updateConfessionInAdminState(data.confession);
+  };
+
+  const unhideReportedComment = async (report) => {
+    const confessionId = report?.confessionId?._id;
+    if (!confessionId || !report?.commentId) return;
+
+    const res = await fetch(
+      `${API_URL}/confessions/${confessionId}/comments/${report.commentId}/unhide`,
+      {
+        method: "PATCH",
+        headers,
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not unhide comment.", "error") ||
+        alert(data.message || "Could not unhide comment.");
+      return;
+    }
+
+    updateConfessionInAdminState(data.confession);
   };
 
   const deleteReportedComment = async (reportId) => {
@@ -194,31 +434,40 @@ export default function AdminDashboard() {
       method: "DELETE",
       headers,
     });
-
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not delete comment.", "error") || alert(data.message || "Could not delete comment.");
+      window.cwToast?.(data.message || "Could not delete comment.", "error") ||
+        alert(data.message || "Could not delete comment.");
       return;
     }
 
     setReports((prev) =>
-      prev.map((r) =>
-        r._id === reportId
+      prev.map((report) =>
+        report._id === reportId
           ? {
-              ...r,
+              ...report,
               status: "resolved",
               resolvedNote:
                 data.report?.resolvedNote ||
                 "Reported comment was deleted by admin.",
               resolvedAt: data.report?.resolvedAt || new Date().toISOString(),
-              deleteAfter: data.report?.deleteAfter || r.deleteAfter,
+              deleteAfter: data.report?.deleteAfter || report.deleteAfter,
             }
-          : r
+          : report
       )
     );
 
-    window.cwToast?.(data.message || "Comment deleted and report resolved.", "success") || alert(data.message || "Comment deleted and report resolved.");
+    window.cwToast?.(
+      data.message || "Comment deleted and report resolved.",
+      "success"
+    ) || alert(data.message || "Comment deleted and report resolved.");
+  };
+
+  const updateUserInState = (updatedUser) => {
+    setUsers((prev) =>
+      prev.map((user) => (user._id === updatedUser._id ? updatedUser : user))
+    );
   };
 
   const deleteUser = async (id) => {
@@ -228,67 +477,57 @@ export default function AdminDashboard() {
       method: "DELETE",
       headers,
     });
-
-    setUsers((prev) => prev.filter((u) => u._id !== id));
+    setUsers((prev) => prev.filter((user) => user._id !== id));
   };
-    const giveSeedsToUser = async (id, username) => {
-  const rawAmount = window.prompt(
-    `How many Seeds do you want to give to @${username}?`,
-    "100"
-  );
 
-  if (rawAmount === null) return;
+  const giveSeedsToUser = async (id, username) => {
+    const rawAmount = window.prompt(
+      `How many Seeds do you want to give to @${username}?`,
+      "100"
+    );
+    if (rawAmount === null) return;
 
-  const amount = Number(rawAmount);
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    window.cwToast?.("Enter a valid positive seed amount.", "error") ||
-      alert("Enter a valid positive seed amount.");
-    return;
-  }
-
-  const customMessage = window.prompt(
-    "Notification message for the user:",
-    `An admin gifted you ${amount} Seeds 🌱`
-  );
-
-  if (customMessage === null) return;
-
-  try {
-    const res = await fetch(`${API_URL}/users/${id}/give-seeds`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount,
-        message: customMessage || `An admin gifted you ${amount} Seeds 🌱`,
-      }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      window.cwToast?.(data.message || "Could not give seeds.", "error") ||
-        alert(data.message || "Could not give seeds.");
+    const amount = Number(rawAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      window.cwToast?.("Enter a valid positive seed amount.", "error") ||
+        alert("Enter a valid positive seed amount.");
       return;
     }
 
-    updateUserInState(data.user);
-
-    window.cwToast?.(data.message || "Seeds given.", "success") ||
-      alert(data.message || "Seeds given.");
-  } catch (err) {
-    console.error(err);
-    window.cwToast?.("Something went wrong while giving seeds.", "error") ||
-      alert("Something went wrong while giving seeds.");
-  }
-};
-    const updateUserInState = (updatedUser) => {
-    setUsers((prev) =>
-      prev.map((u) => (u._id === updatedUser._id ? updatedUser : u))
+    const customMessage = window.prompt(
+      "Notification message for the user:",
+      `An admin gifted you ${amount} Seeds 🌱`
     );
+    if (customMessage === null) return;
+
+    try {
+      const res = await fetch(`${API_URL}/users/${id}/give-seeds`, {
+        method: "POST",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount,
+          message: customMessage || `An admin gifted you ${amount} Seeds 🌱`,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not give seeds.", "error") ||
+          alert(data.message || "Could not give seeds.");
+        return;
+      }
+
+      updateUserInState(data.user);
+      window.cwToast?.(data.message || "Seeds given.", "success") ||
+        alert(data.message || "Seeds given.");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Something went wrong while giving seeds.", "error") ||
+        alert("Something went wrong while giving seeds.");
+    }
   };
 
   const suspendUser = async (id) => {
@@ -296,7 +535,6 @@ export default function AdminDashboard() {
       "Reason for suspending this user:",
       "Suspended by admin."
     );
-
     if (reason === null) return;
 
     const res = await fetch(`${API_URL}/users/${id}/suspend`, {
@@ -307,11 +545,11 @@ export default function AdminDashboard() {
       },
       body: JSON.stringify({ reason }),
     });
-
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not suspend user.", "error") || alert(data.message || "Could not suspend user.");
+      window.cwToast?.(data.message || "Could not suspend user.", "error") ||
+        alert(data.message || "Could not suspend user.");
       return;
     }
 
@@ -323,11 +561,11 @@ export default function AdminDashboard() {
       method: "PATCH",
       headers,
     });
-
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not unsuspend user.", "error") || alert(data.message || "Could not unsuspend user.");
+      window.cwToast?.(data.message || "Could not unsuspend user.", "error") ||
+        alert(data.message || "Could not unsuspend user.");
       return;
     }
 
@@ -335,14 +573,14 @@ export default function AdminDashboard() {
   };
 
   const banUser = async (id) => {
-    const reason = window.prompt(
-      "Reason for banning this user:",
-      "Banned by admin."
-    );
-
+    const reason = window.prompt("Reason for banning this user:", "Banned by admin.");
     if (reason === null) return;
 
-    if (!window.confirm("Ban this user? They will not be able to log in or use protected actions.")) {
+    if (
+      !window.confirm(
+        "Ban this user? They will not be able to log in or use protected actions."
+      )
+    ) {
       return;
     }
 
@@ -354,11 +592,11 @@ export default function AdminDashboard() {
       },
       body: JSON.stringify({ reason }),
     });
-
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not ban user.", "error") || alert(data.message || "Could not ban user.");
+      window.cwToast?.(data.message || "Could not ban user.", "error") ||
+        alert(data.message || "Could not ban user.");
       return;
     }
 
@@ -370,16 +608,17 @@ export default function AdminDashboard() {
       method: "PATCH",
       headers,
     });
-
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not unban user.", "error") || alert(data.message || "Could not unban user.");
+      window.cwToast?.(data.message || "Could not unban user.", "error") ||
+        alert(data.message || "Could not unban user.");
       return;
     }
 
     updateUserInState(data.user);
   };
+
   const resolveReport = async (id) => {
     const note = window.prompt(
       "Optional resolve note for this report:",
@@ -394,31 +633,35 @@ export default function AdminDashboard() {
       },
       body: JSON.stringify({ note: note || "" }),
     });
-
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not resolve report.", "error") || alert(data.message || "Could not resolve report.");
+      window.cwToast?.(data.message || "Could not resolve report.", "error") ||
+        alert(data.message || "Could not resolve report.");
       return;
     }
 
     setReports((prev) =>
-      prev.map((r) =>
-        r._id === id
+      prev.map((report) =>
+        report._id === id
           ? {
-              ...r,
+              ...report,
               status: "resolved",
               resolvedNote: data.report?.resolvedNote || note || "",
               resolvedAt: data.report?.resolvedAt || new Date().toISOString(),
-              deleteAfter: data.report?.deleteAfter || r.deleteAfter,
+              deleteAfter: data.report?.deleteAfter || report.deleteAfter,
             }
-          : r
+          : report
       )
     );
   };
 
   const cleanupResolvedReports = async () => {
-    if (!window.confirm("Delete resolved reports whose 30-day cleanup period has passed?")) {
+    if (
+      !window.confirm(
+        "Delete resolved reports whose 30-day cleanup period has passed?"
+      )
+    ) {
       return;
     }
 
@@ -426,863 +669,1052 @@ export default function AdminDashboard() {
       method: "DELETE",
       headers,
     });
-
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      window.cwToast?.(data.message || "Could not cleanup resolved reports.", "error") || alert(data.message || "Could not cleanup resolved reports.");
+      window.cwToast?.(
+        data.message || "Could not cleanup resolved reports.",
+        "error"
+      ) || alert(data.message || "Could not cleanup resolved reports.");
       return;
     }
 
     await fetchReports();
-    window.cwToast?.(data.message || "Old resolved reports cleaned.", "success") || alert(data.message || "Old resolved reports cleaned.");
+    window.cwToast?.(data.message || "Old resolved reports cleaned.", "success") ||
+      alert(data.message || "Old resolved reports cleaned.");
+  };
+
+  const deleteResolvedReportRecord = async (reportId) => {
+    if (
+      !window.confirm(
+        "Delete this resolved report record only? This will not delete the post or comment."
+      )
+    ) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/reports/${reportId}`, {
+      method: "DELETE",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not delete report record.", "error") ||
+        alert(data.message || "Could not delete report record.");
+      return;
+    }
+
+    setReports((prev) => prev.filter((report) => report._id !== reportId));
+    window.cwToast?.(data.message || "Report record deleted.", "success") ||
+      alert(data.message || "Report record deleted.");
+  };
+
+  const clearResolvedReportRecords = async () => {
+    if (
+      !window.confirm(
+        "Clear all resolved report records? This will not delete posts or comments."
+      )
+    ) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/reports/clear-resolved`, {
+      method: "DELETE",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not clear resolved reports.", "error") ||
+        alert(data.message || "Could not clear resolved reports.");
+      return;
+    }
+
+    setReports((prev) => prev.filter((report) => report.status !== "resolved"));
+    window.cwToast?.(data.message || "Resolved report records cleared.", "success") ||
+      alert(data.message || "Resolved report records cleared.");
+  };
+
+  const deleteAdminLogRecord = async (logId) => {
+    if (!window.confirm("Delete this admin log entry?")) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/logs/${logId}`, {
+      method: "DELETE",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not delete admin log.", "error") ||
+        alert(data.message || "Could not delete admin log.");
+      return;
+    }
+
+    setLogs((prev) => prev.filter((log) => log._id !== logId));
+    window.cwToast?.(data.message || "Admin log deleted.", "success") ||
+      alert(data.message || "Admin log deleted.");
+  };
+
+  const clearAdminLogs = async () => {
+    if (!window.confirm("Clear all admin logs? This cannot be undone.")) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/logs/clear`, {
+      method: "DELETE",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not clear admin logs.", "error") ||
+        alert(data.message || "Could not clear admin logs.");
+      return;
+    }
+
+    setLogs([]);
+    window.cwToast?.(data.message || "Admin logs cleared.", "success") ||
+      alert(data.message || "Admin logs cleared.");
   };
 
   const openReportedItem = (report) => {
     const confessionId = report.confessionId?._id;
 
     if (!confessionId) {
-      window.cwToast?.("This post no longer exists.", "warning") || alert("This post no longer exists.");
+      window.cwToast?.("This post no longer exists.", "warning") ||
+        alert("This post no longer exists.");
       return;
     }
 
     if (report.targetType === "comment" && report.commentId) {
-      navigate(
-        `/confession/${confessionId}?from=admin&comment=${report.commentId}`
-      );
+      navigate(`/confession/${confessionId}?from=admin&comment=${report.commentId}`, {
+        state: { fromAdmin: true, returnTo: "/admin/dashboard" },
+      });
       return;
     }
 
-    navigate(`/confession/${confessionId}?from=admin`);
+    navigate(`/confession/${confessionId}?from=admin`, {
+      state: { fromAdmin: true, returnTo: "/admin/dashboard" },
+    });
   };
 
   const enterMainSiteAsAdmin = async () => {
-  try {
-    const res = await fetch(`${API_URL}/enter-site`, {
-      method: "POST",
-      headers,
-    });
+    try {
+      const res = await fetch(`${API_URL}/enter-site`, {
+        method: "POST",
+        headers,
+      });
+      const data = await res.json().catch(() => ({}));
 
-    const data = await res.json();
+      if (!res.ok) {
+        window.cwToast?.(
+          data.message || "Could not enter main site as admin.",
+          "error"
+        ) || alert(data.message || "Could not enter main site as admin.");
+        return;
+      }
 
-    if (!res.ok) {
-      window.cwToast?.(data.message || "Could not enter main site as admin.", "error") || alert(data.message || "Could not enter main site as admin.");
-      return;
+      login(data.user, data.token);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Something went wrong while entering main site.", "error") ||
+        alert("Something went wrong while entering main site.");
     }
-
-    login(data.user, data.token);
-    navigate("/");
-  } catch (err) {
-    console.error(err);
-    window.cwToast?.("Something went wrong while entering main site.", "error") || alert("Something went wrong while entering main site.");
-  }
-};
-  const cardStyle = {
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: "14px",
-    padding: "1rem 1.2rem",
-    marginBottom: "0.75rem",
   };
 
-  const btnStyle = {
-    background: "rgba(255,255,255,0.15)",
-    border: "1px solid rgba(255,255,255,0.25)",
-    borderRadius: "8px",
-    color: "white",
-    padding: "8px 18px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "0.9rem",
+  const filteredReports = useMemo(() => {
+    const query = safeText(reportSearch).toLowerCase();
+
+    return reports
+      .filter((report) => {
+        if (reportTypeFilter !== "all" && report.targetType !== reportTypeFilter) {
+          return false;
+        }
+
+        if (reportStatusFilter === "pending" && report.status === "resolved") {
+          return false;
+        }
+
+        if (reportStatusFilter === "resolved" && report.status !== "resolved") {
+          return false;
+        }
+
+        if (!query) return true;
+
+        const haystack = [
+          report.reportedBy?.username,
+          report.reason,
+          report.commentText,
+          report.confessionId?.message,
+          report.targetType,
+          report.status,
+          report.resolvedNote,
+        ]
+          .map((part) => safeText(part).toLowerCase())
+          .join(" ");
+
+        return haystack.includes(query);
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [reportSearch, reportStatusFilter, reportTypeFilter, reports]);
+
+  const filteredConfessions = useMemo(() => {
+    const query = safeText(confessionSearch).toLowerCase();
+
+    return confessions.filter((confession) => {
+      if (
+        confessionVisibilityFilter === "visible" &&
+        confession.isHidden
+      ) {
+        return false;
+      }
+
+      if (
+        confessionVisibilityFilter === "hidden" &&
+        !confession.isHidden
+      ) {
+        return false;
+      }
+
+      if (!query) return true;
+
+      const haystack = [
+        confession.message,
+        confession.userId?.username,
+      ]
+        .map((part) => safeText(part).toLowerCase())
+        .join(" ");
+
+      return haystack.includes(query);
+    });
+  }, [confessionSearch, confessionVisibilityFilter, confessions]);
+
+  const filteredUsers = useMemo(() => {
+    const query = safeText(userSearch).toLowerCase();
+
+    return users.filter((user) => {
+      if (!query) return true;
+      const haystack = [
+        user.username,
+        user.email,
+        user.role,
+        user.suspendReason,
+        user.banReason,
+      ]
+        .map((part) => safeText(part).toLowerCase())
+        .join(" ");
+      return haystack.includes(query);
+    });
+  }, [userSearch, users]);
+
+  const filteredLogs = useMemo(() => {
+    const query = safeText(logSearch).toLowerCase();
+
+    return logs.filter((log) => {
+      if (!query) return true;
+      const haystack = [
+        log.message,
+        log.type,
+        log.username,
+        log.userId?.username,
+        log.email,
+        log.ipAddress,
+      ]
+        .map((part) => safeText(part).toLowerCase())
+        .join(" ");
+      return haystack.includes(query);
+    });
+  }, [logSearch, logs]);
+
+  const reportStatusPillCounts = {
+    all: reports.length,
+    pending: pendingReports.length,
+    resolved: resolvedReports.length,
   };
-
-  const deleteBtnStyle = {
-    background: "rgba(255,60,60,0.15)",
-    border: "1px solid rgba(255,80,80,0.4)",
-    borderRadius: "8px",
-    color: "#ff6b6b",
-    padding: "6px 14px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "0.85rem",
-  };
-
-  const suspendBtnStyle = {
-  background: "rgba(255,200,80,0.13)",
-  border: "1px solid rgba(255,200,80,0.45)",
-  borderRadius: "8px",
-  color: "#ffd27a",
-  padding: "6px 14px",
-  cursor: "pointer",
-  fontWeight: 600,
-  fontSize: "0.85rem",
-};
-
-const banBtnStyle = {
-  background: "rgba(255,60,60,0.18)",
-  border: "1px solid rgba(255,80,80,0.55)",
-  borderRadius: "8px",
-  color: "#ff7777",
-  padding: "6px 14px",
-  cursor: "pointer",
-  fontWeight: 700,
-  fontSize: "0.85rem",
-};
-
-const safeBtnStyle = {
-  background: "rgba(100,255,150,0.13)",
-  border: "1px solid rgba(100,255,150,0.45)",
-  borderRadius: "8px",
-  color: "#9cffb2",
-  padding: "6px 14px",
-  cursor: "pointer",
-  fontWeight: 600,
-  fontSize: "0.85rem",
-};
-
-  const commentDeleteBtnStyle = {
-    background: "rgba(120,180,255,0.13)",
-    border: "1px solid rgba(120,180,255,0.45)",
-    borderRadius: "8px",
-    color: "#9cc7ff",
-    padding: "6px 14px",
-    cursor: "pointer",
-    fontWeight: 600,
-    fontSize: "0.85rem",
-  };
-
-  const pillStyle = (active) => ({
-    ...btnStyle,
-    background: active ? "rgba(120,255,170,0.16)" : "rgba(255,255,255,0.08)",
-    color: active ? "#9cffb2" : "white",
-    borderColor: active
-      ? "rgba(120,255,170,0.35)"
-      : "rgba(255,255,255,0.18)",
-  });
 
   return (
-    <div
-      className="cw-admin-dashboard"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0f0f1a, #1a1a2e)",
-        color: "white",
-        padding: "2rem",
-      }}
-    >
-      <div style={{ maxWidth: "950px", margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "2rem",
-          }}
-        >
-          <h1 style={{ margin: 0, fontSize: "1.8rem" }}>Admin Dashboard</h1>
+    <div className="adminDash-root">
+      <div className="adminDash-shell">
+        <header className="adminDash-header">
+          <div>
+            <h1 className="adminDash-title">Admin Dashboard</h1>
+            <p className="adminDash-subtitle">
+              Moderation, user management, and system oversight
+            </p>
+          </div>
 
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-  <button
-    onClick={enterMainSiteAsAdmin}
-    style={{
-      ...btnStyle,
-      color: "#9cffb2",
-      borderColor: "rgba(100,255,150,0.45)",
-    }}
-  >
-    Enter Main Site
-  </button>
-
-  <button
-    onClick={() => {
-      adminLogout();
-      navigate("/admin");
-    }}
-    style={deleteBtnStyle}
-  >
-    Logout
-  </button>
-</div>
-        </div>
-        {weeklyEventStatus && (
-          <div style={cardStyle}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "16px",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
+          <div className="adminDash-headerActions">
+            <button
+              type="button"
+              className="adminDash-btn adminDash-btnSecondary"
+              onClick={enterMainSiteAsAdmin}
+            >
+              Enter Main Site
+            </button>
+            <button
+              type="button"
+              className="adminDash-btn adminDash-btnDanger"
+              onClick={() => {
+                adminLogout();
+                navigate("/admin");
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    opacity: 0.68,
-                    marginBottom: "8px",
-                  }}
-                >
-                  Weekly Event Status
-                </div>
+              Logout
+            </button>
+          </div>
+        </header>
 
-                <h2 style={{ margin: "0 0 6px", fontSize: "1.22rem" }}>
-                  {weeklyEventStatus.currentEvent?.name || "Current weekly event"}
-                </h2>
+        <section className="adminDash-statsGrid">
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Pending Reports</p>
+            <p className="adminDash-statValue">{pendingReports.length}</p>
+          </article>
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Resolved Reports</p>
+            <p className="adminDash-statValue">{resolvedReports.length}</p>
+          </article>
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Total Confessions</p>
+            <p className="adminDash-statValue">{confessions.length}</p>
+          </article>
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Total Users</p>
+            <p className="adminDash-statValue">{users.length}</p>
+          </article>
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Online Sessions</p>
+            <p className="adminDash-statValue">{onlineUsers.length}</p>
+          </article>
+          <article className="adminDash-statCard">
+            <p className="adminDash-statLabel">Hidden Posts</p>
+            <p className="adminDash-statValue">{hiddenConfessionCount}</p>
+          </article>
+        </section>
 
-                <p style={{ margin: 0, opacity: 0.76, lineHeight: 1.6 }}>
-                  {weeklyEventStatus.currentEvent?.description}
-                </p>
-
-                <p style={{ margin: "8px 0 0", opacity: 0.66, lineHeight: 1.55 }}>
-                  {weeklyEventStatus.currentEvent?.statusText}
-                </p>
-
-                <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  <span style={pillStyle(true)}>
-                    {weeklyEventStatus.currentEvent?.rankingStartAt
-                      ? new Date(weeklyEventStatus.currentEvent.rankingStartAt).toLocaleDateString()
-                      : "?"}
-                    {" "}to{" "}
-                    {weeklyEventStatus.currentEvent?.rankingEndAt
-                      ? new Date(
-                          new Date(weeklyEventStatus.currentEvent.rankingEndAt).getTime() - 1000
-                        ).toLocaleDateString()
-                      : "?"}
-                  </span>
-                  <span style={pillStyle(false)}>
-                    {weeklyEventStatus.currentEvent?.phase === "active"
-                      ? "Competition: Monday to Tuesday"
-                      : "Competition: closed, results active"}
-                  </span>
-                  <span style={pillStyle(false)}>
-                    Rewards: Wednesday automatic payout
-                  </span>
-                </div>
-
-                <div style={{ marginTop: "14px", display: "grid", gap: "10px" }}>
-                  <div
-                    style={{
-                      padding: "12px",
-                      borderRadius: "12px",
-                      background: "rgba(120,255,170,0.08)",
-                      border: "1px solid rgba(120,255,170,0.18)",
-                    }}
-                  >
-                    <strong style={{ color: "#b8ffd0" }}>Most Watered candidate</strong>
-                    <div style={{ marginTop: "6px", opacity: 0.86 }}>
-                      {weeklyEventStatus.competitionLeaderboard?.mostWateredPost
-                        ? `@${weeklyEventStatus.leaderboard.mostWateredPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostWateredPost.wateredCount || 0} Water`
-                        : "No current watered leader"}
-                    </div>
-                    <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
-                      {weeklyEventStatus.rewards?.mostWateredSeeds?.granted
-                        ? `1000 Seeds granted to @${weeklyEventStatus.rewards.mostWateredSeeds.username} on ${new Date(weeklyEventStatus.rewards.mostWateredSeeds.grantedAt).toLocaleString()}`
-                        : weeklyEventStatus.currentEvent?.phase === "active"
-                        ? "1000 Seeds not paid until Wednesday close"
-                        : "1000 Seeds not granted yet"}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      padding: "12px",
-                      borderRadius: "12px",
-                      background: "rgba(255,120,90,0.08)",
-                      border: "1px solid rgba(255,120,90,0.18)",
-                    }}
-                  >
-                    <strong style={{ color: "#ffb39f" }}>Most Burned candidate</strong>
-                    <div style={{ marginTop: "6px", opacity: 0.86 }}>
-                      {weeklyEventStatus.competitionLeaderboard?.mostBurnedPost
-                        ? `@${weeklyEventStatus.leaderboard.mostBurnedPost.userId?.username || "anonymous"} · ${weeklyEventStatus.leaderboard.mostBurnedPost.burnedCount || 0} Burn`
-                        : "No current burned leader"}
-                    </div>
-                    <div style={{ marginTop: "4px", fontSize: "0.84rem", opacity: 0.64 }}>
-                      {weeklyEventStatus.rewards?.mostBurnedOverride?.applied
-                        ? `Override active for @${weeklyEventStatus.rewards.mostBurnedOverride.username} until ${new Date(weeklyEventStatus.rewards.mostBurnedOverride.expiresAt).toLocaleString()}`
-                        : weeklyEventStatus.currentEvent?.phase === "active"
-                        ? "Temporary override not applied until Wednesday close"
-                        : "Temporary override not applied yet"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <button
-                  type="button"
-                  onClick={refreshWeeklyEventStatus}
-                  style={btnStyle}
-                >
-                  Refresh weekly status
-                </button>
-
-                <button
-                  type="button"
-                  onClick={finalizeWeeklyEvent}
-                  disabled={weeklyBusy}
-                  style={{
-                    ...safeBtnStyle,
-                    minWidth: "220px",
-                    opacity: weeklyBusy ? 0.72 : 1,
-                  }}
-                >
-                  {weeklyBusy ? "Running..." : "Run weekly check now"}
-                </button>
-              </div>
+        <section className="adminDash-surface adminDash-section">
+          <div className="adminDash-sectionHeader">
+            <h2>Weekly Event Status</h2>
+            <div className="adminDash-actionRow">
+              <button
+                type="button"
+                className="adminDash-btn adminDash-btnGhost"
+                onClick={refreshWeeklyEventStatus}
+              >
+                Refresh
+              </button>
+              <button
+                type="button"
+                className="adminDash-btn adminDash-btnAccent"
+                onClick={finalizeWeeklyEvent}
+                disabled={weeklyBusy}
+              >
+                {weeklyBusy ? "Running..." : "Run Weekly Check"}
+              </button>
             </div>
           </div>
-        )}
-        <div style={cardStyle}>
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: "0.8rem",
-    }}
-  >
-    <div>
-      <h2 style={{ margin: 0, fontSize: "1.2rem" }}>Currently Online</h2>
-      <p style={{ margin: "4px 0 0", opacity: 0.6, fontSize: "0.85rem" }}>
-        {onlineUsers.length} active session{onlineUsers.length === 1 ? "" : "s"}
-      </p>
-    </div>
-  </div>
 
-  {onlineUsers.length === 0 ? (
-    <p style={{ opacity: 0.55, margin: 0 }}>No users online right now.</p>
-  ) : (
-    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {onlineUsers.map((user) => (
-        <div
-          key={user.socketId}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            padding: "10px",
-            borderRadius: "12px",
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          {user.profilePicture ? (
-            <img
-              src={user.profilePicture}
-              alt=""
-              style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "50%",
-                objectFit: "cover",
-              }}
-            />
+          {weeklyEventStatus ? (
+            <div className="adminDash-weeklyGrid">
+              <article className="adminDash-weeklyCard">
+                <p className="adminDash-kicker">Current Event</p>
+                <h3>{weeklyEventStatus.currentEvent?.name || "Current event"}</h3>
+                <p>{weeklyEventStatus.currentEvent?.description || "No description."}</p>
+                <p className="adminDash-muted">
+                  {weeklyEventStatus.currentEvent?.statusText || "Status unavailable"}
+                </p>
+              </article>
+
+              <article className="adminDash-weeklyCard">
+                <p className="adminDash-kicker">Most Watered</p>
+                <h3>
+                  {weeklyEventStatus.leaderboard?.mostWateredPost?.userId?.username
+                    ? `@${weeklyEventStatus.leaderboard.mostWateredPost.userId.username}`
+                    : "No leader yet"}
+                </h3>
+                <p>
+                  {weeklyEventStatus.leaderboard?.mostWateredPost?.wateredCount || 0} water
+                </p>
+                <p className="adminDash-muted">
+                  {weeklyEventStatus.rewards?.mostWateredSeeds?.granted
+                    ? "Seeds payout granted"
+                    : "Seeds payout pending"}
+                </p>
+              </article>
+
+              <article className="adminDash-weeklyCard">
+                <p className="adminDash-kicker">Most Burned</p>
+                <h3>
+                  {weeklyEventStatus.leaderboard?.mostBurnedPost?.userId?.username
+                    ? `@${weeklyEventStatus.leaderboard.mostBurnedPost.userId.username}`
+                    : "No leader yet"}
+                </h3>
+                <p>
+                  {weeklyEventStatus.leaderboard?.mostBurnedPost?.burnedCount || 0} burn
+                </p>
+                <p className="adminDash-muted">
+                  {weeklyEventStatus.rewards?.mostBurnedOverride?.applied
+                    ? "Temporary override active"
+                    : "Override pending"}
+                </p>
+              </article>
+            </div>
           ) : (
-            <div
-              style={{
-                width: "42px",
-                height: "42px",
-                borderRadius: "50%",
-                background: "rgba(120,255,170,0.16)",
-                border: "1px solid rgba(120,255,170,0.35)",
-                color: "#9cffb2",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 800,
-              }}
-            >
-              {user.username?.charAt(0)?.toUpperCase() || "?"}
+            <p className="adminDash-muted">Weekly status is loading.</p>
+          )}
+        </section>
+
+        <section className="adminDash-surface adminDash-section">
+          <div className="adminDash-sectionHeader">
+            <h2>Online Sessions</h2>
+            <span className="adminDash-countPill">{onlineUsers.length} active</span>
+          </div>
+
+          {onlineUsers.length === 0 ? (
+            <p className="adminDash-emptyText">No users online right now.</p>
+          ) : (
+            <div className="adminDash-onlineList">
+              {onlineUsers.map((user) => (
+                <article key={user.socketId} className="adminDash-onlineCard">
+                  <div className="adminDash-onlineIdentity">
+                    {user.profilePicture ? (
+                      <img
+                        src={user.profilePicture}
+                        alt=""
+                        className="adminDash-avatar"
+                      />
+                    ) : (
+                      <div className="adminDash-avatar adminDash-avatarFallback">
+                        {safeText(user.username).charAt(0).toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <div>
+                      <p className="adminDash-onlineName">@{user.username}</p>
+                      <p className="adminDash-mutedSmall">
+                        {user.isAdmin ? "Admin" : "User"} • Active{" "}
+                        {user.lastActiveAt
+                          ? new Date(user.lastActiveAt).toLocaleTimeString()
+                          : "now"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="adminDash-statusBadge adminDash-statusOnline">
+                    ONLINE
+                  </span>
+                </article>
+              ))}
             </div>
           )}
+        </section>
 
-          <div style={{ minWidth: 0 }}>
-            <strong>@{user.username}</strong>
-            <div style={{ opacity: 0.6, fontSize: "0.82rem", marginTop: "3px" }}>
-              {user.isAdmin ? "Admin" : "User"} · Active{" "}
-              {user.lastActiveAt
-                ? new Date(user.lastActiveAt).toLocaleTimeString()
-                : "now"}
-            </div>
-          </div>
-
-          <span
-            style={{
-              marginLeft: "auto",
-              padding: "4px 9px",
-              borderRadius: "999px",
-              background: "rgba(80,255,120,0.14)",
-              border: "1px solid rgba(80,255,120,0.35)",
-              color: "#8cff9c",
-              fontSize: "11px",
-              fontWeight: 800,
-            }}
+        <section className="adminDash-tabRow">
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "reports" ? "is-active" : ""}`}
+            onClick={() => setTab("reports")}
           >
-            ONLINE
-          </span>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-        <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-  <button onClick={() => setTab("reports")} style={btnStyle}>
-    Reports ({reports.length})
-  </button>
-
-  <button onClick={() => setTab("confessions")} style={btnStyle}>
-    Confessions ({confessions.length})
-  </button>
-
-  <button onClick={() => setTab("users")} style={btnStyle}>
-    Users ({users.length})
-  </button>
-
-  <button onClick={() => setTab("logs")} style={btnStyle}>
-    Logs ({logs.length})
-  </button>
-
-  <button
-    onClick={() => navigate("/admin/special-logs")}
-    style={{
-      ...btnStyle,
-      color: "#ffe59a",
-      borderColor: "rgba(255, 229, 154, 0.45)",
-      background: "rgba(255, 229, 154, 0.1)",
-    }}
-  >
-    Special Section Logs
-  </button>
-</div>
+            Reports
+          </button>
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "confessions" ? "is-active" : ""}`}
+            onClick={() => setTab("confessions")}
+          >
+            Confessions
+          </button>
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "users" ? "is-active" : ""}`}
+            onClick={() => setTab("users")}
+          >
+            Users
+          </button>
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "logs" ? "is-active" : ""}`}
+            onClick={() => setTab("logs")}
+          >
+            Logs
+          </button>
+          <button
+            type="button"
+            className="adminDash-tab adminDash-tabSpecial"
+            onClick={() => navigate("/admin/special-logs")}
+          >
+            Special Section Logs
+          </button>
+        </section>
 
         {tab === "reports" && (
-          <div>
-            <div
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                marginBottom: "1rem",
-              }}
-            >
+          <section className="adminDash-surface adminDash-section">
+            <div className="adminDash-sectionHeader">
+              <h2>Reports</h2>
+              <span className="adminDash-countPill">{filteredReports.length} shown</span>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={reportSearch}
+                onChange={(event) => setReportSearch(event.target.value)}
+                placeholder="Search by reporter, reason, post text, comment text..."
+              />
+            </div>
+
+            <div className="adminDash-chipRow">
               <button
-                onClick={() => setReportView("pending")}
-                style={pillStyle(reportView === "pending")}
+                type="button"
+                className={`adminDash-chip ${reportTypeFilter === "all" ? "is-active" : ""}`}
+                onClick={() => setReportTypeFilter("all")}
               >
-                Pending ({pendingReports.length})
+                All
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  reportTypeFilter === "confession" ? "is-active" : ""
+                }`}
+                onClick={() => setReportTypeFilter("confession")}
+              >
+                Post Reports
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  reportTypeFilter === "comment" ? "is-active" : ""
+                }`}
+                onClick={() => setReportTypeFilter("comment")}
+              >
+                Comment Reports
+              </button>
+            </div>
+
+            <div className="adminDash-chipRow">
+              <button
+                type="button"
+                className={`adminDash-chip ${reportStatusFilter === "all" ? "is-active" : ""}`}
+                onClick={() => setReportStatusFilter("all")}
+              >
+                All ({reportStatusPillCounts.all})
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  reportStatusFilter === "pending" ? "is-active" : ""
+                }`}
+                onClick={() => setReportStatusFilter("pending")}
+              >
+                Pending ({reportStatusPillCounts.pending})
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  reportStatusFilter === "resolved" ? "is-active" : ""
+                }`}
+                onClick={() => setReportStatusFilter("resolved")}
+              >
+                Resolved ({reportStatusPillCounts.resolved})
               </button>
 
-              <button
-                onClick={() => setReportView("resolved")}
-                style={pillStyle(reportView === "resolved")}
-              >
-                Resolved ({resolvedReports.length})
-              </button>
-
-              {reportView === "resolved" && (
+              {reportStatusFilter === "resolved" && (
                 <button
+                  type="button"
+                  className="adminDash-btn adminDash-btnDanger"
+                  onClick={clearResolvedReportRecords}
+                >
+                  Clear Resolved Reports
+                </button>
+              )}
+
+              {reportStatusFilter === "resolved" && (
+                <button
+                  type="button"
+                  className="adminDash-btn adminDash-btnGhost"
                   onClick={cleanupResolvedReports}
-                  style={{
-                    ...btnStyle,
-                    marginLeft: "auto",
-                    color: "#ffd27a",
-                    borderColor: "rgba(255,200,80,0.4)",
-                  }}
                 >
                   Cleanup 30d+
                 </button>
               )}
             </div>
 
-            {visibleReports.length === 0 ? (
-              <p style={{ opacity: 0.5 }}>
-                No {reportView === "pending" ? "pending" : "resolved"} reports
-                found.
-              </p>
+            {filteredReports.length === 0 ? (
+              <p className="adminDash-emptyText">No reports match the current filters.</p>
             ) : (
-              visibleReports.map((r) => {
-                const isCommentReport = r.targetType === "comment";
-                const confessionId = r.confessionId?._id;
+              <div className="adminDash-cardList">
+                {filteredReports.map((report) => {
+                  const isCommentReport = report.targetType === "comment";
+                  const confessionId = report.confessionId?._id;
+                  const reportedComment = getReportedComment(report);
+                  const isTargetHidden = isCommentReport
+                    ? Boolean(reportedComment?.isHidden)
+                    : Boolean(report.confessionId?.isHidden);
 
-                return (
-                  <div key={r._id} style={cardStyle}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "1rem",
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            display: "inline-block",
-                            marginBottom: "8px",
-                            padding: "4px 10px",
-                            borderRadius: "999px",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                            background: isCommentReport
-                              ? "rgba(120,180,255,0.15)"
-                              : "rgba(255,200,80,0.15)",
-                            color: isCommentReport ? "#9cc7ff" : "#ffd27a",
-                            border: isCommentReport
-                              ? "1px solid rgba(120,180,255,0.35)"
-                              : "1px solid rgba(255,200,80,0.35)",
-                          }}
-                        >
-                          {isCommentReport ? "Comment Report" : "Post Report"}
+                  return (
+                    <article key={report._id} className="adminDash-itemCard">
+                      <div className="adminDash-itemTop">
+                        <div className="adminDash-chipRow">
+                          <span className="adminDash-statusBadge adminDash-statusInfo">
+                            {reportTypeLabel[report.targetType] || "Report"}
+                          </span>
+                          <span
+                            className={`adminDash-statusBadge ${
+                              report.status === "resolved"
+                                ? "adminDash-statusSuccess"
+                                : "adminDash-statusWarn"
+                            }`}
+                          >
+                            {report.status}
+                          </span>
+                          {isTargetHidden && (
+                            <span className="adminDash-statusBadge adminDash-statusHidden">
+                              Hidden
+                            </span>
+                          )}
                         </div>
 
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            opacity: 0.65,
-                            marginBottom: "0.4rem",
-                          }}
-                        >
-                          Status:{" "}
-                          <strong
-                            style={{
-                              color:
-                                r.status === "resolved" ? "#7CFF9B" : "#ffcc66",
-                            }}
-                          >
-                            {r.status}
-                          </strong>
-                        </div>
-
-                        <p style={{ margin: "0 0 0.6rem", color: "#ffb3b3" }}>
-                          Reason: {r.reason}
-                        </p>
-
-                        <p style={{ margin: "0 0 0.6rem", opacity: 0.85 }}>
-                          Post: {r.confessionId?.message || "Post deleted"}
-                        </p>
-
-                        {isCommentReport && (
-                          <p
-                            style={{
-                              margin: "0 0 0.6rem",
-                              color: "#9cc7ff",
-                              opacity: 0.95,
-                            }}
-                          >
-                            Comment:{" "}
-                            {r.commentText || "Comment text unavailable"}
-                          </p>
-                        )}
-
-                        {r.resolvedNote && (
-                          <p
-                            style={{
-                              margin: "0 0 0.6rem",
-                              color: "#9cffb2",
-                              opacity: 0.85,
-                            }}
-                          >
-                            Resolve note: {r.resolvedNote}
-                          </p>
-                        )}
-
-                        <small style={{ opacity: 0.5 }}>
-                          Reported by @{r.reportedBy?.username || "unknown"} ·{" "}
-                          {new Date(r.createdAt).toLocaleString()}
-                        </small>
-
-                        {r.status === "resolved" && r.deleteAfter && (
-                          <div style={{ opacity: 0.55, fontSize: "0.78rem", marginTop: "6px" }}>
-                            Auto-cleanup after {new Date(r.deleteAfter).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "8px",
-                        }}
-                      >
-                        {confessionId && (
-                          <button
-                            onClick={() => openReportedItem(r)}
-                            style={btnStyle}
-                          >
-                            Open
-                          </button>
-                        )}
-
-                        {confessionId &&
-                          !isCommentReport &&
-                          r.status !== "resolved" && (
+                        <div className="adminDash-actionRow">
+                          {confessionId && (
                             <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnGhost"
+                              onClick={() => openReportedItem(report)}
+                            >
+                              Open
+                            </button>
+                          )}
+
+                          {confessionId && !isCommentReport && (
+                            report.confessionId?.isHidden ? (
+                              <button
+                                type="button"
+                                className="adminDash-btn adminDash-btnSuccess"
+                                onClick={() => unhideReportedPost(report)}
+                              >
+                                Unhide Post
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="adminDash-btn adminDash-btnWarn"
+                                onClick={() => hideReportedPost(report)}
+                              >
+                                Hide Post
+                              </button>
+                            )
+                          )}
+
+                          {confessionId && isCommentReport && reportedComment && (
+                            reportedComment.isHidden ? (
+                              <button
+                                type="button"
+                                className="adminDash-btn adminDash-btnSuccess"
+                                onClick={() => unhideReportedComment(report)}
+                              >
+                                Unhide Comment
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="adminDash-btn adminDash-btnWarn"
+                                onClick={() => hideReportedComment(report)}
+                              >
+                                Hide Comment
+                              </button>
+                            )
+                          )}
+
+                          {confessionId && !isCommentReport && report.status !== "resolved" && (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnDanger"
                               onClick={() => deleteConfession(confessionId)}
-                              style={deleteBtnStyle}
                             >
                               Delete Post
                             </button>
                           )}
 
-                        {confessionId &&
-                          isCommentReport &&
-                          r.status !== "resolved" && (
+                          {confessionId && isCommentReport && report.status !== "resolved" && (
                             <button
-                              onClick={() => deleteReportedComment(r._id)}
-                              style={commentDeleteBtnStyle}
+                              type="button"
+                              className="adminDash-btn adminDash-btnDanger"
+                              onClick={() => deleteReportedComment(report._id)}
                             >
                               Delete Comment
                             </button>
                           )}
 
-                        {r.status !== "resolved" && (
-                          <button
-                            onClick={() => resolveReport(r._id)}
-                            style={{
-                              ...btnStyle,
-                              color: "#9cffb2",
-                              borderColor: "rgba(100,255,150,0.4)",
-                            }}
-                          >
-                            Resolve
-                          </button>
+                          {report.status !== "resolved" && (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnAccent"
+                              onClick={() => resolveReport(report._id)}
+                            >
+                              Resolve
+                            </button>
+                          )}
+
+                          {report.status === "resolved" && (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnDanger"
+                              onClick={() => deleteResolvedReportRecord(report._id)}
+                            >
+                              Delete Report
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="adminDash-itemBodyText">
+                        <strong>Reason:</strong> {report.reason}
+                      </p>
+                      <p className="adminDash-itemBodyText">
+                        <strong>Post:</strong> {report.confessionId?.message || "Post deleted"}
+                      </p>
+                      {isCommentReport && (
+                        <p className="adminDash-itemBodyText">
+                          <strong>Comment:</strong>{" "}
+                          {report.commentText || "Comment text unavailable"}
+                        </p>
+                      )}
+                      {report.resolvedNote && (
+                        <p className="adminDash-itemBodyText">
+                          <strong>Resolve note:</strong> {report.resolvedNote}
+                        </p>
+                      )}
+
+                      <div className="adminDash-itemMeta">
+                        <span>
+                          Reported by @{report.reportedBy?.username || "unknown"}
+                        </span>
+                        <span>{formatDateTime(report.createdAt)}</span>
+                        {report.deleteAfter && report.status === "resolved" && (
+                          <span>Auto cleanup: {formatDateOnly(report.deleteAfter)}</span>
                         )}
                       </div>
-                    </div>
-                  </div>
-                );
-              })
+                    </article>
+                  );
+                })}
+              </div>
             )}
-          </div>
-        )}
-
-
-
-        {tab === "logs" && (
-          <div>
-            {logs.length === 0 ? (
-              <p style={{ opacity: 0.5 }}>No logs found yet.</p>
-            ) : (
-              logs.map((log) => (
-                <div key={log._id} style={cardStyle}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                      alignItems: "flex-start",
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <strong>{log.message}</strong>
-
-                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
-                        Type: {log.type} · {new Date(log.createdAt).toLocaleString()}
-                      </div>
-
-                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
-                        User: @{log.username || log.userId?.username || "unknown"}
-                        {log.email ? ` · ${log.email}` : ""}
-                      </div>
-
-                      <div style={{ opacity: 0.65, fontSize: "0.85rem", marginTop: "6px" }}>
-                        IP: {log.ipAddress || "Not available"}
-                      </div>
-                    </div>
-
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: "999px",
-                        background: "rgba(120,255,170,0.13)",
-                        border: "1px solid rgba(120,255,170,0.32)",
-                        color: "#9cffb2",
-                        fontSize: "11px",
-                        fontWeight: 800,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {log.type?.replaceAll("_", " ") || "log"}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          </section>
         )}
 
         {tab === "confessions" && (
-          <div>
-            {confessions.length === 0 ? (
-              <p style={{ opacity: 0.5 }}>No confessions found.</p>
+          <section className="adminDash-surface adminDash-section">
+            <div className="adminDash-sectionHeader">
+              <h2>Confessions</h2>
+              <span className="adminDash-countPill">{filteredConfessions.length} shown</span>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={confessionSearch}
+                onChange={(event) => setConfessionSearch(event.target.value)}
+                placeholder="Search by post text or username..."
+              />
+            </div>
+
+            <div className="adminDash-chipRow">
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  confessionVisibilityFilter === "all" ? "is-active" : ""
+                }`}
+                onClick={() => setConfessionVisibilityFilter("all")}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  confessionVisibilityFilter === "visible" ? "is-active" : ""
+                }`}
+                onClick={() => setConfessionVisibilityFilter("visible")}
+              >
+                Visible
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  confessionVisibilityFilter === "hidden" ? "is-active" : ""
+                }`}
+                onClick={() => setConfessionVisibilityFilter("hidden")}
+              >
+                Hidden
+              </button>
+            </div>
+
+            {filteredConfessions.length === 0 ? (
+              <p className="adminDash-emptyText">
+                No confessions match the current filters.
+              </p>
             ) : (
-              confessions.map((c) => (
-                <div key={c._id} style={cardStyle}>
-                  <p style={{ marginTop: 0 }}>{c.message}</p>
+              <div className="adminDash-cardList">
+                {filteredConfessions.map((confession) => (
+                  <article key={confession._id} className="adminDash-itemCard">
+                    <div className="adminDash-itemTop">
+                      <div className="adminDash-chipRow">
+                        {confession.isHidden ? (
+                          <span className="adminDash-statusBadge adminDash-statusHidden">
+                            Hidden
+                          </span>
+                        ) : (
+                          <span className="adminDash-statusBadge adminDash-statusInfo">
+                            Visible
+                          </span>
+                        )}
+                      </div>
 
-                  <small style={{ opacity: 0.5 }}>
-                    @{c.userId?.username || "Anonymous"} ·{" "}
-                    {new Date(c.createdAt).toLocaleString()}
-                  </small>
+                      <div className="adminDash-actionRow">
+                        {confession.isHidden ? (
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnSuccess"
+                            onClick={() => unhideConfession(confession._id)}
+                          >
+                            Unhide
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnWarn"
+                            onClick={() => hideConfession(confession._id)}
+                          >
+                            Hide
+                          </button>
+                        )}
 
-                  <div style={{ marginTop: "0.8rem" }}>
-                    <button
-                      onClick={() => deleteConfession(c._id)}
-                      style={deleteBtnStyle}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
+                        <button
+                          type="button"
+                          className="adminDash-btn adminDash-btnDanger"
+                          onClick={() => deleteConfession(confession._id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="adminDash-itemBodyText">{confession.message}</p>
+                    <div className="adminDash-itemMeta">
+                      <span>@{confession.userId?.username || "Anonymous"}</span>
+                      <span>{formatDateTime(confession.createdAt)}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
             )}
-          </div>
+          </section>
         )}
 
         {tab === "users" && (
-          <div>
-            {users.length === 0 ? (
-              <p style={{ opacity: 0.5 }}>No users found.</p>
+          <section className="adminDash-surface adminDash-section">
+            <div className="adminDash-sectionHeader">
+              <h2>Users</h2>
+              <span className="adminDash-countPill">{filteredUsers.length} shown</span>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={userSearch}
+                onChange={(event) => setUserSearch(event.target.value)}
+                placeholder="Search by username, email, role, ban/suspension reason..."
+              />
+            </div>
+
+            {filteredUsers.length === 0 ? (
+              <p className="adminDash-emptyText">No users match the current search.</p>
             ) : (
-              users.map((u) => (
-  <div key={u._id} style={cardStyle}>
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: "1rem",
-        alignItems: "flex-start",
-      }}
-    >
-      <div>
-        <strong>{u.username}</strong>
+              <div className="adminDash-cardList">
+                {filteredUsers.map((user) => {
+                  const isOnline = onlineUsernameSet.has(
+                    safeText(user.username).toLowerCase()
+                  );
 
-        <div
-  style={{
-    marginTop: "6px",
-    color: "#9cffb2",
-    fontSize: "0.85rem",
-    fontWeight: 700,
-  }}
->
-  🌱 Seeds: {u.seeds || 0}
-</div>
+                  return (
+                    <article key={user._id} className="adminDash-itemCard">
+                      <div className="adminDash-itemTop">
+                        <div>
+                          <h3 className="adminDash-userName">@{user.username}</h3>
+                          <p className="adminDash-mutedSmall">🌱 Seeds: {user.seeds || 0}</p>
+                          {user.email && (
+                            <p className="adminDash-mutedSmall">{user.email}</p>
+                          )}
+                        </div>
 
-        <div style={{ marginTop: "8px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {u.isBanned && (
-            <span
-              style={{
-                padding: "4px 9px",
-                borderRadius: "999px",
-                background: "rgba(255,60,60,0.14)",
-                border: "1px solid rgba(255,80,80,0.35)",
-                color: "#ff7777",
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
-              BANNED
-            </span>
-          )}
+                        <div className="adminDash-actionRow">
+                          {user.isSuspended ? (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnSuccess"
+                              onClick={() => unsuspendUser(user._id)}
+                            >
+                              Unsuspend
+                            </button>
+                          ) : (
+                            !user.isBanned && (
+                              <button
+                                type="button"
+                                className="adminDash-btn adminDash-btnWarn"
+                                onClick={() => suspendUser(user._id)}
+                              >
+                                Suspend
+                              </button>
+                            )
+                          )}
 
-          {u.isSuspended && !u.isBanned && (
-            <span
-              style={{
-                padding: "4px 9px",
-                borderRadius: "999px",
-                background: "rgba(255,200,80,0.14)",
-                border: "1px solid rgba(255,200,80,0.35)",
-                color: "#ffd27a",
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
-              SUSPENDED
-            </span>
-          )}
+                          {user.isBanned ? (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnSuccess"
+                              onClick={() => unbanUser(user._id)}
+                            >
+                              Unban
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnDanger"
+                              onClick={() => banUser(user._id)}
+                            >
+                              Ban
+                            </button>
+                          )}
 
-          {!u.isBanned && !u.isSuspended && (
-            <span
-              style={{
-                padding: "4px 9px",
-                borderRadius: "999px",
-                background: "rgba(100,255,150,0.12)",
-                border: "1px solid rgba(100,255,150,0.3)",
-                color: "#9cffb2",
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
-              ACTIVE
-            </span>
-          )}
-        </div>
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnAccent"
+                            onClick={() => giveSeedsToUser(user._id, user.username)}
+                          >
+                            Give Seeds
+                          </button>
 
-        {u.suspendReason && (
-          <div style={{ marginTop: "8px", color: "#ffd27a", fontSize: "0.85rem" }}>
-            Suspend reason: {u.suspendReason}
-          </div>
-        )}
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnDanger"
+                            onClick={() => deleteUser(user._id)}
+                          >
+                            Delete User
+                          </button>
+                        </div>
+                      </div>
 
-        {u.banReason && (
-          <div style={{ marginTop: "8px", color: "#ff7777", fontSize: "0.85rem" }}>
-            Ban reason: {u.banReason}
-          </div>
-        )}
-      </div>
+                      <div className="adminDash-chipRow">
+                        {(user.isAdmin || user.role === "admin") && (
+                          <span className="adminDash-statusBadge adminDash-statusInfo">
+                            Admin
+                          </span>
+                        )}
+                        {isOnline && (
+                          <span className="adminDash-statusBadge adminDash-statusOnline">
+                            Online
+                          </span>
+                        )}
+                        {user.isSuspended && !user.isBanned && (
+                          <span className="adminDash-statusBadge adminDash-statusWarn">
+                            Suspended
+                          </span>
+                        )}
+                        {user.isBanned && (
+                          <span className="adminDash-statusBadge adminDash-statusDanger">
+                            Banned
+                          </span>
+                        )}
+                        {!user.isSuspended && !user.isBanned && (
+                          <span className="adminDash-statusBadge adminDash-statusSuccess">
+                            Active
+                          </span>
+                        )}
+                      </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          flexWrap: "wrap",
-          justifyContent: "flex-end",
-        }}
-      >
-        {u.isSuspended ? (
-          <button onClick={() => unsuspendUser(u._id)} style={safeBtnStyle}>
-            Unsuspend
-          </button>
-        ) : (
-          !u.isBanned && (
-            <button onClick={() => suspendUser(u._id)} style={suspendBtnStyle}>
-              Suspend
-            </button>
-          )
-        )}
-
-        {u.isBanned ? (
-          <button onClick={() => unbanUser(u._id)} style={safeBtnStyle}>
-            Unban
-          </button>
-        ) : (
-          <button onClick={() => banUser(u._id)} style={banBtnStyle}>
-            Ban
-          </button>
-        )}
-        <button
-  onClick={() => giveSeedsToUser(u._id, u.username)}
-  style={{
-    ...safeBtnStyle,
-    color: "#b8ff9c",
-    borderColor: "rgba(180,255,120,0.5)",
-    background: "rgba(120,255,80,0.14)",
-  }}
->
-  🌱 Give Seeds
-</button>
-        <button onClick={() => deleteUser(u._id)} style={deleteBtnStyle}>
-          Delete User
-        </button>
-      </div>
-    </div>
-  </div>
-))
+                      {user.suspendReason && (
+                        <p className="adminDash-itemBodyText">
+                          <strong>Suspend reason:</strong> {user.suspendReason}
+                        </p>
+                      )}
+                      {user.banReason && (
+                        <p className="adminDash-itemBodyText">
+                          <strong>Ban reason:</strong> {user.banReason}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
             )}
-          </div>
+          </section>
+        )}
+
+        {tab === "logs" && (
+          <section className="adminDash-surface adminDash-section">
+            <div className="adminDash-sectionHeader">
+              <h2>Logs</h2>
+              <span className="adminDash-countPill">{filteredLogs.length} shown</span>
+              <button
+                type="button"
+                className="adminDash-btn adminDash-btnDanger"
+                onClick={clearAdminLogs}
+              >
+                Clear Admin Logs
+              </button>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={logSearch}
+                onChange={(event) => setLogSearch(event.target.value)}
+                placeholder="Search logs by type, message, username, email, or IP..."
+              />
+            </div>
+
+            {filteredLogs.length === 0 ? (
+              <p className="adminDash-emptyText">No logs match the current search.</p>
+            ) : (
+              <div className="adminDash-cardList">
+                {filteredLogs.map((log) => (
+                  <article key={log._id} className="adminDash-itemCard">
+                    <div className="adminDash-itemTop">
+                      <div>
+                        <p className="adminDash-itemBodyText">
+                          <strong>{log.message}</strong>
+                        </p>
+                        <div className="adminDash-itemMeta">
+                          <span>Type: {log.type}</span>
+                          <span>{formatDateTime(log.createdAt)}</span>
+                        </div>
+                        <div className="adminDash-itemMeta">
+                          <span>
+                            User: @{log.username || log.userId?.username || "unknown"}
+                          </span>
+                          {log.email ? <span>{log.email}</span> : null}
+                          <span>IP: {log.ipAddress || "Not available"}</span>
+                        </div>
+                      </div>
+
+                      <div className="adminDash-actionRow">
+                        <span className="adminDash-statusBadge adminDash-statusInfo">
+                          {(log.type || "log").replaceAll("_", " ")}
+                        </span>
+                        <button
+                          type="button"
+                          className="adminDash-btn adminDash-btnDanger"
+                          onClick={() => deleteAdminLogRecord(log._id)}
+                        >
+                          Delete Log
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </div>
     </div>
