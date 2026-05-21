@@ -4,7 +4,7 @@ const DEFAULT_TITLE =
   "Confession Wall - Anonymous Confessions in a Forest Grove";
 const DEFAULT_DESCRIPTION =
   "Share anonymous confessions, explore trending stories, and react with the Confession Wall community across Grove, Budding, and Scorched realms.";
-const DEFAULT_IMAGE = `${SEO_ORIGIN}/forest.png`;
+const DEFAULT_IMAGE = `${SEO_ORIGIN}/forest.webp`;
 const THEME_COLOR = "#0b1f12";
 
 const hasDocument = () =>

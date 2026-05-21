@@ -82,7 +82,7 @@ const GROVE_FLOWERS = [
     layoutKey: "healthyFrontLeft",
     debugLabel: "healthy-front-left",
     realm: "Grove",
-    asset: "healthy-front-left-cropped.png",
+    asset: "healthy-front-left-cropped.webp",
     className: "split-flower-button split-flower-button--grove split-flower-button--grove-01",
     previewLeft: "10%",
     rot: "-8deg",
@@ -92,7 +92,7 @@ const GROVE_FLOWERS = [
     layoutKey: "healthyMidLeft",
     debugLabel: "healthy-mid-left",
     realm: "Grove",
-    asset: "healthy-mid-left-cropped.png",
+    asset: "healthy-mid-left-cropped.webp",
     className: "split-flower-button split-flower-button--grove split-flower-button--grove-02",
     previewLeft: "16%",
     rot: "-3deg",
@@ -102,7 +102,7 @@ const GROVE_FLOWERS = [
     layoutKey: "healthyBackLeft",
     debugLabel: "healthy-back-left",
     realm: "Grove",
-    asset: "healthy-back-left-cropped.png",
+    asset: "healthy-back-left-cropped.webp",
     className: "split-flower-button split-flower-button--grove split-flower-button--grove-03",
     previewLeft: "6%",
     rot: "-11deg",
@@ -115,7 +115,7 @@ const SCORCHED_FLOWERS = [
     layoutKey: "scorchedFrontRight",
     debugLabel: "scorched-front-right",
     realm: "Scorched",
-    asset: "scorched-front-right-cropped.png",
+    asset: "scorched-front-right-cropped.webp",
     className:
       "split-flower-button split-flower-button--scorched split-flower-button--scorched-01",
     previewLeft: "54%",
@@ -126,7 +126,7 @@ const SCORCHED_FLOWERS = [
     layoutKey: "scorchedMidRight",
     debugLabel: "scorched-mid-right",
     realm: "Scorched",
-    asset: "scorched-mid-right-cropped.png",
+    asset: "scorched-mid-right-cropped.webp",
     className:
       "split-flower-button split-flower-button--scorched split-flower-button--scorched-02",
     previewLeft: "50%",
@@ -137,7 +137,7 @@ const SCORCHED_FLOWERS = [
     layoutKey: "scorchedBackRight",
     debugLabel: "scorched-back-right",
     realm: "Scorched",
-    asset: "scorched-back-right-cropped.png",
+    asset: "scorched-back-right-cropped.webp",
     className:
       "split-flower-button split-flower-button--scorched split-flower-button--scorched-03",
     previewLeft: "60%",
@@ -652,7 +652,7 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
           >
             <img
               className="split-bouquet-stems-img"
-              src={`${ASSET_BASE}bouquet-stems-cropped.png`}
+              src={`${ASSET_BASE}bouquet-stems-cropped.webp`}
               alt=""
               draggable="false"
             />
@@ -682,7 +682,7 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
           >
             <img
               className="split-bouquet-hand-img"
-              src={`${ASSET_BASE}bouquet-hand-cropped.png`}
+              src={`${ASSET_BASE}bouquet-hand-cropped.webp`}
               alt=""
               draggable="false"
             />

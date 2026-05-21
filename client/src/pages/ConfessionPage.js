@@ -20,6 +20,11 @@ import {
   normalizeContentWarning,
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
+import {
+  copyConfessionLink,
+  getConfessionExcerpt,
+  shareConfession,
+} from "../utils/shareConfession";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
@@ -288,6 +293,88 @@ function ReactionBar({
   );
 }
 
+function RelatedConfessionCard({ post, theme }) {
+  if (!post?._id) return null;
+
+  const moodStyle = getMoodChipStyle(post.mood);
+  const excerpt = getConfessionExcerpt(post.message, 150);
+  const username = post.userId?.username || "anonymous";
+  const wateredCount = post.wateredBy?.length || 0;
+  const burnedCount = post.burnedBy?.length || 0;
+  const commentCount = post.comments?.length || 0;
+
+  return (
+    <Link
+      to={`/confession/${post._id}`}
+      aria-label={`Read related confession by ${username}`}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+      }}
+    >
+      <article
+        style={{
+          borderRadius: "14px",
+          border: theme.cardBorder,
+          background: "rgba(255,255,255,0.06)",
+          padding: "12px 13px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+          transition: "transform 0.16s ease, box-shadow 0.16s ease",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+            marginBottom: "8px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "11px",
+              color: theme.username,
+              fontWeight: 700,
+            }}
+          >
+            @{username}
+          </span>
+          {moodStyle && (
+            <span style={{ ...moodStyle, fontSize: "9px" }}>{post.mood}</span>
+          )}
+        </div>
+
+        <p
+          style={{
+            margin: 0,
+            fontSize: "13px",
+            lineHeight: 1.5,
+            color: theme.text,
+          }}
+        >
+          {excerpt || "Anonymous confession."}
+        </p>
+
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            gap: "10px",
+            fontSize: "10px",
+            color: theme.muted,
+            letterSpacing: "0.02em",
+          }}
+        >
+          <span>water {wateredCount}</span>
+          <span>burn {burnedCount}</span>
+          <span>comments {commentCount}</span>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
 export default function ConfessionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -297,6 +384,11 @@ export default function ConfessionPage() {
   const { token, user, refreshUser, updateUser } = useAuth();
 
   const [confession, setConfession] = useState(null);
+  const [confessionLoading, setConfessionLoading] = useState(true);
+  const [confessionError, setConfessionError] = useState("");
+  const [relatedConfessions, setRelatedConfessions] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [copyFallbackUrl, setCopyFallbackUrl] = useState("");
   const [comment, setComment] = useState("");
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
@@ -329,10 +421,86 @@ export default function ConfessionPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_URL}/${id}`)
-      .then((r) => r.json())
-      .then(setConfession)
-      .catch((err) => console.error(err));
+    const controller = new AbortController();
+    setConfession(null);
+    setConfessionLoading(true);
+    setConfessionError("");
+    setCopyFallbackUrl("");
+
+    const loadConfession = async () => {
+      try {
+        const res = await fetch(`${API_URL}/${id}`, { signal: controller.signal });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data?.message || "Could not load confession.");
+        }
+
+        setConfession(data);
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        console.error(err);
+        setConfession(null);
+        setConfessionError(err?.message || "Could not load confession.");
+      } finally {
+        setConfessionLoading(false);
+      }
+    };
+
+    loadConfession();
+
+    return () => {
+      controller.abort();
+    };
+  }, [id]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
+    const loadRelated = async () => {
+      setRelatedLoading(true);
+      setRelatedConfessions([]);
+
+      try {
+        const res = await fetch(`${API_URL}/${id}/related`, {
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          if (!cancelled) {
+            setRelatedConfessions([]);
+          }
+          return;
+        }
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        const related = Array.isArray(data.related)
+          ? data.related.filter(
+              (post) => String(post?._id || "") !== String(id)
+            )
+          : [];
+
+        setRelatedConfessions(related);
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          console.error("Related confessions fetch error:", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setRelatedLoading(false);
+        }
+      }
+    };
+
+    loadRelated();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [id]);
 
   useEffect(() => {
@@ -498,6 +666,22 @@ const activeCommentPinPosition = isPhoneLayout
     WebkitBackdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
     ...viewerPostThemeStyle,
   };
+  const nextConfession =
+    relatedConfessions.find(
+      (post) => String(post?._id || "") !== String(confession?._id || "")
+    ) || null;
+  const actionButtonStyle = {
+    borderRadius: "999px",
+    border: `1px solid ${theme.reactionBorder}`,
+    background: "rgba(255,255,255,0.06)",
+    color: theme.text,
+    padding: isPhoneLayout ? "7px 12px" : "8px 13px",
+    fontSize: "11px",
+    fontFamily: "Georgia, serif",
+    cursor: "pointer",
+    letterSpacing: "0.03em",
+  };
+
   const clampScale = (value) => Math.max(0.4, Math.min(6, value));
   const openImageLightbox = (src) => {
     if (!src) return;
@@ -560,6 +744,48 @@ const activeCommentPinPosition = isPhoneLayout
     const file = e.target.files[0];
     setCommentImage(file);
     setCommentPreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  const handleCopyConfessionLink = async () => {
+    if (!confession?._id) return;
+
+    const result = await copyConfessionLink(confession._id);
+    if (result.ok) {
+      setCopyFallbackUrl("");
+      window.cwToast?.("Confession link copied.", "success") ||
+        alert("Confession link copied.");
+      return;
+    }
+
+    setCopyFallbackUrl(result.url || "");
+    window.cwToast?.("Copy failed. You can copy the link below.", "warning") ||
+      alert("Copy failed. You can copy the link below.");
+  };
+
+  const handleShareConfession = async () => {
+    if (!confession?._id) return;
+
+    const result = await shareConfession(confession);
+
+    if (result.cancelled) {
+      return;
+    }
+
+    if (result.method === "native-share" && result.ok) {
+      window.cwToast?.("Share ready.", "success");
+      return;
+    }
+
+    if (result.ok) {
+      setCopyFallbackUrl("");
+      window.cwToast?.("Confession link copied.", "success") ||
+        alert("Confession link copied.");
+      return;
+    }
+
+    setCopyFallbackUrl(result.url || "");
+    window.cwToast?.("Could not share automatically. Copy link below.", "warning") ||
+      alert("Could not share automatically. Copy link below.");
   };
 
   const reportComment = async (commentId) => {
@@ -780,7 +1006,7 @@ const activeCommentPinPosition = isPhoneLayout
     }
   };
 
-  if (!confession) {
+  if (confessionLoading) {
     return (
       <div
         style={{
@@ -800,6 +1026,48 @@ const activeCommentPinPosition = isPhoneLayout
         >
           loading…
         </span>
+      </div>
+    );
+  }
+
+  if (!confession) {
+    return (
+      <div
+        style={{
+          ...styles.page,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#050f04",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+            borderRadius: "14px",
+            border: "1px solid rgba(140,200,120,0.26)",
+            background: "rgba(9,20,10,0.82)",
+            color: "rgba(228,255,221,0.9)",
+            padding: "20px",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ margin: "0 0 12px", fontSize: "14px" }}>
+            {confessionError || "Confession not found."}
+          </p>
+          <Link
+            to="/trending"
+            style={{
+              color: "#b7ff9f",
+              fontSize: "13px",
+              textDecoration: "none",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Browse trending confessions
+          </Link>
+        </div>
       </div>
     );
   }
@@ -1140,6 +1408,59 @@ const activeCommentPinPosition = isPhoneLayout
             >
               🌱 {new Date(confession.createdAt).toLocaleString()}
             </div>
+
+            <div
+              style={{
+                marginTop: "12px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleShareConfession}
+                aria-label="Share confession"
+                style={actionButtonStyle}
+              >
+                Share
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyConfessionLink}
+                aria-label="Copy confession link"
+                style={actionButtonStyle}
+              >
+                Copy Link
+              </button>
+              {nextConfession?._id && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/confession/${nextConfession._id}`)}
+                  aria-label="Read another confession"
+                  style={actionButtonStyle}
+                >
+                  Next Confession
+                </button>
+              )}
+            </div>
+
+            {copyFallbackUrl && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  border: `1px solid ${theme.reactionBorder}`,
+                  background: "rgba(255,255,255,0.04)",
+                  color: theme.text,
+                  fontSize: "11px",
+                  wordBreak: "break-all",
+                }}
+              >
+                {copyFallbackUrl}
+              </div>
+            )}
 
             <div
               style={{
@@ -1760,6 +2081,84 @@ onMouseLeave={(e) => {
               </button>
             </div>
           </form>
+
+          {(relatedLoading || relatedConfessions.length > 0) && (
+            <section
+              aria-label="Related confessions"
+              style={{
+                marginTop: "24px",
+                marginBottom: isPhoneLayout ? "12px" : "18px",
+                padding: isPhoneLayout ? "14px" : "16px",
+                borderRadius: "16px",
+                border: theme.cardBorder,
+                background: "rgba(255,255,255,0.05)",
+                boxShadow: "0 12px 36px rgba(0,0,0,0.24)",
+              }}
+            >
+              <div
+                style={{
+                  marginBottom: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                }}
+              >
+                <h2
+                  style={{
+                    margin: 0,
+                    fontSize: isPhoneLayout ? "14px" : "15px",
+                    color: theme.section,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Related confessions
+                </h2>
+
+                {nextConfession?._id && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/confession/${nextConfession._id}`)}
+                    aria-label="Next confession"
+                    style={actionButtonStyle}
+                  >
+                    Read another
+                  </button>
+                )}
+              </div>
+
+              {relatedLoading ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: theme.muted,
+                  }}
+                >
+                  loading related confessions...
+                </p>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "10px",
+                    gridTemplateColumns: isPhoneLayout
+                      ? "1fr"
+                      : "repeat(2, minmax(0, 1fr))",
+                  }}
+                >
+                  {relatedConfessions.slice(0, 6).map((post) => (
+                    <RelatedConfessionCard
+                      key={post._id}
+                      post={post}
+                      theme={theme}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
       {lightboxImage && (

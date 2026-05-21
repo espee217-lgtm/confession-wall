@@ -1,6 +1,7 @@
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../config/cloudinary");
+const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 const Confession = require("../models/Confession");
@@ -682,6 +683,69 @@ router.get("/weekly-event", async (req, res) => {
     res.status(500).json({
       message: "Could not load the weekly event right now.",
     });
+  }
+});
+
+// GET related confessions for a single confession page
+router.get("/:id/related", async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid confession ID." });
+    }
+
+    const current = await Confession.findOne({
+      _id: id,
+      isHidden: { $ne: true },
+    }).select("mood");
+
+    if (!current) {
+      return res.status(404).json({ message: "Confession not found" });
+    }
+
+    const parsedLimit = Number.parseInt(req.query.limit, 10);
+    const limit = Number.isFinite(parsedLimit)
+      ? Math.max(1, Math.min(6, parsedLimit))
+      : 6;
+
+    const baseQuery = {
+      ...PUBLIC_VISIBLE_FILTER,
+      _id: { $ne: current._id },
+    };
+
+    let related = [];
+
+    if (current.mood) {
+      related = await Confession.find({
+        ...baseQuery,
+        mood: current.mood,
+      })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .populate("userId", USER_PUBLIC_SELECT);
+    }
+
+    if (related.length < limit) {
+      const excludedIds = [current._id, ...related.map((post) => post._id)];
+      const fill = await Confession.find({
+        ...PUBLIC_VISIBLE_FILTER,
+        _id: { $nin: excludedIds },
+      })
+        .sort({ createdAt: -1 })
+        .limit(limit - related.length)
+        .populate("userId", USER_PUBLIC_SELECT);
+
+      related = [...related, ...fill];
+    }
+
+    res.json({
+      related: stripHiddenCommentsFromList(related),
+    });
+  } catch (err) {
+    console.error("Related confessions error:", err);
+    res.status(500).json({ message: "Could not load related confessions right now." });
   }
 });
 

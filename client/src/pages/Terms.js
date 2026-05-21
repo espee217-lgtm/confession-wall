@@ -76,7 +76,7 @@ export default function Terms() {
 
       {/* Krishna left */}
       <img
-        src="/krishna.png"
+        src="/krishna.webp"
         alt=""
         style={{
           position: "fixed",
@@ -95,7 +95,7 @@ export default function Terms() {
 
       {/* Demon right */}
       <img
-        src="/Demon.png"
+        src="/Demon.webp"
         alt=""
         style={{
           position: "fixed",

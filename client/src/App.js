@@ -677,7 +677,7 @@ function Navbar() {
         alignItems: "center",
         padding: "0 28px",
         backgroundImage:
-          "linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.62)), url('/forest.png')",
+          "linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.62)), url('/forest.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderBottom: "1px solid rgba(150,255,180,0.16)",
@@ -717,7 +717,7 @@ function Navbar() {
             }}
           >
             <img
-              src="/confession-logo.png"
+              src="/confession-logo.webp"
               alt="Confession Wall"
               style={{
                 width: "390px",
@@ -853,7 +853,7 @@ function Footer() {
         textAlign: "center",
         padding: "22px",
         backgroundImage:
-          "linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('/forest.png')",
+          "linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('/forest.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         borderTop: "1px solid rgba(120,255,180,0.15)",

@@ -1528,7 +1528,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
       >
         <img
           ref={leftImgRef}
-          src="/krishna.png"
+          src="/krishna.webp"
           alt="Enter Grove"
           onMouseEnter={() => setLeftHover(true)}
           onMouseLeave={() => setLeftHover(false)}
@@ -1566,7 +1566,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
       >
         <img
           ref={rightImgRef}
-          src="/Demon.png"
+          src="/Demon.webp"
           alt="Enter Scorched Lands"
           onMouseEnter={() => setRightHover(true)}
           onMouseLeave={() => setRightHover(false)}
@@ -2129,49 +2129,6 @@ useEffect(() => {
         onLeftClick={() => navigate("/grove")}
         onRightClick={() => navigate("/scorched")}
       />
-      {/* 🌿 LEFT CLOUD */}
-<img
-  src="/greencloud.png"
-  style={{
-    position: "absolute",
-    bottom: "-10%",
-    left: "-10%",
-    width: "55vw",
-    pointerEvents: "none",
-    opacity: 0.6,
-
-    mixBlendMode: "screen",
-    filter: "blur(6px)",
-
-    WebkitMaskImage:
-      "radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%)",
-    maskImage:
-      "radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%)",
-  }}
-/>
-
-{/* 🔥 RIGHT CLOUD */}
-<img
-  src="/redcloud.png"
-  style={{
-    position: "absolute",
-    width: "45vw",
-    right: "-6vw",
-    bottom: "-10vh",
-    pointerEvents: "none",
-    opacity: 0.55,
-
-    /* 🔥 THIS IS THE FIX */
-    mixBlendMode: "screen",
-    filter: "blur(6px) contrast(105%) brightness(90%)",
-
-    /* soft fade edges */
-    WebkitMaskImage:
-      "radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%)",
-    maskImage:
-      "radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%)",
-  }}
-/>
 
       {confessions.length > 0 && (
         <ConfessionFeed

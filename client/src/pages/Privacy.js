@@ -76,7 +76,7 @@ export default function Privacy() {
 
     {/* Krishna - same Home.js proportion */}
     <img
-      src="/krishna.png"
+      src="/krishna.webp"
       alt=""
       style={{
         position: "fixed",
@@ -96,7 +96,7 @@ export default function Privacy() {
 
     {/* Demon - same Home.js proportion */}
     <img
-      src="/Demon.png"
+      src="/Demon.webp"
       alt=""
       style={{
         position: "fixed",
