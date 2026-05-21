@@ -16,6 +16,10 @@ import {
   getPollTotalVotes,
   getSavedConfessionIdSet,
 } from "../utils/engagement";
+import {
+  normalizeContentWarning,
+  shouldBlurSensitiveContent,
+} from "../utils/contentWarning";
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
@@ -297,6 +301,9 @@ export default function ConfessionPage() {
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState("");
+  const [lightboxScale, setLightboxScale] = useState(1);
   const [emojiTrayPosition, setEmojiTrayPosition] = useState({ left: 14, bottom: 118 });
   const emojiPickerRef = useRef(null);
   const emojiTrayRef = useRef(null);
@@ -327,6 +334,30 @@ export default function ConfessionPage() {
       .then(setConfession)
       .catch((err) => console.error(err));
   }, [id]);
+
+  useEffect(() => {
+    setIsSensitiveRevealed(false);
+  }, [id, confession?._id]);
+
+  useEffect(() => {
+    if (!lightboxImage) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setLightboxImage("");
+        setLightboxScale(1);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [lightboxImage]);
 
   useEffect(() => {
     if (!targetCommentId || !confession) return;
@@ -395,6 +426,10 @@ export default function ConfessionPage() {
   const comfortCards = getComfortCardSummary(confession?.comfortCards);
   const pollVotes = getPollTotalVotes(confession?.poll);
   const isSaved = getSavedConfessionIdSet(user).has(String(confession?._id || ""));
+  const contentWarning = normalizeContentWarning(confession?.contentWarning);
+  const hasContentWarning = contentWarning.enabled;
+  const hideSensitiveContent =
+    shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
 
 // 📎 COMMENT IMAGE PIN PLACEMENT CONTROLS
 // Change only these 4 values later.
@@ -462,6 +497,21 @@ const activeCommentPinPosition = isPhoneLayout
     backdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
     WebkitBackdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
     ...viewerPostThemeStyle,
+  };
+  const clampScale = (value) => Math.max(0.4, Math.min(6, value));
+  const openImageLightbox = (src) => {
+    if (!src) return;
+    setLightboxImage(src);
+    setLightboxScale(1);
+  };
+  const closeImageLightbox = () => {
+    setLightboxImage("");
+    setLightboxScale(1);
+  };
+  const handleLightboxWheel = (event) => {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.16 : -0.16;
+    setLightboxScale((prev) => clampScale(prev + delta));
   };
   const insertEmoji = (emoji) => {
   const input = commentInputRef.current;
@@ -889,28 +939,121 @@ const activeCommentPinPosition = isPhoneLayout
               </div>
             </div>
 
-            <p
-              style={{
-                fontSize: isPhoneLayout ? "15px" : "16px",
-                color: theme.text,
-                lineHeight: isPhoneLayout ? 1.62 : 1.7,
-                margin: isPhoneLayout ? "0 0 10px" : "0 0 12px",
-              }}
-            >
-              {confession.message}
-            </p>
+            {hasContentWarning && (
+              <div
+                style={{
+                  marginBottom: "12px",
+                  display: "grid",
+                  gap: "7px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "fit-content",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "5px 10px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    background: "rgba(255,255,255,0.07)",
+                    color: theme.text,
+                    fontSize: "11px",
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  Content warning
+                  {contentWarning.category ? `: ${contentWarning.category}` : ""}
+                </span>
+
+                {contentWarning.note && (
+                  <p
+                    style={{
+                      margin: 0,
+                      color: theme.muted,
+                      fontSize: "12px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {contentWarning.note}
+                  </p>
+                )}
+
+                {hideSensitiveContent && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSensitiveRevealed(true)}
+                    style={{
+                      width: "fit-content",
+                      border: "1px solid rgba(255,255,255,0.32)",
+                      background: "rgba(255,255,255,0.12)",
+                      color: theme.text,
+                      borderRadius: "999px",
+                      padding: "6px 12px",
+                      fontSize: "11px",
+                      cursor: "pointer",
+                      fontFamily: "Georgia, serif",
+                    }}
+                  >
+                    Tap to reveal
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div style={{ position: "relative", marginBottom: "12px" }}>
+              <p
+                style={{
+                  fontSize: isPhoneLayout ? "15px" : "16px",
+                  color: theme.text,
+                  lineHeight: isPhoneLayout ? 1.62 : 1.7,
+                  margin: 0,
+                  filter: hideSensitiveContent ? "blur(8px)" : "none",
+                  userSelect: hideSensitiveContent ? "none" : "text",
+                  transition: "filter 0.18s ease",
+                }}
+              >
+                {confession.message}
+              </p>
+
+              {hideSensitiveContent && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "12px",
+                    background: "rgba(0,0,0,0.1)",
+                  }}
+                />
+              )}
+            </div>
 
             {confession.image && (
-              <img
-                src={confession.image}
-                alt="confession"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "300px",
-                  borderRadius: "12px",
-                  marginTop: "8px",
-                }}
-              />
+              <div style={{ position: "relative", marginTop: "8px" }}>
+                <img
+                  src={confession.image}
+                  alt="confession"
+                  onClick={() => openImageLightbox(confession.image)}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "300px",
+                    borderRadius: "12px",
+                    filter: hideSensitiveContent ? "blur(12px)" : "none",
+                    transition: "filter 0.18s ease",
+                    cursor: "zoom-in",
+                  }}
+                />
+                {hideSensitiveContent && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      borderRadius: "12px",
+                      background: "rgba(0,0,0,0.12)",
+                    }}
+                  />
+                )}
+              </div>
             )}
 
             {confession.poll?.question &&
@@ -1261,11 +1404,13 @@ const activeCommentPinPosition = isPhoneLayout
                     <img
                       src={c.image}
                       alt="comment"
+                      onClick={() => openImageLightbox(c.image)}
                       style={{
                         maxWidth: "100%",
                         maxHeight: "200px",
                         borderRadius: "10px",
                         marginTop: "8px",
+                        cursor: "zoom-in",
                       }}
                     />
                   )}
@@ -1617,6 +1762,76 @@ onMouseLeave={(e) => {
           </form>
         </div>
       </div>
+      {lightboxImage && (
+        <div
+          onClick={closeImageLightbox}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000000,
+            background: "rgba(3, 7, 12, 0.92)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              closeImageLightbox();
+            }}
+            style={{
+              position: "fixed",
+              top: "16px",
+              right: "18px",
+              width: "34px",
+              height: "34px",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(255,255,255,0.08)",
+              color: "rgba(255,255,255,0.92)",
+              fontSize: "18px",
+              lineHeight: 1,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+
+          <div
+            onClick={(event) => event.stopPropagation()}
+            onWheel={handleLightboxWheel}
+            style={{
+              maxWidth: "92vw",
+              maxHeight: "90vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              borderRadius: "12px",
+              cursor: "zoom-in",
+            }}
+          >
+            <img
+              src={lightboxImage}
+              alt="Expanded"
+              style={{
+                maxWidth: "92vw",
+                maxHeight: "90vh",
+                transform: `scale(${lightboxScale})`,
+                transformOrigin: "center center",
+                transition: "transform 0.06s linear",
+                userSelect: "none",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+        </div>
+      )}
       <MobileBottomNav />
     </div>
   );

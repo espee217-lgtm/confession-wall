@@ -13,6 +13,10 @@ import {
   getMoodChipStyle,
   getPollTotalVotes,
 } from "../utils/engagement";
+import {
+  normalizeContentWarning,
+  shouldBlurSensitiveContent,
+} from "../utils/contentWarning";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -37,6 +41,7 @@ export default function UserProfile() {
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [revealedSensitiveByPost, setRevealedSensitiveByPost] = useState({});
 
   useEffect(() => {
     let alive = true;
@@ -73,6 +78,10 @@ export default function UserProfile() {
     return () => {
       alive = false;
     };
+  }, [id]);
+
+  useEffect(() => {
+    setRevealedSensitiveByPost({});
   }, [id]);
 
   if (loading) {
@@ -214,6 +223,13 @@ export default function UserProfile() {
             );
             const moodStyle = getMoodChipStyle(p.mood);
             const pollVotes = getPollTotalVotes(p.poll);
+            const contentWarning = normalizeContentWarning(p.contentWarning);
+            const hasContentWarning = contentWarning.enabled;
+            const isSensitiveRevealed = Boolean(
+              revealedSensitiveByPost[String(p._id)]
+            );
+            const hideSensitiveContent =
+              shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
 
             return (
               <Link
@@ -226,6 +242,7 @@ export default function UserProfile() {
                   style={{
                     ...postCardStyle,
                     ...themeStyle,
+                    position: "relative",
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = "translateY(-3px)";
@@ -259,9 +276,124 @@ export default function UserProfile() {
                     ) : null}
                   </div>
 
-                  <p style={postTextStyle}>{p.message}</p>
+                  {hasContentWarning && (
+                    <div
+                      style={{
+                        marginBottom: "10px",
+                        display: "grid",
+                        gap: "6px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "fit-content",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "4px 9px",
+                          borderRadius: "999px",
+                          border: "1px solid rgba(180,255,180,0.24)",
+                          background: "rgba(255,255,255,0.06)",
+                          color: "rgba(224,255,216,0.84)",
+                          fontSize: "11px",
+                        }}
+                      >
+                        Content warning
+                        {contentWarning.category
+                          ? `: ${contentWarning.category}`
+                          : ""}
+                      </span>
 
-                  {p.image && <img src={p.image} alt="" style={postImageStyle} />}
+                      {contentWarning.note && (
+                        <p
+                          style={{
+                            margin: 0,
+                            color: "rgba(224,255,216,0.75)",
+                            fontSize: "11px",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {contentWarning.note}
+                        </p>
+                      )}
+
+                      {hideSensitiveContent && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setRevealedSensitiveByPost((prev) => ({
+                              ...prev,
+                              [String(p._id)]: true,
+                            }));
+                          }}
+                          style={{
+                            width: "fit-content",
+                            border: "1px solid rgba(180,255,180,0.36)",
+                            background: "rgba(255,255,255,0.1)",
+                            color: "rgba(235,255,225,0.92)",
+                            borderRadius: "999px",
+                            padding: "6px 12px",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                            fontFamily: "Georgia, serif",
+                          }}
+                        >
+                          Show confession
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+                    <p
+                      style={{
+                        ...postTextStyle,
+                        margin: 0,
+                        filter: hideSensitiveContent ? "blur(8px)" : "none",
+                        userSelect: hideSensitiveContent ? "none" : "text",
+                        transition: "filter 0.18s ease",
+                      }}
+                    >
+                      {p.message}
+                    </p>
+                    {hideSensitiveContent && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          borderRadius: "10px",
+                          background: "rgba(0,0,0,0.12)",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {p.image && (
+                    <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+                      <img
+                        src={p.image}
+                        alt=""
+                        style={{
+                          ...postImageStyle,
+                          marginBottom: 0,
+                          filter: hideSensitiveContent ? "blur(12px)" : "none",
+                          transition: "filter 0.18s ease",
+                        }}
+                      />
+                      {hideSensitiveContent && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            borderRadius: "12px",
+                            background: "rgba(0,0,0,0.12)",
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
 
                   <div style={postFooterStyle}>
                     <span>✦ confession</span>

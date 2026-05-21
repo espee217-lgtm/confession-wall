@@ -30,6 +30,72 @@ const formatDateOnly = (value) => {
   return date.toLocaleDateString();
 };
 
+const SAFETY_SEVERITY_SCORE = {
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+const getSafetyFlags = (confession) =>
+  Array.isArray(confession?.safetyFlags) ? confession.safetyFlags : [];
+
+const getHighestSafetySeverity = (confession) => {
+  const flags = getSafetyFlags(confession);
+  if (flags.length === 0) return null;
+
+  let highest = "low";
+  flags.forEach((flag) => {
+    const severity = flag?.severity;
+    if (
+      severity &&
+      SAFETY_SEVERITY_SCORE[severity] > SAFETY_SEVERITY_SCORE[highest]
+    ) {
+      highest = severity;
+    }
+  });
+
+  return highest;
+};
+
+const getSafetySourceCounts = (confession) => {
+  const flags = getSafetyFlags(confession);
+  const counts = { post: 0, comment: 0 };
+
+  flags.forEach((flag) => {
+    if (flag?.source === "comment") {
+      counts.comment += 1;
+      return;
+    }
+    counts.post += 1;
+  });
+
+  return counts;
+};
+
+const getSafetySeverityBadgeStyle = (severity) => {
+  if (severity === "high") {
+    return {
+      color: "#ffd8d6",
+      border: "1px solid rgba(220,70,70,0.55)",
+      background: "rgba(220,70,70,0.16)",
+    };
+  }
+
+  if (severity === "medium") {
+    return {
+      color: "#ffe3bf",
+      border: "1px solid rgba(216,150,70,0.55)",
+      background: "rgba(216,150,70,0.16)",
+    };
+  }
+
+  return {
+    color: "#d5dde6",
+    border: "1px solid rgba(135,150,170,0.5)",
+    background: "rgba(120,135,155,0.14)",
+  };
+};
+
 export default function AdminDashboard() {
   const { adminToken, adminLogout, syncAdminToken } = useAdminAuth();
   const { login } = useAuth();
@@ -866,6 +932,8 @@ export default function AdminDashboard() {
     const query = safeText(confessionSearch).toLowerCase();
 
     return confessions.filter((confession) => {
+      const hasSafetyFlags = getSafetyFlags(confession).length > 0;
+
       if (
         confessionVisibilityFilter === "visible" &&
         confession.isHidden
@@ -876,6 +944,13 @@ export default function AdminDashboard() {
       if (
         confessionVisibilityFilter === "hidden" &&
         !confession.isHidden
+      ) {
+        return false;
+      }
+
+      if (
+        confessionVisibilityFilter === "safety" &&
+        !hasSafetyFlags
       ) {
         return false;
       }
@@ -1447,6 +1522,15 @@ export default function AdminDashboard() {
               >
                 Hidden
               </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${
+                  confessionVisibilityFilter === "safety" ? "is-active" : ""
+                }`}
+                onClick={() => setConfessionVisibilityFilter("safety")}
+              >
+                Safety Flagged
+              </button>
             </div>
 
             {filteredConfessions.length === 0 ? (
@@ -1455,7 +1539,13 @@ export default function AdminDashboard() {
               </p>
             ) : (
               <div className="adminDash-cardList">
-                {filteredConfessions.map((confession) => (
+                {filteredConfessions.map((confession) => {
+                  const safetyFlags = getSafetyFlags(confession);
+                  const hasSafetyFlags = safetyFlags.length > 0;
+                  const highestSeverity = getHighestSafetySeverity(confession);
+                  const safetySources = getSafetySourceCounts(confession);
+
+                  return (
                   <article key={confession._id} className="adminDash-itemCard">
                     <div className="adminDash-itemTop">
                       <div className="adminDash-chipRow">
@@ -1466,6 +1556,14 @@ export default function AdminDashboard() {
                         ) : (
                           <span className="adminDash-statusBadge adminDash-statusInfo">
                             Visible
+                          </span>
+                        )}
+                        {hasSafetyFlags && (
+                          <span
+                            className="adminDash-statusBadge"
+                            style={getSafetySeverityBadgeStyle(highestSeverity)}
+                          >
+                            Safety {String(highestSeverity || "low").toUpperCase()} - {safetyFlags.length}
                           </span>
                         )}
                       </div>
@@ -1500,12 +1598,68 @@ export default function AdminDashboard() {
                     </div>
 
                     <p className="adminDash-itemBodyText">{confession.message}</p>
+                    {hasSafetyFlags && (
+                      <details style={{ marginBottom: "10px" }}>
+                        <summary
+                          style={{
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            color: "rgba(220,230,245,0.88)",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Safety details - post {safetySources.post} - comment {safetySources.comment}
+                        </summary>
+
+                        <div style={{ display: "grid", gap: "6px" }}>
+                          {safetyFlags
+                            .slice()
+                            .sort((a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0))
+                            .map((flag, index) => (
+                              <div
+                                key={`${confession._id}-safety-${index}`}
+                                style={{
+                                  border: "1px solid rgba(255,255,255,0.12)",
+                                  borderRadius: "8px",
+                                  padding: "8px 10px",
+                                  background: "rgba(255,255,255,0.03)",
+                                }}
+                              >
+                                <div className="adminDash-chipRow" style={{ marginBottom: "4px" }}>
+                                  <span className="adminDash-statusBadge adminDash-statusInfo">
+                                    {flag.category}
+                                  </span>
+                                  <span
+                                    className="adminDash-statusBadge"
+                                    style={getSafetySeverityBadgeStyle(flag.severity)}
+                                  >
+                                    {String(flag.severity || "low").toUpperCase()}
+                                  </span>
+                                  <span className="adminDash-statusBadge adminDash-statusHidden">
+                                    {flag.source === "comment" ? "Comment" : "Post"}
+                                  </span>
+                                </div>
+                                <p className="adminDash-itemBodyText" style={{ marginBottom: "4px" }}>
+                                  <strong>Matched:</strong>{" "}
+                                  {Array.isArray(flag.matchedTerms) && flag.matchedTerms.length > 0
+                                    ? flag.matchedTerms.join(", ")
+                                    : "N/A"}
+                                </p>
+                                <p className="adminDash-itemBodyText" style={{ marginBottom: 0 }}>
+                                  <strong>Flagged:</strong> {formatDateTime(flag.createdAt)}
+                                </p>
+                              </div>
+                            ))}
+                        </div>
+                      </details>
+                    )}
                     <div className="adminDash-itemMeta">
                       <span>@{confession.userId?.username || "Anonymous"}</span>
                       <span>{formatDateTime(confession.createdAt)}</span>
                     </div>
                   </article>
-                ))}
+                );
+                })}
               </div>
             )}
           </section>

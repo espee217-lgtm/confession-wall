@@ -11,6 +11,7 @@ const { sanitizeText } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { reactionLimiter } = require("../middleware/rateLimiter");
 const { createAdminLog } = require("../utils/adminLogger");
+const { scanSafetyText } = require("../utils/safetyTriage");
 const { awardSeeds } = require("../utils/seedRewards");
 const {
   applyCommentQuestProgress,
@@ -94,6 +95,15 @@ const COMFORT_CARD_OPTIONS = [
   "May your heart feel lighter.",
 ];
 
+const CONTENT_WARNING_CATEGORIES = [
+  "Heavy / Sensitive",
+  "Grief",
+  "Self-reflection",
+  "Relationship",
+  "Vent",
+  "Other",
+];
+
 const PRIVATE_ENGAGEMENT_SELECT = "+comfortCards.sentBy +poll.voterIds";
 const PUBLIC_VISIBLE_FILTER = { isHidden: { $ne: true } };
 
@@ -123,6 +133,44 @@ const normalizeOwnedCosmeticIds = (user) =>
 
 const sanitizeShortText = (value, maxLength) =>
   sanitizeText(value, { maxLength, allowNewLines: false });
+
+const parseBooleanField = (value) => {
+  if (typeof value === "boolean") return value;
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+};
+
+const parseContentWarningPayload = (body = {}) => {
+  const enabled = parseBooleanField(body.contentWarningEnabled);
+
+  if (!enabled) {
+    return {
+      contentWarning: {
+        enabled: false,
+        category: "",
+        note: "",
+        sensitive: false,
+      },
+    };
+  }
+
+  const category = sanitizeShortText(body.contentWarningCategory || "", 40);
+  const note = sanitizeShortText(body.contentWarningNote || "", 120);
+  const sensitive = parseBooleanField(body.contentWarningSensitive);
+
+  if (!CONTENT_WARNING_CATEGORIES.includes(category)) {
+    return { error: "Invalid content warning category." };
+  }
+
+  return {
+    contentWarning: {
+      enabled: true,
+      category,
+      note,
+      sensitive,
+    },
+  };
+};
 
 const buildSelectedPostTheme = (user, requestedTheme) => {
   const value = String(requestedTheme || "").trim();
@@ -247,6 +295,8 @@ const buildPaginatedResponse = ({ items, page, limit, total }) => ({
   totalPages: Math.ceil(total / limit),
   hasMore: page * limit < total,
 });
+
+const SAFETY_FLAGS_MAX = 50;
 
 const arraySizeExpr = (field) => ({ $size: { $ifNull: [`$${field}`, []] } });
 
@@ -675,6 +725,9 @@ router.post(
         req.body.postTheme || req.body.postThemeId
       );
       const { poll, error: pollError } = parsePollPayload(req.body.poll);
+      const { contentWarning, error: contentWarningError } = parseContentWarningPayload(
+        req.body
+      );
 
       if (!message && !req.file) {
         return res.status(400).json({ message: "Post text or image is required." });
@@ -692,15 +745,21 @@ router.post(
         return res.status(400).json({ message: pollError });
       }
 
+      if (contentWarningError) {
+        return res.status(400).json({ message: contentWarningError });
+      }
+
       const newConfession = new Confession({
         userId: req.user._id,
         message,
         image: req.file ? req.file.path : null,
         mood: moodValue,
         postTheme,
+        contentWarning,
         poll: poll || undefined,
         comfortCards: [],
         comments: [],
+        safetyFlags: scanSafetyText(message, { source: "post" }),
       });
 
       const currentWeeklyEvent = getCurrentWeeklyEventContext(new Date());
@@ -914,6 +973,21 @@ router.post(
       });
 
       const newComment = confession.comments[confession.comments.length - 1];
+
+      const commentSafetyFlags = scanSafetyText(text, {
+        source: "comment",
+        commentId: newComment?._id || null,
+      });
+
+      if (commentSafetyFlags.length > 0) {
+        const existingSafetyFlags = Array.isArray(confession.safetyFlags)
+          ? confession.safetyFlags
+          : [];
+
+        confession.safetyFlags = [...existingSafetyFlags, ...commentSafetyFlags]
+          .sort((a, b) => new Date(a?.createdAt || 0) - new Date(b?.createdAt || 0))
+          .slice(-SAFETY_FLAGS_MAX);
+      }
 
       await confession.save();
 

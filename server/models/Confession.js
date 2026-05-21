@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+const CONTENT_WARNING_CATEGORIES = [
+  "Heavy / Sensitive",
+  "Grief",
+  "Self-reflection",
+  "Relationship",
+  "Vent",
+  "Other",
+];
+
 const comfortCardSchema = new mongoose.Schema(
   {
     text: { type: String, required: true, trim: true },
@@ -47,6 +56,20 @@ const pollSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const contentWarningSchema = new mongoose.Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    category: {
+      type: String,
+      enum: ["", ...CONTENT_WARNING_CATEGORIES],
+      default: "",
+    },
+    note: { type: String, default: "" },
+    sensitive: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const weeklyScoreMilestoneSchema = new mongoose.Schema(
   {
     score: { type: Number, required: true, min: 1 },
@@ -72,6 +95,46 @@ const weeklyEventTrackingSchema = new mongoose.Schema(
       default: [],
     },
     lastSyncedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
+const safetyFlagSchema = new mongoose.Schema(
+  {
+    category: {
+      type: String,
+      enum: [
+        "self_harm",
+        "threat_violence",
+        "harassment_hate",
+        "doxxing_pii",
+        "minor_sexual_content",
+        "extreme_abuse",
+      ],
+      required: true,
+    },
+    matchedTerms: {
+      type: [String],
+      default: [],
+    },
+    severity: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      required: true,
+    },
+    source: {
+      type: String,
+      enum: ["post", "comment"],
+      required: true,
+    },
+    commentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { _id: false }
 );
@@ -134,6 +197,15 @@ const confessionSchema = new mongoose.Schema(
       default: undefined,
     },
     postTheme: { type: String, default: "" },
+    contentWarning: {
+      type: contentWarningSchema,
+      default: () => ({
+        enabled: false,
+        category: "",
+        note: "",
+        sensitive: false,
+      }),
+    },
     wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     seedReactionRewardedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -167,9 +239,28 @@ const confessionSchema = new mongoose.Schema(
       default: null,
     },
     comments: [commentSchema],
+    safetyFlags: {
+      type: [safetyFlagSchema],
+      default: [],
+    },
   },
   { timestamps: true }
 );
+
+const SAFETY_FLAGS_MAX = 50;
+
+confessionSchema.pre("save", function trimSafetyFlags(next) {
+  if (!Array.isArray(this.safetyFlags) || this.safetyFlags.length <= SAFETY_FLAGS_MAX) {
+    return next();
+  }
+
+  this.safetyFlags = this.safetyFlags
+    .slice()
+    .sort((a, b) => new Date(a?.createdAt || 0) - new Date(b?.createdAt || 0))
+    .slice(-SAFETY_FLAGS_MAX);
+
+  next();
+});
 
 confessionSchema.index({ userId: 1, createdAt: -1 });
 confessionSchema.index({ createdAt: -1 });

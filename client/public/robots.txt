@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /activity
+Disallow: /pressed-leaves
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://confession-wall-325.pages.dev/sitemap.xml

@@ -20,6 +20,7 @@ import {
   getMoodChipStyle,
   getOwnedPostThemeIds,
 } from "../utils/engagement";
+import { CONTENT_WARNING_CATEGORIES } from "../utils/contentWarning";
 
 const API_BASE =
   window.location.hostname === "localhost"
@@ -686,6 +687,14 @@ function ComposeEnhancements({
   compact = false,
   selectedMood,
   setSelectedMood,
+  contentWarningEnabled,
+  setContentWarningEnabled,
+  contentWarningCategory,
+  setContentWarningCategory,
+  contentWarningNote,
+  setContentWarningNote,
+  contentWarningSensitive,
+  setContentWarningSensitive,
   availablePostThemes,
   selectedPostTheme,
   setSelectedPostTheme,
@@ -843,6 +852,82 @@ function ComposeEnhancements({
       </div>
 
       <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+            marginBottom: "8px",
+          }}
+        >
+          <div style={sectionTitleStyle}>Content Warning</div>
+          <button
+            type="button"
+            onClick={() => {
+              setContentWarningEnabled((prev) => {
+                const next = !prev;
+                if (!next) {
+                  setContentWarningCategory("");
+                  setContentWarningNote("");
+                  setContentWarningSensitive(false);
+                }
+                return next;
+              });
+            }}
+            style={chipStyle(contentWarningEnabled)}
+          >
+            {contentWarningEnabled ? "Added" : "Add content warning"}
+          </button>
+        </div>
+
+        {contentWarningEnabled && (
+          <div style={{ display: "grid", gap: "8px" }}>
+            <select
+              value={contentWarningCategory}
+              onChange={(e) => setContentWarningCategory(e.target.value)}
+              style={themeSelectStyle}
+            >
+              <option value="" style={themeOptionStyle}>
+                Select warning category
+              </option>
+              {CONTENT_WARNING_CATEGORIES.map((category) => (
+                <option key={category} value={category} style={themeOptionStyle}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              value={contentWarningNote}
+              onChange={(e) => setContentWarningNote(e.target.value.slice(0, 120))}
+              placeholder="Optional note (max 120 characters)"
+              style={inputStyle}
+            />
+
+            <label
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "rgba(255,255,220,0.78)",
+                fontSize: compact ? "11px" : "12px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={contentWarningSensitive}
+                onChange={(e) => setContentWarningSensitive(e.target.checked)}
+              />
+              Blur this confession until revealed
+            </label>
+          </div>
+        )}
+      </div>
+
+      <div>
         <div style={sectionTitleStyle}>Confession Card Theme</div>
 
         {availablePostThemes.length > 0 ? (
@@ -972,6 +1057,14 @@ function MobileHomePage({
   insertPostEmoji,
   selectedMood,
   setSelectedMood,
+  contentWarningEnabled,
+  setContentWarningEnabled,
+  contentWarningCategory,
+  setContentWarningCategory,
+  contentWarningNote,
+  setContentWarningNote,
+  contentWarningSensitive,
+  setContentWarningSensitive,
   availablePostThemes,
   selectedPostTheme,
   setSelectedPostTheme,
@@ -1154,6 +1247,14 @@ function MobileHomePage({
               compact
               selectedMood={selectedMood}
               setSelectedMood={setSelectedMood}
+              contentWarningEnabled={contentWarningEnabled}
+              setContentWarningEnabled={setContentWarningEnabled}
+              contentWarningCategory={contentWarningCategory}
+              setContentWarningCategory={setContentWarningCategory}
+              contentWarningNote={contentWarningNote}
+              setContentWarningNote={setContentWarningNote}
+              contentWarningSensitive={contentWarningSensitive}
+              setContentWarningSensitive={setContentWarningSensitive}
               availablePostThemes={availablePostThemes}
               selectedPostTheme={selectedPostTheme}
               setSelectedPostTheme={setSelectedPostTheme}
@@ -1412,6 +1513,10 @@ const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedMood, setSelectedMood] = useState("");
+  const [contentWarningEnabled, setContentWarningEnabled] = useState(false);
+  const [contentWarningCategory, setContentWarningCategory] = useState("");
+  const [contentWarningNote, setContentWarningNote] = useState("");
+  const [contentWarningSensitive, setContentWarningSensitive] = useState(false);
   const [selectedPostTheme, setSelectedPostTheme] = useState("");
   const [whisperPrompt, setWhisperPrompt] = useState("");
   const [showPollComposer, setShowPollComposer] = useState(false);
@@ -1614,6 +1719,12 @@ useEffect(() => {
       return;
     }
 
+    if (contentWarningEnabled && !contentWarningCategory) {
+      window.cwToast?.("Please choose a content warning category.", "warning") ||
+        alert("Please choose a content warning category.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -1623,6 +1734,10 @@ useEffect(() => {
       if (selectedMood) formData.append("mood", selectedMood);
       if (selectedPostTheme) formData.append("postTheme", selectedPostTheme);
       if (poll) formData.append("poll", JSON.stringify(poll));
+      formData.append("contentWarningEnabled", String(contentWarningEnabled));
+      formData.append("contentWarningCategory", contentWarningCategory);
+      formData.append("contentWarningNote", contentWarningNote);
+      formData.append("contentWarningSensitive", String(contentWarningSensitive));
 
       const res = await fetch(API_URL, {
         method: "POST",
@@ -1661,6 +1776,10 @@ useEffect(() => {
       setImage(null);
       setImagePreview(null);
       setSelectedMood("");
+      setContentWarningEnabled(false);
+      setContentWarningCategory("");
+      setContentWarningNote("");
+      setContentWarningSensitive(false);
       setWhisperPrompt("");
       setShowPollComposer(false);
       setPollQuestion("");
@@ -1708,6 +1827,14 @@ useEffect(() => {
   insertPostEmoji={insertPostEmoji}
   selectedMood={selectedMood}
   setSelectedMood={setSelectedMood}
+  contentWarningEnabled={contentWarningEnabled}
+  setContentWarningEnabled={setContentWarningEnabled}
+  contentWarningCategory={contentWarningCategory}
+  setContentWarningCategory={setContentWarningCategory}
+  contentWarningNote={contentWarningNote}
+  setContentWarningNote={setContentWarningNote}
+  contentWarningSensitive={contentWarningSensitive}
+  setContentWarningSensitive={setContentWarningSensitive}
   availablePostThemes={availablePostThemes}
   selectedPostTheme={selectedPostTheme}
   setSelectedPostTheme={setSelectedPostTheme}
@@ -1947,11 +2074,16 @@ useEffect(() => {
               background: "rgba(8,22,6,0.97)",
               border: "1px solid rgba(255,238,136,0.2)",
               borderRadius: "24px",
-              padding: "32px 28px",
-              width: "min(440px, 92vw)",
+              padding: "22px 20px",
+              width: "min(400px, 92vw)",
+              maxHeight: "84vh",
+              overflowY: "auto",
+              overflowX: "hidden",
               position: "relative",
               boxShadow: "0 0 60px rgba(255,238,136,0.08), 0 24px 80px rgba(0,0,0,0.8)",
               fontFamily: "Georgia, serif",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(200,255,150,0.28) transparent",
             }}
           >
             <button
@@ -1991,7 +2123,7 @@ useEffect(() => {
   autoFocus
               style={{
                 width: "100%",
-                height: "120px",
+                height: "102px",
                 background: "rgba(255,255,220,0.04)",
                 border: "1px solid rgba(255,255,220,0.15)",
                 borderRadius: "14px",
@@ -2009,6 +2141,14 @@ useEffect(() => {
             <ComposeEnhancements
               selectedMood={selectedMood}
               setSelectedMood={setSelectedMood}
+              contentWarningEnabled={contentWarningEnabled}
+              setContentWarningEnabled={setContentWarningEnabled}
+              contentWarningCategory={contentWarningCategory}
+              setContentWarningCategory={setContentWarningCategory}
+              contentWarningNote={contentWarningNote}
+              setContentWarningNote={setContentWarningNote}
+              contentWarningSensitive={contentWarningSensitive}
+              setContentWarningSensitive={setContentWarningSensitive}
               availablePostThemes={availablePostThemes}
               selectedPostTheme={selectedPostTheme}
               setSelectedPostTheme={setSelectedPostTheme}
@@ -2024,25 +2164,23 @@ useEffect(() => {
             />
 
             {imagePreview && (
-              <div style={{ marginTop: "12px", position: "relative", display: "inline-block", overflow: "visible" }}>
+              <div
+                style={{
+                  marginTop: "12px",
+                  position: "relative",
+                  display: "inline-block",
+                  maxWidth: "100%",
+                }}
+              >
                 <img
   src={imagePreview}
   alt="preview"
   style={{
-    maxHeight: "160px",
+    maxHeight: "124px",
     maxWidth: "100%",
     borderRadius: "12px",
     display: "block",
-    position: "relative",
-    transition: "transform 0.3s ease",
-    transformOrigin: "center",
-    cursor: "zoom-in",
-  }}
-  onMouseEnter={(e) => {
-    e.currentTarget.style.transform = "scale(2)";
-  }}
-  onMouseLeave={(e) => {
-    e.currentTarget.style.transform = "scale(1)";
+    objectFit: "cover",
   }}
 />
                 <button

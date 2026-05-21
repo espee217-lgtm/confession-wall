@@ -15,6 +15,10 @@ import {
   getPollTotalVotes,
   getSavedConfessionIdSet,
 } from "../utils/engagement";
+import {
+  normalizeContentWarning,
+  shouldBlurSensitiveContent,
+} from "../utils/contentWarning";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
@@ -23,9 +27,11 @@ const PRESSED_LEAVES_URL = `${API_BASE}/api/auth/pressed-leaves`;
 export default function PostCard({ post, realm, highlighted, onOpen }) {
   const { token, user, updateUser } = useAuth();
   const [localPost, setLocalPost] = useState(post);
+  const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
 
   useEffect(() => {
     setLocalPost(post);
+    setIsSensitiveRevealed(false);
   }, [post]);
 
   const isBudding = realm === "budding";
@@ -50,6 +56,10 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const savedConfessionIds = useMemo(() => getSavedConfessionIdSet(user), [user]);
   const isSaved = savedConfessionIds.has(String(localPost._id));
   const pollTotalVotes = getPollTotalVotes(localPost.poll);
+  const contentWarning = normalizeContentWarning(localPost.contentWarning);
+  const hasContentWarning = contentWarning.enabled;
+  const hideSensitiveContent =
+    shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
 
   const reportPost = async (e) => {
     e.stopPropagation();
@@ -273,24 +283,108 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         </span>
       </div>
 
-      <p
-        style={{
-          fontSize: "14px",
-          color: isScorched
-            ? "rgba(255,220,200,0.88)"
-            : isGrove
-            ? "#2c3e28"
-            : "rgba(220,255,240,0.9)",
-          lineHeight: 1.65,
-          margin: "0 0 12px",
-          display: "-webkit-box",
-          WebkitLineClamp: isScorched ? 3 : "unset",
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
-      >
-        {localPost.message}
-      </p>
+      {hasContentWarning && (
+        <div
+          style={{
+            marginBottom: "10px",
+            display: "grid",
+            gap: "6px",
+          }}
+        >
+          <span
+            style={{
+              width: "fit-content",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 9px",
+              borderRadius: "999px",
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(255,255,255,0.08)",
+              fontSize: "10px",
+              color: isScorched ? "#ffd2c4" : isGrove ? "#345740" : "#d9ffea",
+              letterSpacing: "0.03em",
+            }}
+          >
+            Content warning{contentWarning.category ? `: ${contentWarning.category}` : ""}
+          </span>
+
+          {contentWarning.note && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: "11px",
+                color: isScorched
+                  ? "rgba(255,220,200,0.78)"
+                  : isGrove
+                  ? "rgba(44,62,40,0.8)"
+                  : "rgba(220,255,240,0.78)",
+                lineHeight: 1.5,
+              }}
+            >
+              {contentWarning.note}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div style={{ position: "relative", marginBottom: "12px" }}>
+        <p
+          style={{
+            fontSize: "14px",
+            color: isScorched
+              ? "rgba(255,220,200,0.88)"
+              : isGrove
+              ? "#2c3e28"
+              : "rgba(220,255,240,0.9)",
+            lineHeight: 1.65,
+            margin: 0,
+            display: "-webkit-box",
+            WebkitLineClamp: isScorched ? 3 : "unset",
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            filter: hideSensitiveContent ? "blur(7px)" : "none",
+            userSelect: hideSensitiveContent ? "none" : "text",
+            transition: "filter 0.18s ease",
+          }}
+        >
+          {localPost.message}
+        </p>
+
+        {hideSensitiveContent && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,0.12)",
+              borderRadius: "12px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSensitiveRevealed(true);
+              }}
+              style={{
+                border: "1px solid rgba(255,255,255,0.35)",
+                background: "rgba(255,255,255,0.14)",
+                color: "#f4fff2",
+                borderRadius: "999px",
+                padding: "6px 12px",
+                fontSize: "11px",
+                fontFamily: "Georgia, serif",
+                cursor: "pointer",
+              }}
+            >
+              Show confession
+            </button>
+          </div>
+        )}
+      </div>
 
       {localPost.poll?.question && Array.isArray(localPost.poll.options) && (
         <div

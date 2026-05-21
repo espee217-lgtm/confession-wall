@@ -43,6 +43,7 @@ import { useAuth } from "./context/AuthContext";
 import FramedAvatar from "./components/FramedAvatar";
 import { AnimatedBadge } from "./components/CosmeticFx";
 import { getDisplayCosmetics } from "./utils/engagement";
+import { applySeo, defaultSeo } from "./utils/seo";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import "./AppStyle.css";
 
@@ -53,6 +54,125 @@ const API_BASE =
   (window.location.hostname === "localhost"
     ? "http://localhost:5000"
     : "https://confession-wall-hn63.onrender.com");
+
+const ROUTE_SEO = {
+  "/": {
+    title: defaultSeo.title,
+    description: defaultSeo.description,
+  },
+  "/trending": {
+    title: "Trending Confessions - Confession Wall",
+    description: "Browse the most active anonymous confessions on Confession Wall.",
+  },
+  "/grove": {
+    title: "Grove Confessions - Confession Wall",
+    description: "Read confessions rising through the Grove with more comfort than fire.",
+  },
+  "/budding": {
+    title: "Budding Confessions - Confession Wall",
+    description: "Explore fresh and balanced confessions in the Budding realm.",
+  },
+  "/scorched": {
+    title: "Scorched Confessions - Confession Wall",
+    description: "Explore intense confessions from the Scorched realm.",
+  },
+  "/search": {
+    title: "Search Confessions - Confession Wall",
+    description: "Search public anonymous confessions across Confession Wall.",
+  },
+  "/weekly-events": {
+    title: "Weekly Events - Confession Wall",
+    description: "Follow weekly Confession Wall community events and realm activity.",
+  },
+  "/guidelines": {
+    title: "Community Guidelines - Confession Wall",
+    description: "Read the community guidelines for posting and reacting on Confession Wall.",
+  },
+  "/terms": {
+    title: "Terms - Confession Wall",
+    description: "Read the Confession Wall terms of use.",
+  },
+  "/privacy": {
+    title: "Privacy Policy - Confession Wall",
+    description: "Read the Confession Wall privacy policy.",
+  },
+};
+
+const NOINDEX_PATHS = [
+  "/admin",
+  "/admin/dashboard",
+  "/admin/special-logs",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/settings",
+  "/activity",
+  "/pressed-leaves",
+  "/choose",
+  "/reena",
+];
+
+const humanizeMoodSlug = (slug) =>
+  String(slug || "")
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
+const getSeoForPath = (pathname) => {
+  if (ROUTE_SEO[pathname]) {
+    return {
+      ...ROUTE_SEO[pathname],
+      robots: "index,follow",
+    };
+  }
+
+  if (pathname.startsWith("/confession/")) {
+    return {
+      title: "Confession - Confession Wall",
+      description: "Read an anonymous confession and join the Confession Wall community.",
+      robots: "index,follow",
+    };
+  }
+
+  if (pathname.startsWith("/user/")) {
+    return {
+      title: "Profile - Confession Wall",
+      description: "View a public Confession Wall profile and their shared confessions.",
+      robots: "index,follow",
+    };
+  }
+
+  if (pathname.startsWith("/moods/")) {
+    const mood = humanizeMoodSlug(pathname.replace("/moods/", ""));
+    return {
+      title: mood
+        ? `${mood} Confessions - Confession Wall`
+        : "Mood Confessions - Confession Wall",
+      description: "Browse anonymous confessions by mood on Confession Wall.",
+      robots: "index,follow",
+    };
+  }
+
+  if (
+    NOINDEX_PATHS.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    )
+  ) {
+    return {
+      title: "Confession Wall",
+      description: defaultSeo.description,
+      robots: "noindex,nofollow",
+    };
+  }
+
+  return {
+    title: defaultSeo.title,
+    description: defaultSeo.description,
+    robots: "noindex,nofollow",
+  };
+};
 
 function ShopRoute() {
   const Component = ShopModule.default || ShopModule.Shop;
@@ -734,6 +854,13 @@ function Footer() {
 function AppContent() {
   const location = useLocation();
   const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
+
+  useEffect(() => {
+    applySeo({
+      ...getSeoForPath(location.pathname),
+      pathname: location.pathname,
+    });
+  }, [location.pathname]);
 
   return (
     <>
