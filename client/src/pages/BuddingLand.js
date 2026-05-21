@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import PostCard from "../components/PostCard";
 
 const API_URL =
@@ -46,7 +45,6 @@ const appendUniquePosts = (current, incoming) => {
 };
 
 export default function BuddingLand() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,11 +58,6 @@ export default function BuddingLand() {
   const fetchedTargetPostRef = useRef(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
     let cancelled = false;
 
     const fetchInitialPage = async () => {
@@ -103,7 +96,7 @@ export default function BuddingLand() {
     return () => {
       cancelled = true;
     };
-  }, [user, navigate]);
+  }, []);
 
   useEffect(() => {
     fetchedTargetPostRef.current = null;

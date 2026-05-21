@@ -192,6 +192,7 @@ function formatPreviewHandle(username) {
   return username.startsWith("@") ? username : `@${username}`;
 }
 
+
 function ShopIconSvg() {
   return (
     <svg
@@ -1055,6 +1056,21 @@ function Shop() {
           <span>Available Seeds</span>
           <strong>{SEED_ICON} {localSeeds || 0}</strong>
         </div>
+      </section>
+
+      <section className="shop-buyseeds-cta" aria-label="Buy Seed packs">
+        <div>
+          <p className="shop-kicker">Need more Seeds?</p>
+          <h2>Buy Seed Packs</h2>
+          <p>Top up with regional Seed Packs and bonus rewards.</p>
+        </div>
+        <button
+          type="button"
+          className="shop-buyseeds-cta-btn"
+          onClick={() => navigate("/buy-seeds")}
+        >
+          Buy Seeds
+        </button>
       </section>
       
       <section

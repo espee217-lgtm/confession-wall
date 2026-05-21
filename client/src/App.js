@@ -35,6 +35,7 @@ import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
 import TrendingPage from "./pages/TrendingPage";
 import * as ShopModule from "./pages/Shop";
+import BuySeeds from "./pages/BuySeeds";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
 import WeeklyEventsPage from "./pages/WeeklyEventsPage";
@@ -223,6 +224,7 @@ function ShopButton() {
 
 function SeedCounter() {
   const { user, token, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const userId = user?._id;
 
   useEffect(() => {
@@ -237,8 +239,11 @@ function SeedCounter() {
   if (!user) return null;
 
   return (
-    <div
-      title="Seeds"
+    <button
+      type="button"
+      onClick={() => navigate("/buy-seeds")}
+      title="Buy Seeds"
+      aria-label="Buy Seeds"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -253,11 +258,13 @@ function SeedCounter() {
         boxShadow: "0 0 18px rgba(120,255,150,0.22)",
         whiteSpace: "nowrap",
         fontFamily: "Georgia, serif",
+        cursor: "pointer",
+        margin: 0,
       }}
     >
-      <span>🌱</span>
+      <span>{"\uD83C\uDF31"}</span>
       <span>{user.seeds || 0}</span>
-    </div>
+    </button>
   );
 }
 
@@ -609,6 +616,13 @@ function Navbar() {
   if (HIDE_NAVBAR_ROUTES.includes(location.pathname)) return null;
 
   const displayCosmetics = getDisplayCosmetics(user);
+  const isNavActive = (path) => {
+    if (path === "/") return location.pathname === "/";
+    if (path === "/trending") {
+      return location.pathname === "/trending" || location.pathname.startsWith("/moods/");
+    }
+    return location.pathname === path;
+  };
 
   const navLinkStyle = (path, activeColor) => ({
     fontSize: "13px",
@@ -619,20 +633,37 @@ function Navbar() {
     textDecoration: "none",
     padding: "8px 22px",
     borderRadius: "2px",
-    color: location.pathname === path ? "#f3ffe6" : "rgba(225,245,210,0.72)",
+    color: isNavActive(path) ? "#f3ffe6" : "rgba(225,245,210,0.72)",
     background:
-      location.pathname === path
+      isNavActive(path)
         ? "rgba(14,42,17,0.7)"
         : "rgba(3,14,5,0.3)",
     borderBottom:
-      location.pathname === path
+      isNavActive(path)
         ? `2px solid ${activeColor}`
         : "2px solid rgba(140,200,120,0.18)",
     boxShadow:
-      location.pathname === path
+      isNavActive(path)
         ? `0 6px 18px rgba(0,0,0,0.35), 0 0 12px ${activeColor}`
         : "0 4px 12px rgba(0,0,0,0.22)",
     transition: "all 0.22s ease",
+  });
+
+  const authLinkStyle = (primary = false) => ({
+    fontSize: "12px",
+    fontFamily: "'Cinzel', Georgia, serif",
+    fontWeight: 700,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    textDecoration: "none",
+    padding: "8px 13px",
+    borderRadius: "999px",
+    color: primary ? "#f6ffe8" : "rgba(225,245,210,0.78)",
+    background: primary ? "rgba(87,142,48,0.34)" : "rgba(3,14,5,0.26)",
+    border: primary
+      ? "1px solid rgba(190,255,140,0.34)"
+      : "1px solid rgba(140,200,120,0.18)",
+    boxShadow: "0 5px 16px rgba(0,0,0,0.24)",
   });
 
   return (
@@ -703,23 +734,22 @@ function Navbar() {
           </Link>
         </div>
 
-        {user && (
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "14px",
-            }}
-          >
-            <span className="nav-firefly nav-firefly-1" />
-            <span className="nav-firefly nav-firefly-2" />
-            <span className="nav-firefly nav-firefly-3" />
-            <span className="nav-firefly nav-firefly-4" />
-            <span className="nav-firefly nav-firefly-5" />
-            <span className="nav-firefly nav-firefly-6" />
-            <span className="nav-firefly nav-firefly-7" />
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "14px",
+          }}
+        >
+          <span className="nav-firefly nav-firefly-1" />
+          <span className="nav-firefly nav-firefly-2" />
+          <span className="nav-firefly nav-firefly-3" />
+          <span className="nav-firefly nav-firefly-4" />
+          <span className="nav-firefly nav-firefly-5" />
+          <span className="nav-firefly nav-firefly-6" />
+          <span className="nav-firefly nav-firefly-7" />
 
             <Link
               to="/trending"
@@ -748,11 +778,10 @@ function Navbar() {
             >
               Scorched
             </Link>
-          </div>
-        )}
 
-        {user && (
-          <div
+        </div>
+
+        <div
             className="nav-actions"
             style={{
               justifySelf: "end",
@@ -771,32 +800,44 @@ function Navbar() {
               <span>Search confessions</span>
             </button>
 
-            <div
-              onClick={() => navigate("/settings")}
-              className="nav-profile-wrap"
-              title={displayCosmetics?.title ? `Equipped title: ${displayCosmetics.title}` : "Settings"}
-            >
-              <FramedAvatar
-                src={user.profilePicture}
-                username={user.username}
-                frameId={displayCosmetics?.frame}
-                effectId={displayCosmetics?.visualEffect}
-                size={42}
-                context="nav"
-                placeholder={user.username?.[0]?.toUpperCase?.() || "U"}
-              />
+            {user ? (
+              <>
+                <div
+                  onClick={() => navigate("/settings")}
+                  className="nav-profile-wrap"
+                  title={displayCosmetics?.title ? `Equipped title: ${displayCosmetics.title}` : "Settings"}
+                >
+                  <FramedAvatar
+                    src={user.profilePicture}
+                    username={user.username}
+                    frameId={displayCosmetics?.frame}
+                    effectId={displayCosmetics?.visualEffect}
+                    size={42}
+                    context="nav"
+                    placeholder={user.username?.[0]?.toUpperCase?.() || "U"}
+                  />
 
-              {displayCosmetics?.badge && (
-                <AnimatedBadge
-                  badgeId={displayCosmetics.badge}
-                  size="sm"
-                  className="nav-profile-badge-wrap"
-                />
-              )}
-            </div>
-          <NotificationBell />
+                  {displayCosmetics?.badge && (
+                    <AnimatedBadge
+                      badgeId={displayCosmetics.badge}
+                      size="sm"
+                      className="nav-profile-badge-wrap"
+                    />
+                  )}
+                </div>
+                <NotificationBell />
+              </>
+            ) : (
+              <>
+                <Link to="/login" style={authLinkStyle(false)}>
+                  Login
+                </Link>
+                <Link to="/register" style={authLinkStyle(true)}>
+                  Register
+                </Link>
+              </>
+            )}
           </div>
-        )}
       </div>
     </header>
   );
@@ -885,6 +926,7 @@ function AppContent() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/shop" element={<ShopRoute />} />
+        <Route path="/buy-seeds" element={<BuySeeds />} />
         <Route path="/choose" element={<ChoicePage />} />
         <Route path="/reena" element={<ReenaPage />} />
         <Route path="/guidelines" element={<CommunityGuidelines />} />

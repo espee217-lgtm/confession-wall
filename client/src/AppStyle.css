@@ -721,6 +721,11 @@ a.chip {
     border-color: rgba(220,255,105,0.46);
     box-shadow: 0 0 20px rgba(190,255,80,0.14), inset 0 1px 0 rgba(255,255,255,0.09);
   }
+  .mobile-home-trending {
+    color: #a9e6ff;
+    border-color: rgba(140, 220, 255, 0.38);
+    box-shadow: 0 0 20px rgba(120, 200, 255, 0.12), inset 0 1px 0 rgba(255,255,255,0.09);
+  }
   .mobile-home-scorched { color: #ffb093; }
 
   .mobile-home-feed-head {
@@ -963,7 +968,7 @@ a.chip {
     bottom: 12px;
     z-index: 2500;
     display: grid;
-    grid-template-columns: 1fr 1fr 1.2fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
     gap: 4px;
     padding: 9px 8px;
@@ -973,6 +978,10 @@ a.chip {
     box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+  }
+
+  .mobile-home-bottom-nav.mobile-home-bottom-nav--auth {
+    grid-template-columns: 1fr 1.2fr 1fr 1fr;
   }
 
   .mobile-home-bottom-nav button {

@@ -1,0 +1,366 @@
+.buy-seeds-page {
+  min-height: calc(100vh - 64px);
+  padding: 42px 22px 64px;
+  color: #efffde;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(140, 255, 120, 0.12), transparent 34%),
+    radial-gradient(circle at 95% 10%, rgba(255, 210, 100, 0.1), transparent 30%),
+    linear-gradient(180deg, #051407 0%, #071f0b 46%, #020803 100%);
+  font-family: Georgia, serif;
+}
+
+.buy-seeds-hero,
+.buy-seeds-panel,
+.buy-seeds-alert,
+.buy-seeds-region-status,
+.buy-seeds-auth-card {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buy-seeds-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(150, 255, 165, 0.22);
+  background: linear-gradient(135deg, rgba(12, 45, 17, 0.92), rgba(5, 18, 8, 0.94));
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45), inset 0 0 30px rgba(130, 255, 150, 0.05);
+}
+
+.buy-seeds-kicker {
+  margin: 0 0 6px;
+  color: rgba(210, 255, 190, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.buy-seeds-hero h1 {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(34px, 5vw, 54px);
+  letter-spacing: 0.08em;
+  color: #f5ffe8;
+  text-shadow: 0 0 22px rgba(150, 255, 130, 0.3);
+}
+
+.buy-seeds-hero p {
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: rgba(236, 255, 226, 0.74);
+  line-height: 1.65;
+  font-size: 15px;
+}
+
+.buy-seeds-balance {
+  min-width: 190px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(190, 255, 150, 0.25);
+  background: rgba(1, 12, 4, 0.42);
+  text-align: center;
+}
+
+.buy-seeds-balance span {
+  display: block;
+  color: rgba(230, 255, 220, 0.62);
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.buy-seeds-balance strong {
+  font-size: 28px;
+  color: #eaffc5;
+}
+
+.buy-seeds-alert {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(150, 255, 140, 0.35);
+  background: rgba(90, 220, 120, 0.13);
+  color: #e8ffe0;
+  font-size: 14px;
+}
+
+.buy-seeds-alert.error {
+  border-color: rgba(255, 130, 120, 0.4);
+  background: rgba(255, 90, 90, 0.13);
+  color: #ffe6df;
+}
+
+.buy-seeds-auth-card {
+  margin-top: 18px;
+  padding: 24px;
+  border-radius: 22px;
+  border: 1px solid rgba(170, 255, 180, 0.2);
+  background: linear-gradient(145deg, rgba(7, 28, 11, 0.9), rgba(2, 11, 5, 0.96));
+}
+
+.buy-seeds-auth-card h2 {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 24px;
+  color: #f5ffe8;
+}
+
+.buy-seeds-auth-card p {
+  margin: 10px 0 0;
+  color: rgba(236, 255, 226, 0.74);
+  line-height: 1.6;
+}
+
+.buy-seeds-auth-card button {
+  margin-top: 16px;
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 150, 0.34);
+  color: #f5ffe8;
+  background: linear-gradient(135deg, rgba(80, 180, 70, 0.9), rgba(27, 82, 31, 0.92));
+  cursor: pointer;
+}
+
+.buy-seeds-panel {
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(170, 255, 185, 0.2);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(255, 220, 130, 0.14), transparent 34%),
+    linear-gradient(145deg, rgba(7, 28, 11, 0.9), rgba(2, 11, 5, 0.96));
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.buy-seeds-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.buy-seeds-header h2 {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 28px;
+  letter-spacing: 0.04em;
+  color: #f5ffe8;
+}
+
+.buy-seeds-header p {
+  margin: 8px 0 0;
+  color: rgba(236, 255, 226, 0.74);
+  font-size: 14px;
+  line-height: 1.58;
+  max-width: 640px;
+}
+
+.buy-seeds-region-status {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.buy-seeds-region-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 150, 0.28);
+  background: rgba(1, 12, 4, 0.56);
+  color: rgba(236, 255, 226, 0.9);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.buy-seeds-region-note {
+  font-size: 12px;
+  color: rgba(235, 255, 225, 0.68);
+}
+
+.buy-seeds-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.buy-seeds-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(175, 255, 170, 0.2);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(235, 255, 225, 0.8);
+  font-size: 12px;
+}
+
+.buy-seeds-loading,
+.buy-seeds-empty {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(170, 255, 180, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(235, 255, 225, 0.74);
+  font-size: 14px;
+}
+
+.buy-seeds-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.buy-seeds-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  padding: 15px;
+  border-radius: 18px;
+  border: 1px solid rgba(190, 255, 150, 0.2);
+  background: linear-gradient(160deg, rgba(11, 42, 16, 0.84), rgba(4, 14, 7, 0.9));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+}
+
+.buy-seeds-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.buy-seeds-card-top h3 {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  color: #f5ffe8;
+  font-size: 20px;
+}
+
+.buy-seeds-price {
+  color: #ffe6a2;
+  font-size: 20px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.buy-seeds-description {
+  margin: 8px 0 0;
+  color: rgba(236, 255, 226, 0.72);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.buy-seeds-breakdown {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(180, 255, 165, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.buy-seeds-breakdown p {
+  margin: 0;
+  color: rgba(239, 255, 222, 0.82);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.buy-seeds-breakdown p + p {
+  margin-top: 6px;
+}
+
+.buy-seeds-buy-btn {
+  margin-top: auto;
+  min-height: 40px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 150, 0.34);
+  color: #f5ffe8;
+  background: linear-gradient(135deg, rgba(80, 180, 70, 0.9), rgba(27, 82, 31, 0.92));
+  box-shadow: 0 0 18px rgba(130, 255, 120, 0.14);
+  cursor: pointer;
+}
+
+.buy-seeds-buy-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 980px) {
+  .buy-seeds-hero,
+  .buy-seeds-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .buy-seeds-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buy-seeds-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 620px) {
+  .buy-seeds-page {
+    padding: 24px 14px 46px;
+  }
+
+  .buy-seeds-hero,
+  .buy-seeds-panel,
+  .buy-seeds-auth-card {
+    padding: 16px;
+  }
+
+  .buy-seeds-hero h1 {
+    font-size: 32px;
+  }
+
+  .buy-seeds-header h2 {
+    font-size: 22px;
+  }
+
+  .buy-seeds-header p {
+    font-size: 13px;
+  }
+
+  .buy-seeds-meta span {
+    font-size: 11px;
+  }
+
+  .buy-seeds-region-status {
+    align-items: flex-start;
+  }
+
+  .buy-seeds-region-pill {
+    font-size: 11px;
+  }
+
+  .buy-seeds-card-top h3 {
+    font-size: 18px;
+  }
+
+  .buy-seeds-price {
+    font-size: 18px;
+  }
+
+  .buy-seeds-grid {
+    grid-template-columns: 1fr;
+  }
+}

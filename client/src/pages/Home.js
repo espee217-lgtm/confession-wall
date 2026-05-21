@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import ForestEventBanner from "../components/ForestEventBanner";
 import DailyQuestDropdown from "../components/DailyQuestDropdown";
 import MobileBottomNav from "../components/MobileBottomNav";
@@ -30,6 +30,110 @@ const API_BASE =
 const API_URL = `${API_BASE}/api/confessions`;
 const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
 const MOBILE_HOME_PAGE_LIMIT = 20;
+const LOGIN_PROMPT_MESSAGE =
+  "Log in to join the garden - you can still browse freely.";
+
+function GuestLoginPrompt({ onClose, onLogin, onRegister }) {
+  return (
+    <div
+      data-ui="true"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 7000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "18px",
+        background: "rgba(3,10,2,0.68)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+      }}
+    >
+      <section
+        style={{
+          width: "min(360px, 92vw)",
+          borderRadius: "22px",
+          border: "1px solid rgba(176,255,120,0.28)",
+          background:
+            "linear-gradient(180deg, rgba(10,35,14,0.96), rgba(4,16,7,0.98))",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.65)",
+          color: "rgba(238,255,220,0.94)",
+          fontFamily: "Georgia, serif",
+          padding: "22px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            margin: "0 0 8px",
+            color: "rgba(210,255,165,0.82)",
+            fontSize: "12px",
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+          }}
+        >
+          Join the garden
+        </p>
+        <h2 style={{ margin: "0 0 8px", fontSize: "22px" }}>Log in to participate</h2>
+        <p style={{ margin: "0 0 18px", lineHeight: 1.55, color: "rgba(230,255,220,0.72)" }}>
+          You can keep reading freely. Log in when you want to post, react, save, or report.
+        </p>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={onLogin}
+            style={{
+              border: "1px solid rgba(178,255,135,0.42)",
+              background: "rgba(126,255,87,0.16)",
+              color: "#efffce",
+              borderRadius: "999px",
+              padding: "9px 16px",
+              cursor: "pointer",
+              fontFamily: "Georgia, serif",
+              fontWeight: 800,
+            }}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            onClick={onRegister}
+            style={{
+              border: "1px solid rgba(210,255,190,0.24)",
+              background: "rgba(255,255,255,0.06)",
+              color: "rgba(238,255,220,0.9)",
+              borderRadius: "999px",
+              padding: "9px 16px",
+              cursor: "pointer",
+              fontFamily: "Georgia, serif",
+              fontWeight: 800,
+            }}
+          >
+            Register
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "rgba(238,255,220,0.66)",
+              padding: "9px 8px",
+              cursor: "pointer",
+              fontFamily: "Georgia, serif",
+            }}
+          >
+            Keep browsing
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function normalizeConfessionResponse(data) {
   if (Array.isArray(data)) {
@@ -707,6 +811,7 @@ function ComposeEnhancements({
   setPollQuestion,
   pollOptions,
   setPollOptions,
+  onOpenConfession,
 }) {
   const sectionTitleStyle = {
     fontSize: compact ? "10px" : "11px",
@@ -1077,6 +1182,7 @@ function MobileHomePage({
   setPollQuestion,
   pollOptions,
   setPollOptions,
+  onOpenConfession,
 }) {
   const visiblePosts = freshPosts;
 
@@ -1174,6 +1280,10 @@ function MobileHomePage({
           <strong>🌱 Budding</strong>
           <span>New Confessions</span>
         </button>
+        <button type="button" onClick={() => navigate("/trending")} className="mobile-home-realm mobile-home-trending">
+          <strong>{"\uD83D\uDCC8"} Trending</strong>
+          <span>Top Confessions</span>
+        </button>
         <button type="button" onClick={() => navigate("/scorched")} className="mobile-home-realm mobile-home-scorched">
           <strong>🔥 Scorched</strong>
           <span>Pain & Vent</span>
@@ -1210,7 +1320,7 @@ function MobileHomePage({
         </button>
       )}
 
-      <MobileBottomNav onConfess={() => setShowCompose(true)} />
+      <MobileBottomNav onConfess={onOpenConfession} />
 
       {showCompose && (
         <div
@@ -1505,6 +1615,7 @@ const freshPosts = confessions
   .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const [showCompose, setShowCompose] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 const [tutorialStep, setTutorialStep] = useState(0);
   const [message, setMessage] = useState("");
 const [showPostEmojiPicker, setShowPostEmojiPicker] = useState(false);
@@ -1527,6 +1638,12 @@ const [image, setImage] = useState(null);
   const [mobileFeedHasMore, setMobileFeedHasMore] = useState(false);
   const [mobileFeedLoadingMore, setMobileFeedLoadingMore] = useState(false);
   const availablePostThemes = useMemo(() => getAvailablePostThemes(user), [user]);
+  const isLoggedIn = Boolean(user?._id && token);
+
+  const promptLogin = useCallback(() => {
+    setShowLoginPrompt(true);
+    window.cwToast?.(LOGIN_PROMPT_MESSAGE, "warning");
+  }, []);
 
   useEffect(() => {
     const updateMode = () => setIsMobile(window.innerWidth <= 720);
@@ -1554,16 +1671,15 @@ useEffect(() => {
   const params = new URLSearchParams(location.search);
 
   if (params.get("compose") === "true") {
-    setShowCompose(true);
+    if (isLoggedIn) {
+      setShowCompose(true);
+    } else {
+      promptLogin();
+    }
     navigate("/", { replace: true });
   }
-}, [location.search, navigate]);
+}, [isLoggedIn, location.search, navigate, promptLogin]);
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
     let ignore = false;
 
     const loadConfessions = async () => {
@@ -1598,7 +1714,7 @@ useEffect(() => {
     return () => {
       ignore = true;
     };
-  }, [user, navigate, isMobile]);
+  }, [isMobile]);
 
   useEffect(() => {
     const equippedTheme = String(user?.equippedCosmetics?.postTheme || "").trim();
@@ -1673,6 +1789,11 @@ useEffect(() => {
   };
 
   const handleOpenConfession = () => {
+    if (!isLoggedIn) {
+      promptLogin();
+      return;
+    }
+
     setShowPostEmojiPicker(false);
     setShowCompose(true);
   };
@@ -1708,6 +1829,11 @@ useEffect(() => {
 
   const handleSubmit = async () => {
     if (!message.trim()) return;
+
+    if (!isLoggedIn) {
+      promptLogin();
+      return;
+    }
 
     const { poll, error: pollError } = buildPollPayload(
       pollQuestion,
@@ -1803,7 +1929,8 @@ useEffect(() => {
 
   if (isMobile) {
     return (
-      <MobileHomePage
+      <>
+        <MobileHomePage
   user={user}
   freshPosts={freshPosts}
   hasMorePosts={mobileFeedHasMore}
@@ -1847,7 +1974,16 @@ useEffect(() => {
   setPollQuestion={setPollQuestion}
   pollOptions={pollOptions}
   setPollOptions={setPollOptions}
+  onOpenConfession={handleOpenConfession}
 />
+        {showLoginPrompt && (
+          <GuestLoginPrompt
+            onClose={() => setShowLoginPrompt(false)}
+            onLogin={() => navigate("/login")}
+            onRegister={() => navigate("/register")}
+          />
+        )}
+      </>
     );
   }
 
@@ -2377,6 +2513,13 @@ useEffect(() => {
 </div>
   </div>
 )}
+    {showLoginPrompt && (
+      <GuestLoginPrompt
+        onClose={() => setShowLoginPrompt(false)}
+        onLogin={() => navigate("/login")}
+        onRegister={() => navigate("/register")}
+      />
+    )}
 </div>
   );
 }

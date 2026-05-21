@@ -929,13 +929,25 @@ router.post(
 );
 
 // DELETE a confession
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
-    const deleted = await Confession.findByIdAndDelete(req.params.id);
+    const confession = await Confession.findById(req.params.id);
 
-    if (!deleted) {
+    if (!confession) {
       return res.status(404).json({ message: "Confession not found" });
     }
+
+    const requesterId = String(req.user?._id || "");
+    const ownerId = String(confession.userId || "");
+    const requesterRole = String(req.user?.role || "").toLowerCase();
+    const canModerate =
+      req.user?.isAdmin === true || requesterRole === "admin" || requesterRole === "moderator";
+
+    if (ownerId !== requesterId && !canModerate) {
+      return res.status(403).json({ message: "You can only delete your own confession." });
+    }
+
+    await Confession.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Confession deleted" });
   } catch (err) {

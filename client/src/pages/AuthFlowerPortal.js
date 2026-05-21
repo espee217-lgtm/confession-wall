@@ -47,6 +47,14 @@ const PANELS = [
   },
 ];
 
+const browseCtaStyle = {
+  color: "rgba(221,255,210,0.74)",
+  fontSize: "12px",
+  letterSpacing: "0.03em",
+  textDecoration: "none",
+  marginTop: "4px",
+};
+
 function getPasswordError(password) {
   if (!password || password.length < 8) return "Password must be at least 8 characters.";
   if (!/[A-Z]/.test(password)) return "Password must include at least one uppercase letter.";
@@ -144,6 +152,7 @@ function LoginForm({ scrollToPanel }) {
       <div className="auth-bottom-actions">
         <button type="button" onClick={() => scrollToPanel("register")}>New here? Bloom account</button>
         <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
+        <Link to="/trending" style={browseCtaStyle}>Browse confessions without logging in</Link>
       </div>
     </div>
   );
@@ -364,6 +373,7 @@ function RegisterForm({ scrollToPanel }) {
       <div className="auth-bottom-actions">
         <button type="button" onClick={() => scrollToPanel("login")}>Already rooted? Login</button>
         <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
+        <Link to="/trending" style={browseCtaStyle}>Browse confessions without logging in</Link>
       </div>
     </div>
   );
