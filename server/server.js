@@ -19,6 +19,7 @@ const authRoutes = require("./routes/authRoutes");
 const triviaRoutes = require("./routes/triviaRoutes");
 const specialActivityRoutes = require("./routes/specialActivityRoutes");
 const giftRoutes = require("./routes/giftRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const shopRoutes = require("./routes/shopRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
@@ -100,6 +101,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/trivia", triviaRoutes);
 app.use("/api/special-activity", specialActivityRoutes);
 app.use("/api/gift", giftRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/special", specialRoutes);
 

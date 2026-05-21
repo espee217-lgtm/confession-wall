@@ -132,6 +132,12 @@ const userSchema = new mongoose.Schema(
       min: 0,
     },
 
+    successfulSeedPurchaseCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     showSeedsOnProfile: {
   type: Boolean,
   default: true,
