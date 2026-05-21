@@ -13,6 +13,10 @@ const COSMETIC_TYPE_TO_EQUIP_FIELD = {
   visualEffect: "visualEffect",
 };
 
+const LIMITED_DROP_START = "2026-05-21T00:00:00.000Z";
+const FEATURED_DROP_END = "2026-06-20T18:29:59.999Z";
+const WEEKLY_SPECIAL_END = "2026-05-28T18:29:59.999Z";
+
 const SHOP_ITEMS = [
   {
     id: "badge-sprout-soul",
@@ -161,8 +165,12 @@ const SHOP_ITEMS = [
     description: "Dark smoke shimmer with a glitching void border.",
     price: 450,
     icon: "⚫",
-    rarity: "Legendary",
+    rarity: "Mythic",
     previewClass: "cw-cosmetic-badge-void-sigil",
+    featured: true,
+    featuredRank: 6,
+    dropLabel: "Mythic Vault",
+    dropGroup: "featured",
   },
   {
     id: "frame-moonveil",
@@ -191,8 +199,12 @@ const SHOP_ITEMS = [
     description: "Deep space gradient with orbiting star sparkles.",
     price: 500,
     icon: "✨",
-    rarity: "Legendary",
+    rarity: "Ancient",
     previewClass: "cw-cosmetic-frame-celestial",
+    featured: true,
+    featuredRank: 5,
+    dropLabel: "Ancient Drop",
+    dropGroup: "featured",
   },
   {
     id: "title-whisper-grove",
@@ -285,6 +297,10 @@ const SHOP_ITEMS = [
     icon: "\u26A1",
     rarity: "Legendary",
     previewClass: "cw-cosmetic-frame-storm-hoodie",
+    featured: true,
+    featuredRank: 4,
+    dropLabel: "Featured Drop",
+    dropGroup: "featured",
   },
   {
     id: "frame-grove-butterfly",
@@ -296,6 +312,12 @@ const SHOP_ITEMS = [
     icon: "\uD83E\uDD8B",
     rarity: "Legendary",
     previewClass: "cw-cosmetic-frame-grove-butterfly",
+    featured: true,
+    featuredRank: 1,
+    dropLabel: "Limited Grove Drop",
+    dropGroup: "limited",
+    availableFrom: LIMITED_DROP_START,
+    availableUntil: FEATURED_DROP_END,
   },
   {
     id: "frame-demon-thorn",
@@ -307,6 +329,12 @@ const SHOP_ITEMS = [
     icon: "\uD83D\uDD25",
     rarity: "Legendary",
     previewClass: "cw-cosmetic-frame-demon-thorn",
+    featured: true,
+    featuredRank: 2,
+    dropLabel: "Limited Scorched Drop",
+    dropGroup: "limited",
+    availableFrom: LIMITED_DROP_START,
+    availableUntil: FEATURED_DROP_END,
   },
   {
     id: "frame-lotus-aura",
@@ -339,6 +367,12 @@ const SHOP_ITEMS = [
     icon: "\uD83C\uDF19",
     rarity: "Legendary",
     previewClass: "cw-cosmetic-post-moonlit-vengeance",
+    featured: true,
+    featuredRank: 3,
+    dropLabel: "Weekly Special",
+    dropGroup: "weekly_specials",
+    availableFrom: LIMITED_DROP_START,
+    availableUntil: WEEKLY_SPECIAL_END,
   },
   {
     id: "post-theme-spinning-apex-wheel",
@@ -359,8 +393,14 @@ const SHOP_ITEMS = [
       "A violet lightning aura that crackles around your profile like charged forest magic.",
     price: 320,
     icon: "\uD83D\uDD2E",
-    rarity: "Legendary",
+    rarity: "Mythic",
     previewClass: "cw-cosmetic-visual-effect-cursed-violet-aura",
+    featured: true,
+    featuredRank: 7,
+    dropLabel: "Mythic Aura",
+    dropGroup: "featured",
+    availableFrom: LIMITED_DROP_START,
+    availableUntil: FEATURED_DROP_END,
   },
   {
     id: "badge-lone-raven",
@@ -383,6 +423,37 @@ const SHOP_ITEMS = [
     previewClass: "cw-cosmetic-badge-redline-rim",
   },
 ];
+
+const parseAvailabilityDate = (value) => {
+  if (!value) return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getAvailabilityStatus = (item, now = new Date()) => {
+  const availableFrom = parseAvailabilityDate(item.availableFrom);
+  const availableUntil = parseAvailabilityDate(item.availableUntil);
+
+  if (availableFrom && now < availableFrom) {
+    return "upcoming";
+  }
+
+  if (availableUntil && now > availableUntil) {
+    return "expired";
+  }
+
+  return "available";
+};
+
+const decorateShopItem = (item, now = new Date()) => ({
+  ...item,
+  isLimited: Boolean(item.availableFrom || item.availableUntil),
+  availabilityStatus: getAvailabilityStatus(item, now),
+});
+
+const buildShopItemsPayload = (now = new Date()) =>
+  SHOP_ITEMS.map((item) => decorateShopItem(item, now));
 
 function equipCosmeticOnUser(user, item) {
   const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];
@@ -429,7 +500,8 @@ const buildUserPayload = (user) => ({
 });
 
 router.get("/", async (req, res) => {
-  res.json({ items: SHOP_ITEMS });
+  const now = new Date();
+  res.json({ items: buildShopItemsPayload(now), serverNow: now.toISOString() });
 });
 
 router.get("/me", protect, async (req, res) => {
@@ -457,6 +529,20 @@ router.post("/buy/:itemId", protect, async (req, res) => {
 
     if (!item) {
       return res.status(404).json({ message: "Shop item not found." });
+    }
+
+    const availabilityStatus = getAvailabilityStatus(item);
+
+    if (availabilityStatus === "upcoming") {
+      return res.status(400).json({
+        message: "This limited drop is not available yet.",
+      });
+    }
+
+    if (availabilityStatus === "expired") {
+      return res.status(400).json({
+        message: "This limited drop has ended.",
+      });
     }
 
     const user = await User.findById(req.user._id);
@@ -493,7 +579,7 @@ await user.save();
 
     res.json({
       message: `${item.name} unlocked!`,
-      item,
+      item: decorateShopItem(item),
       user: buildUserPayload(user),
     });
   } catch (err) {

@@ -6,7 +6,11 @@ const weeklyRewardSchema = new mongoose.Schema(
     eventKey: { type: String, required: true, trim: true },
     type: {
       type: String,
-      enum: ["most_watered_seeds", "most_burned_override"],
+      enum: [
+        "most_watered_seeds",
+        "most_burned_override",
+        "most_burned_rebound_boost",
+      ],
       required: true,
     },
     confessionId: {
@@ -17,6 +21,9 @@ const weeklyRewardSchema = new mongoose.Schema(
     grantedAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, default: null },
     score: { type: Number, default: 0, min: 0 },
+    amount: { type: Number, default: 0, min: 0 },
+    boostChargesGranted: { type: Number, default: 0, min: 0, max: 2 },
+    boostChargesUsed: { type: Number, default: 0, min: 0, max: 2 },
     reachedScoreAt: { type: Date, default: null },
     notificationSentAt: { type: Date, default: null },
     expiryNotificationSentAt: { type: Date, default: null },
@@ -137,6 +144,32 @@ const userSchema = new mongoose.Schema(
       commentRewards: { type: Number, default: 0 },
       reactionRewards: { type: Number, default: 0 },
       acceptedReportRewards: { type: Number, default: 0 },
+      questLoginRewards: { type: Number, default: 0 },
+      questConfessionRewards: { type: Number, default: 0 },
+      questCommentRewards: { type: Number, default: 0 },
+      questReactionRewards: { type: Number, default: 0 },
+      questCompleteAllRewards: { type: Number, default: 0 },
+    },
+
+    dailyStreak: {
+      current: { type: Number, default: 0 },
+      best: { type: Number, default: 0 },
+      lastVisitDateKey: { type: String, default: "" },
+    },
+
+    dailyQuestProgress: {
+      dateKey: { type: String, default: "" },
+      loginVisited: { type: Boolean, default: false },
+      confessionsCreated: { type: Number, default: 0 },
+      commentsCreated: { type: Number, default: 0 },
+      reactionPostIds: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Confession" }],
+        default: [],
+      },
+      rewardedQuestKeys: {
+        type: [{ type: String }],
+        default: [],
+      },
     },
 
     ownedCosmetics: {
@@ -171,6 +204,13 @@ const userSchema = new mongoose.Schema(
     weeklyRewards: {
       type: [weeklyRewardSchema],
       default: [],
+    },
+
+    scorchedReboundBoosts: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 2,
     },
   },
   { timestamps: true }

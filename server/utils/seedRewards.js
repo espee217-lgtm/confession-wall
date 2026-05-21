@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const Notification = require("../models/Notification");
-
-const TODAY_KEY_OPTIONS = { timeZone: "Asia/Kolkata" };
+const { getTodayDateKey } = require("./dayKey");
 
 const REWARD_LIMITS = {
   daily_login: { statKey: "loginRewards", maxDaily: 1, amount: 10 },
@@ -9,9 +8,22 @@ const REWARD_LIMITS = {
   comment_create: { statKey: "commentRewards", maxDaily: 10, amount: 2 },
   post_reaction_received: { statKey: "reactionRewards", maxDaily: 20, amount: 1 },
   accepted_report: { statKey: "acceptedReportRewards", maxDaily: 5, amount: 15 },
+  quest_login_today: { statKey: "questLoginRewards", maxDaily: 1, amount: 5 },
+  quest_create_confession: {
+    statKey: "questConfessionRewards",
+    maxDaily: 1,
+    amount: 5,
+  },
+  quest_create_comment: { statKey: "questCommentRewards", maxDaily: 1, amount: 3 },
+  quest_react_3_posts: { statKey: "questReactionRewards", maxDaily: 1, amount: 3 },
+  quest_complete_all_daily: {
+    statKey: "questCompleteAllRewards",
+    maxDaily: 1,
+    amount: 10,
+  },
 };
 
-const getTodayKey = () => new Date().toLocaleDateString("en-CA", TODAY_KEY_OPTIONS);
+const getTodayKey = () => getTodayDateKey();
 
 const defaultDailyStats = () => ({
   dateKey: getTodayKey(),
@@ -20,6 +32,11 @@ const defaultDailyStats = () => ({
   commentRewards: 0,
   reactionRewards: 0,
   acceptedReportRewards: 0,
+  questLoginRewards: 0,
+  questConfessionRewards: 0,
+  questCommentRewards: 0,
+  questReactionRewards: 0,
+  questCompleteAllRewards: 0,
 });
 
 const resetDailyStatsIfNeeded = (user) => {

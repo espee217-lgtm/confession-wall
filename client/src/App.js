@@ -33,6 +33,7 @@ import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
+import TrendingPage from "./pages/TrendingPage";
 import * as ShopModule from "./pages/Shop";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
@@ -102,15 +103,16 @@ function ShopButton() {
 
 function SeedCounter() {
   const { user, token, refreshUser } = useAuth();
+  const userId = user?._id;
 
   useEffect(() => {
-    if (!user || !token || !refreshUser) return undefined;
+    if (!userId || !token || !refreshUser) return undefined;
 
     refreshUser();
     const interval = setInterval(refreshUser, 30000);
 
     return () => clearInterval(interval);
-  }, [user?._id, token, refreshUser]);
+  }, [userId, token, refreshUser]);
 
   if (!user) return null;
 
@@ -600,6 +602,13 @@ function Navbar() {
             <span className="nav-firefly nav-firefly-7" />
 
             <Link
+              to="/trending"
+              style={navLinkStyle("/trending", "rgba(180,240,120,0.75)")}
+            >
+              Trending
+            </Link>
+
+            <Link
               to="/grove"
               style={navLinkStyle("/grove", "rgba(115,220,150,0.75)")}
             >
@@ -744,6 +753,8 @@ function AppContent() {
         <Route path="/grove" element={<ThrivingGrove />} />
         <Route path="/scorched" element={<ScorchedLands />} />
         <Route path="/budding" element={<BuddingLand />} />
+        <Route path="/trending" element={<TrendingPage />} />
+        <Route path="/moods/:moodSlug" element={<TrendingPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/shop" element={<ShopRoute />} />

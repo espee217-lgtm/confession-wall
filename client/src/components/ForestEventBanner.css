@@ -11,7 +11,7 @@
   padding: 11px 18px 12px;
   color: #f6f2df;
   text-decoration: none;
-  background: var(--event-strip-background);
+  background: rgba(5, 18, 11, 0.24);
   border: 1px solid rgba(164, 237, 168, 0.16);
   border-radius: 24px;
   isolation: isolate;
@@ -61,12 +61,26 @@
   position: absolute;
   inset: 1px;
   border-radius: 22px;
-  border: 1px solid rgba(209, 255, 218, 0.04);
+  border: 1px solid rgba(209, 255, 218, 0.08);
   background:
+    linear-gradient(
+      118deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.02) 18%,
+      rgba(255, 247, 214, 0.34) 30%,
+      rgba(255, 255, 255, 0.12) 38%,
+      rgba(255, 247, 214, 0.2) 46%,
+      transparent 58%
+    ),
     linear-gradient(135deg, rgba(255, 255, 255, 0.03), transparent 38%),
     radial-gradient(circle at 88% 16%, rgba(146, 255, 170, 0.1), transparent 22%);
+  background-size: 240% 100%, auto, auto;
+  background-position: -140% 0, 0 0, 0 0;
   pointer-events: none;
-  z-index: -2;
+  z-index: 1;
+  mix-blend-mode: screen;
+  opacity: 0.78;
+  animation: forestEventGloss 6.5s ease-in-out infinite;
 }
 
 .forest-event-strip__art {
@@ -74,118 +88,40 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  border-radius: inherit;
+  overflow: hidden;
 }
 
-.forest-event-strip__svg {
+.weekly-event-bg-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   display: block;
-  opacity: 0.96;
+  object-fit: cover;
+  object-position: center center;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.forest-event-strip__branch-shape,
-.forest-event-strip__branch-rim,
-.forest-event-strip__branch-sheen,
-.forest-event-strip__branch-shadow,
-.forest-event-strip__branch-moss,
-.forest-event-strip__branch-grain,
-.forest-event-strip__branch-knot,
-.forest-event-strip__twig {
-  display: none;
-}
-
-.forest-event-strip__vine {
-  fill: none;
-  vector-effect: non-scaling-stroke;
-  stroke-width: 2.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: var(--vine-length, 360);
-  stroke-dashoffset: var(--vine-length, 360);
-  opacity: 0.84;
-  filter: drop-shadow(0 0 8px rgba(110, 233, 132, 0.22));
-  animation: forest-event-vine-draw 8.2s ease-in-out infinite;
-}
-
-.forest-event-strip__vine.vine-a {
-  --vine-length: 420;
-}
-
-.forest-event-strip__vine.vine-b {
-  --vine-length: 300;
-  animation-delay: 0.45s;
-}
-
-.forest-event-strip__vine.vine-c {
-  --vine-length: 220;
-  stroke-width: 2.3;
-  opacity: 0.78;
-  animation-delay: 0.95s;
-}
-
-.forest-event-strip__leaf-group {
-  opacity: 0;
-  transform-origin: center;
-  animation: forest-event-leaf-bloom 8.2s ease-in-out infinite;
-}
-
-.forest-event-strip__leaf-group.leaf-group-a {
-  animation-delay: 0.32s;
-}
-
-.forest-event-strip__leaf-group.leaf-group-b {
-  animation-delay: 0.62s;
-}
-
-.forest-event-strip__leaf-group.leaf-group-c {
-  animation-delay: 0.9s;
-}
-
-.forest-event-strip__leaf-group.leaf-group-d {
-  animation-delay: 1.15s;
-}
-
-.forest-event-strip__leaf-group.leaf-group-e {
-  animation-delay: 0.76s;
-}
-
-.forest-event-strip__leaf {
-  vector-effect: non-scaling-stroke;
-  fill: rgba(121, 200, 101, 0.95);
-  stroke: rgba(230, 255, 210, 0.52);
-  stroke-width: 1.05;
-}
-
-.forest-event-strip__leaf-vein {
-  vector-effect: non-scaling-stroke;
-  fill: none;
-  stroke: rgba(231, 255, 211, 0.46);
-  stroke-width: 0.75;
-  stroke-linecap: round;
-}
-
-.forest-event-strip__mote {
-  fill: rgba(208, 255, 174, 0.78);
-  opacity: 0;
-  animation: forest-event-mote-flicker 8.2s ease-in-out infinite;
-}
-
-.forest-event-strip__mote.mote-a {
-  animation-delay: 0.55s;
-}
-
-.forest-event-strip__mote.mote-b {
-  animation-delay: 1.1s;
-}
-
-.forest-event-strip__mote.mote-c {
-  animation-delay: 1.55s;
+.forest-event-strip__art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(2, 18, 10, 0.72),
+      rgba(2, 18, 10, 0.38),
+      rgba(2, 18, 10, 0.65)
+    );
+  pointer-events: none;
 }
 
 .forest-event-strip__content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -199,13 +135,10 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    linear-gradient(180deg, rgba(255, 246, 221, 0.06), rgba(255, 246, 221, 0.01)),
-    radial-gradient(circle at 20% 50%, rgba(163, 215, 145, 0.07), transparent 18%),
-    linear-gradient(90deg, rgba(9, 24, 12, 0.06), rgba(9, 24, 12, 0));
+  background: transparent;
   box-shadow:
-    inset 0 1px 0 rgba(255, 247, 225, 0.08),
-    inset 0 -1px 0 rgba(24, 12, 8, 0.18);
+    inset 0 1px 0 rgba(255, 247, 225, 0.05),
+    inset 0 -1px 0 rgba(24, 12, 8, 0.1);
   pointer-events: none;
   z-index: -1;
 }
@@ -271,59 +204,13 @@
   text-shadow: 0 1px 0 rgba(18, 12, 9, 0.72);
 }
 
-@keyframes forest-event-vine-draw {
+@keyframes forestEventGloss {
   0%,
-  10% {
-    stroke-dashoffset: var(--vine-length, 360);
-    opacity: 0.24;
-  }
-  24%,
-  68% {
-    stroke-dashoffset: 0;
-    opacity: 0.92;
-  }
-  86% {
-    stroke-dashoffset: 24;
-    opacity: 0.84;
-  }
   100% {
-    stroke-dashoffset: 72;
-    opacity: 0.7;
+    background-position: -140% 0, 0 0, 0 0;
   }
-}
-
-@keyframes forest-event-mote-flicker {
-  0%,
-  18%,
-  100% {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  30%,
-  56% {
-    opacity: 0.88;
-    transform: scale(1);
-  }
-  72% {
-    opacity: 0.36;
-    transform: scale(0.84);
-  }
-}
-
-@keyframes forest-event-leaf-bloom {
-  0%,
-  16% {
-    opacity: 0;
-    transform: scale(0.72) rotate(-9deg);
-  }
-  28%,
-  70% {
-    opacity: 0.96;
-    transform: scale(1) rotate(0deg);
-  }
-  100% {
-    opacity: 0.78;
-    transform: scale(0.94) rotate(-3deg);
+  50% {
+    background-position: 155% 0, 0 0, 0 0;
   }
 }
 
@@ -390,9 +277,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .forest-event-strip,
-  .forest-event-strip__svg,
-  .forest-event-strip__vine,
-  .forest-event-strip__leaf-group {
+  .weekly-event-bg-image,
+  .forest-event-strip::after {
     animation: none !important;
     transition: none !important;
   }

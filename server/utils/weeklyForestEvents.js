@@ -14,8 +14,12 @@ const USER_PUBLIC_SELECT =
 
 const WEEKLY_EVENT_REWARD_SEEDS = 1000;
 const WEEKLY_OVERRIDE_DURATION_DAYS = 7;
+const SCORCHED_PENALTY_ENABLED = false;
+const REBOUND_BOOST_SEEDS_PER_CHARGE = 1000;
+const MAX_SCORCHED_REBOUND_BOOSTS = 2;
 const MOST_WATERED_REWARD_TYPE = "most_watered_seeds";
 const MOST_BURNED_OVERRIDE_TYPE = "most_burned_override";
+const MOST_BURNED_REBOUND_BOOST_TYPE = "most_burned_rebound_boost";
 const WEEKLY_OVERRIDE_FRAME_ID = "frame-ashen-horns";
 const WEEKLY_OVERRIDE_POST_THEME_ID = "post-theme-cinder-throne";
 const WEEKLY_AUTOMATION_INTERVAL_MS = 15 * 60 * 1000;
@@ -599,6 +603,11 @@ function buildPendingRewardState({ amount = 0, durationDays = 0 } = {}) {
   return {
     amount,
     durationDays,
+    baseAmount: amount,
+    boostAmount: 0,
+    boostChargesGranted: 0,
+    boostChargesUsed: 0,
+    maxBoostCharges: MAX_SCORCHED_REBOUND_BOOSTS,
     granted: false,
     applied: false,
     username: "",
@@ -612,6 +621,35 @@ function buildPendingRewardState({ amount = 0, durationDays = 0 } = {}) {
   };
 }
 
+function buildMostBurnedBoostState({ leader = null } = {}) {
+  return {
+    ...buildPendingRewardState({ amount: 0, durationDays: 0 }),
+    boostReward: true,
+    disabled: false,
+    skippedReason: "",
+    username: leader?.confession?.userId?.username || "",
+    userId: leader?.confession?.userId?._id || null,
+    confessionId: leader?.confession?._id || null,
+    score: leader?.score || 0,
+    reachedScoreAt: leader?.reachedAt || null,
+    tiedCandidateCount: leader?.tiedCandidateCount || 0,
+  };
+}
+
+function serializeMostBurnedBoostState({ cycle, leader } = {}) {
+  const winner = cycle?.mostBurned || null;
+  const granted = Boolean(winner?.grantedAt);
+
+  return {
+    ...buildMostBurnedBoostState({ leader }),
+    granted,
+    applied: granted,
+    grantedAt: winner?.grantedAt || null,
+    boostChargesGranted: Number(winner?.boostChargesGranted || 0),
+    skippedReason: granted ? "" : "",
+  };
+}
+
 function serializeCycleRewardState({
   cycle,
   field,
@@ -621,10 +659,19 @@ function serializeCycleRewardState({
 }) {
   const winner = cycle?.[field] || null;
   const granted = Boolean(winner?.grantedAt);
+  const storedAmount = Number(winner?.amount || 0);
+  const boostChargesUsed = Number(winner?.boostChargesUsed || 0);
+  const boostChargesGranted = Number(winner?.boostChargesGranted || 0);
+  const boostAmount = boostChargesUsed * REBOUND_BOOST_SEEDS_PER_CHARGE;
 
   return {
-    amount,
+    amount: storedAmount || amount,
     durationDays,
+    baseAmount: amount,
+    boostAmount,
+    boostChargesGranted,
+    boostChargesUsed,
+    maxBoostCharges: MAX_SCORCHED_REBOUND_BOOSTS,
     granted,
     applied: granted,
     username: leader?.confession?.userId?.username || "",
@@ -640,13 +687,19 @@ function serializeCycleRewardState({
 }
 
 async function clearExpiredTemporaryOverrides(date = new Date()) {
-  const expiredUsers = await User.find({
-    "temporaryCosmeticOverride.source": "weekly_most_burned",
-    "temporaryCosmeticOverride.expiresAt": {
-      $ne: null,
-      $lte: date,
-    },
-  });
+  const expiredUsers = await User.find(
+    SCORCHED_PENALTY_ENABLED
+      ? {
+          "temporaryCosmeticOverride.source": "weekly_most_burned",
+          "temporaryCosmeticOverride.expiresAt": {
+            $ne: null,
+            $lte: date,
+          },
+        }
+      : {
+          "temporaryCosmeticOverride.source": "weekly_most_burned",
+        }
+  );
 
   let clearedCount = 0;
 
@@ -659,7 +712,9 @@ async function clearExpiredTemporaryOverrides(date = new Date()) {
     await createNotification({
       userId: user._id,
       type: "weekly_event_effect_expired",
-      message: `Your weekly event scorched style has faded. Your normal cosmetics are visible again after ${expiryText}.`,
+      message: SCORCHED_PENALTY_ENABLED
+        ? `Your weekly event scorched style has faded. Your normal cosmetics are visible again after ${expiryText}.`
+        : "The weekly event scorched style has been removed. Your normal cosmetics are visible again.",
       link: `/user/${user._id}`,
     });
 
@@ -684,6 +739,123 @@ async function clearExpiredTemporaryOverrides(date = new Date()) {
   }
 
   return clearedCount;
+}
+
+async function grantMostBurnedReboundBoost({
+  userId,
+  confessionId,
+  context,
+  leader,
+  finalizedAt,
+}) {
+  if (!userId) {
+    return {
+      granted: false,
+      boostChargesGranted: 0,
+      storedBoosts: 0,
+      skippedReason: "No burned winner when the Wednesday payout closed.",
+    };
+  }
+
+  const existingReward = await findExistingUserReward(
+    context.weekKey,
+    MOST_BURNED_REBOUND_BOOST_TYPE
+  );
+
+  if (existingReward) {
+    const boostChargesGranted = Number(
+      existingReward.reward.boostChargesGranted || 0
+    );
+
+    return {
+      granted: boostChargesGranted > 0,
+      boostChargesGranted,
+      storedBoosts: Number(existingReward.user.scorchedReboundBoosts || 0),
+      alreadyGranted: true,
+      skippedReason:
+        boostChargesGranted > 0
+          ? ""
+          : "Winner already had the maximum 2 rebound boosts.",
+    };
+  }
+
+  const winner = await User.findById(userId);
+
+  if (!winner) {
+    return {
+      granted: false,
+      boostChargesGranted: 0,
+      storedBoosts: 0,
+      skippedReason: "Burned winner user could not be found.",
+    };
+  }
+
+  const currentBoosts = Math.max(
+    0,
+    Math.min(
+      MAX_SCORCHED_REBOUND_BOOSTS,
+      Number(winner.scorchedReboundBoosts || 0)
+    )
+  );
+
+  if (currentBoosts >= MAX_SCORCHED_REBOUND_BOOSTS) {
+    winner.weeklyRewards.push({
+      weekKey: context.weekKey,
+      eventKey: context.id,
+      type: MOST_BURNED_REBOUND_BOOST_TYPE,
+      confessionId,
+      grantedAt: finalizedAt,
+      score: leader?.score || 0,
+      reachedScoreAt: leader?.reachedAt || null,
+      boostChargesGranted: 0,
+      notificationSentAt: finalizedAt,
+    });
+    await winner.save();
+
+    await createNotification({
+      userId: winner._id,
+      type: "weekly_event_effect",
+      message:
+        "Your confession led the weekly burn ranking, but your Scorched Rebound Boosts are already full at 2/2.",
+      link: `/confession/${confessionId}`,
+    });
+
+    return {
+      granted: false,
+      boostChargesGranted: 0,
+      storedBoosts: currentBoosts,
+      skippedReason: "Winner already has the maximum 2 rebound boosts.",
+    };
+  }
+
+  const nextBoosts = currentBoosts + 1;
+  winner.scorchedReboundBoosts = nextBoosts;
+  winner.weeklyRewards.push({
+    weekKey: context.weekKey,
+    eventKey: context.id,
+    type: MOST_BURNED_REBOUND_BOOST_TYPE,
+    confessionId,
+    grantedAt: finalizedAt,
+    score: leader?.score || 0,
+    reachedScoreAt: leader?.reachedAt || null,
+    boostChargesGranted: 1,
+    notificationSentAt: finalizedAt,
+  });
+  await winner.save();
+
+  await createNotification({
+    userId: winner._id,
+    type: "weekly_event_effect",
+    message: `Your confession led the weekly burn ranking. You earned 1 Scorched Rebound Boost (${nextBoosts}/${MAX_SCORCHED_REBOUND_BOOSTS}) for a future Most Watered win.`,
+    link: `/confession/${confessionId}`,
+  });
+
+  return {
+    granted: true,
+    boostChargesGranted: 1,
+    storedBoosts: nextBoosts,
+    skippedReason: "",
+  };
 }
 
 function formatCountdownParts(ms) {
@@ -737,7 +909,7 @@ function serializeCurrentEventStatus(context, date = new Date()) {
     phase: active ? "active" : "results_active",
     statusText: active
       ? `Competition closes in ${formatCountdownParts(countdownMs)}`
-      : "Results and temporary rewards are active until next Wednesday.",
+      : "Results and weekly reward state are locked until next Wednesday.",
     countdownMs,
     countdownTargetAt,
   };
@@ -783,20 +955,43 @@ async function getWeeklyEventStatus(
           leader: activeResultsBoard?.mostWatered,
           amount: WEEKLY_EVENT_REWARD_SEEDS,
         }),
-        mostBurnedOverride: serializeCycleRewardState({
+        mostBurnedReboundBoost: serializeMostBurnedBoostState({
           cycle: activeResultsCycle,
-          field: "mostBurned",
           leader: activeResultsBoard?.mostBurned,
-          durationDays: WEEKLY_OVERRIDE_DURATION_DAYS,
         }),
+        mostBurnedOverride: SCORCHED_PENALTY_ENABLED
+          ? serializeCycleRewardState({
+              cycle: activeResultsCycle,
+              field: "mostBurned",
+              leader: activeResultsBoard?.mostBurned,
+              durationDays: WEEKLY_OVERRIDE_DURATION_DAYS,
+            })
+          : {
+              ...buildMostBurnedBoostState({
+                leader: activeResultsBoard?.mostBurned,
+              }),
+              disabled: true,
+              skippedReason: "Highest scorched penalty is disabled.",
+            },
       }
     : {
         mostWateredSeeds: buildPendingRewardState({
           amount: WEEKLY_EVENT_REWARD_SEEDS,
         }),
-        mostBurnedOverride: buildPendingRewardState({
-          durationDays: WEEKLY_OVERRIDE_DURATION_DAYS,
+        mostBurnedReboundBoost: buildMostBurnedBoostState({
+          leader: currentBoard.mostBurned,
         }),
+        mostBurnedOverride: SCORCHED_PENALTY_ENABLED
+          ? buildPendingRewardState({
+              durationDays: WEEKLY_OVERRIDE_DURATION_DAYS,
+            })
+          : {
+              ...buildMostBurnedBoostState({
+                leader: currentBoard.mostBurned,
+              }),
+              disabled: true,
+              skippedReason: "Highest scorched penalty is disabled.",
+            },
       };
 
   return {
@@ -804,6 +999,13 @@ async function getWeeklyEventStatus(
     trackingMode: TRACKING_MODE,
     reactionTimingExact: true,
     finalizationMode: FINALIZATION_MODE,
+    scorchedPenaltyEnabled: SCORCHED_PENALTY_ENABLED,
+    scorchedReboundBoost: {
+      enabled: true,
+      maxCharges: MAX_SCORCHED_REBOUND_BOOSTS,
+      seedsPerCharge: REBOUND_BOOST_SEEDS_PER_CHARGE,
+      baseMostWateredSeeds: WEEKLY_EVENT_REWARD_SEEDS,
+    },
     candidateCount: currentBoard.candidateCount,
     leaderboard: {
       mostWateredPost: serializeLeadConfession(displayBoard?.mostWatered),
@@ -890,27 +1092,58 @@ async function finalizeWeeklyEventPeriod(
       candidateConfessionId: mostWatered?.confession?._id || null,
       candidateUserId: mostWatered?.confession?.userId?._id || null,
       granted: false,
+      amount: 0,
+      boostChargesUsed: 0,
+      skippedReason: "",
+    },
+    mostBurnedReboundBoost: {
+      candidateConfessionId: mostBurned?.confession?._id || null,
+      candidateUserId: mostBurned?.confession?.userId?._id || null,
+      granted: false,
+      boostChargesGranted: 0,
+      storedBoosts: 0,
       skippedReason: "",
     },
     mostBurnedOverride: {
       candidateConfessionId: mostBurned?.confession?._id || null,
       candidateUserId: mostBurned?.confession?.userId?._id || null,
       applied: false,
+      disabled: !SCORCHED_PENALTY_ENABLED,
       skippedReason: "",
       expiresAt: null,
     },
   };
 
   updateCycleWinnerRecord(cycle, "mostWatered", mostWatered);
-  updateCycleWinnerRecord(cycle, "mostBurned", mostBurned, {
-    expiresAt: context.rewardExpiresAt,
-  });
+  updateCycleWinnerRecord(
+    cycle,
+    "mostBurned",
+    mostBurned,
+    SCORCHED_PENALTY_ENABLED ? { expiresAt: context.rewardExpiresAt } : {}
+  );
   cycle.lastEvaluatedAt = finalizedAt;
 
   if (!mostWatered?.confession?.userId?._id) {
     outcome.mostWateredSeeds.skippedReason =
       "No watered winner when the Wednesday payout closed.";
   } else {
+    const winner = await User.findById(mostWatered.confession.userId._id);
+    const boostChargesUsed = winner
+      ? Math.max(
+          0,
+          Math.min(
+            MAX_SCORCHED_REBOUND_BOOSTS,
+            Number(winner.scorchedReboundBoosts || 0)
+          )
+        )
+      : 0;
+    const payoutAmount =
+      WEEKLY_EVENT_REWARD_SEEDS +
+      boostChargesUsed * REBOUND_BOOST_SEEDS_PER_CHARGE;
+
+    outcome.mostWateredSeeds.amount = payoutAmount;
+    outcome.mostWateredSeeds.boostChargesUsed = boostChargesUsed;
+
     const existingReward = await findExistingUserReward(
       context.weekKey,
       MOST_WATERED_REWARD_TYPE
@@ -923,26 +1156,40 @@ async function finalizeWeeklyEventPeriod(
         existingReward.reward.notificationSentAt ||
         cycle.mostWatered.notificationSentAt ||
         finalizedAt;
+      cycle.mostWatered.amount =
+        existingReward.reward.amount || cycle.mostWatered.amount || payoutAmount;
+      cycle.mostWatered.boostChargesUsed =
+        existingReward.reward.boostChargesUsed ||
+        cycle.mostWatered.boostChargesUsed ||
+        boostChargesUsed;
       outcome.mostWateredSeeds.granted = true;
+      outcome.mostWateredSeeds.amount =
+        existingReward.reward.amount || payoutAmount;
+      outcome.mostWateredSeeds.boostChargesUsed =
+        existingReward.reward.boostChargesUsed || boostChargesUsed;
     } else {
       const seedReward = await awardSeeds({
         userId: mostWatered.confession.userId._id,
         reason: "weekly_event_most_watered",
-        amount: WEEKLY_EVENT_REWARD_SEEDS,
-        reasonLabel: `winning the ${context.name} weekly event with the most watered confession`,
+        amount: payoutAmount,
+        reasonLabel:
+          boostChargesUsed > 0
+            ? `winning the ${context.name} weekly event with the most watered confession and ${boostChargesUsed} Scorched Rebound Boost${boostChargesUsed === 1 ? "" : "s"}`
+            : `winning the ${context.name} weekly event with the most watered confession`,
         link: `/confession/${mostWatered.confession._id}`,
       });
 
       if (seedReward?.awarded) {
-        const winner = await User.findById(mostWatered.confession.userId._id);
-
         if (winner) {
+          winner.scorchedReboundBoosts = 0;
           winner.weeklyRewards.push({
             weekKey: context.weekKey,
             eventKey: context.id,
             type: MOST_WATERED_REWARD_TYPE,
             confessionId: mostWatered.confession._id,
             grantedAt: finalizedAt,
+            amount: payoutAmount,
+            boostChargesUsed,
             score: mostWatered.score || 0,
             reachedScoreAt: mostWatered.reachedAt || null,
             notificationSentAt: finalizedAt,
@@ -952,6 +1199,8 @@ async function finalizeWeeklyEventPeriod(
 
         cycle.mostWatered.grantedAt = finalizedAt;
         cycle.mostWatered.notificationSentAt = finalizedAt;
+        cycle.mostWatered.amount = payoutAmount;
+        cycle.mostWatered.boostChargesUsed = boostChargesUsed;
         outcome.mostWateredSeeds.granted = true;
       } else {
         outcome.mostWateredSeeds.skippedReason =
@@ -961,6 +1210,33 @@ async function finalizeWeeklyEventPeriod(
   }
 
   if (!mostBurned?.confession?.userId?._id) {
+    outcome.mostBurnedReboundBoost.skippedReason =
+      "No burned winner when the Wednesday payout closed.";
+  } else {
+    const boostResult = await grantMostBurnedReboundBoost({
+      userId: mostBurned.confession.userId._id,
+      confessionId: mostBurned.confession._id,
+      context,
+      leader: mostBurned,
+      finalizedAt,
+    });
+
+    if (boostResult.granted) {
+      cycle.mostBurned.grantedAt = finalizedAt;
+      cycle.mostBurned.notificationSentAt = finalizedAt;
+    }
+    cycle.mostBurned.boostChargesGranted =
+      boostResult.boostChargesGranted || 0;
+    outcome.mostBurnedReboundBoost = {
+      ...outcome.mostBurnedReboundBoost,
+      ...boostResult,
+    };
+  }
+
+  if (!SCORCHED_PENALTY_ENABLED) {
+    outcome.mostBurnedOverride.skippedReason =
+      "Highest scorched penalty is disabled.";
+  } else if (!mostBurned?.confession?.userId?._id) {
     outcome.mostBurnedOverride.skippedReason =
       "No burned winner when the Wednesday payout closed.";
   } else {

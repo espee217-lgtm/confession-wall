@@ -16,6 +16,11 @@ const { sanitizeText, sanitizeEmail } = require("../middleware/sanitizeInput");
 const { imageUploadOptions } = require("../middleware/uploadSecurity");
 const { createAdminLog } = require("../utils/adminLogger");
 const { awardSeeds } = require("../utils/seedRewards");
+const {
+  applyDailyVisit,
+  defaultDailyStreak,
+  getDailyQuestSummary,
+} = require("../utils/dailyQuests");
 const { ensureWeeklyEventMaintenance } = require("../utils/weeklyForestEvents");
 
 const storage = new CloudinaryStorage({
@@ -57,6 +62,8 @@ const buildUserPayload = (user) => ({
   banReason: user.banReason,
   seeds: user.seeds || 0,
   showSeedsOnProfile: user.showSeedsOnProfile || false,
+  dailyStreak: user.dailyStreak || defaultDailyStreak(),
+  dailyQuestSummary: getDailyQuestSummary(user),
   ownedCosmetics: Array.isArray(user.ownedCosmetics)
     ? user.ownedCosmetics
     : [],
@@ -64,6 +71,7 @@ const buildUserPayload = (user) => ({
     ? user.savedConfessions
     : [],
   temporaryCosmeticOverride: user.temporaryCosmeticOverride || {},
+  scorchedReboundBoosts: Math.max(0, Math.min(2, Number(user.scorchedReboundBoosts || 0))),
   weeklyRewards: Array.isArray(user.weeklyRewards) ? user.weeklyRewards : [],
 
   equippedCosmetics: user.equippedCosmetics || {
@@ -378,7 +386,8 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
       link: "/",
     });
 
-    const updatedUser = await User.findById(user._id);
+    const dailyVisitUpdate = await applyDailyVisit(user._id, "/");
+    const updatedUser = dailyVisitUpdate?.user || (await User.findById(user._id));
 
     res.json({
       ...tokens,
@@ -441,7 +450,8 @@ router.post("/login", loginLimiter, async (req, res) => {
       link: "/",
     });
 
-    const updatedUser = await User.findById(user._id);
+    const dailyVisitUpdate = await applyDailyVisit(user._id, "/");
+    const updatedUser = dailyVisitUpdate?.user || (await User.findById(user._id));
 
     res.json({
       ...tokens,
@@ -654,7 +664,8 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
 
 router.get("/me", protect, async (req, res) => {
   await ensureWeeklyEventMaintenance();
-  const freshUser = await User.findById(req.user._id);
+  const dailyVisitUpdate = await applyDailyVisit(req.user._id, "/");
+  const freshUser = dailyVisitUpdate?.user || (await User.findById(req.user._id));
   res.json(buildUserPayload(freshUser || req.user));
 });
 

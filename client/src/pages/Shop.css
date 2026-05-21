@@ -484,6 +484,34 @@
   margin: 22px auto 0;
 }
 
+.shop-drop-section {
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(190, 255, 150, 0.18);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(255, 220, 120, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(9, 34, 13, 0.84), rgba(2, 11, 4, 0.92));
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 220, 0.05);
+}
+
+.shop-drop-section--limited {
+  border-color: rgba(255, 220, 120, 0.22);
+  background:
+    radial-gradient(circle at 88% 0%, rgba(255, 204, 92, 0.13), transparent 34%),
+    linear-gradient(135deg, rgba(9, 34, 13, 0.86), rgba(2, 11, 4, 0.94));
+}
+
+.shop-drop-section .shop-grid {
+  max-width: none;
+  margin-top: 16px;
+}
+
+.shop-grid--drops {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .shop-section-header {
   display: flex;
   align-items: flex-end;
@@ -529,6 +557,16 @@
   box-shadow: 0 24px 55px rgba(0, 0, 0, 0.35), 0 0 26px rgba(130, 255, 150, 0.08);
 }
 
+.shop-item-card--unavailable {
+  border-color: rgba(245, 255, 232, 0.1);
+}
+
+.shop-item-card--unavailable .shop-preview-shell,
+.shop-item-card--unavailable .shop-item-body,
+.shop-item-card--unavailable .shop-price {
+  opacity: 0.72;
+}
+
 .shop-item-topline {
   display: flex;
   align-items: center;
@@ -565,6 +603,65 @@
   color: #ffe566;
   background: rgba(255, 215, 80, 0.16);
   box-shadow: 0 0 12px rgba(255, 200, 80, 0.12);
+}
+
+.shop-rarity.mythic {
+  color: #f2d8ff;
+  background: rgba(180, 96, 255, 0.18);
+  box-shadow: 0 0 14px rgba(190, 100, 255, 0.14);
+}
+
+.shop-rarity.ancient {
+  color: #fff1a8;
+  background: rgba(255, 190, 70, 0.2);
+  box-shadow: 0 0 16px rgba(255, 210, 90, 0.18);
+}
+
+.shop-drop-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: -4px 0 12px;
+}
+
+.shop-drop-badges--modal {
+  margin: -6px 0 16px;
+  padding-right: 52px;
+}
+
+.shop-drop-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(210, 255, 160, 0.2);
+  background: rgba(255, 255, 255, 0.065);
+  color: rgba(242, 255, 228, 0.84);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-drop-chip--featured {
+  color: #f7ffd4;
+  border-color: rgba(190, 255, 145, 0.28);
+  background: rgba(130, 255, 120, 0.1);
+}
+
+.shop-drop-chip--limited,
+.shop-drop-chip--countdown {
+  color: #ffe9a6;
+  border-color: rgba(255, 220, 120, 0.32);
+  background: rgba(255, 190, 80, 0.11);
+}
+
+.shop-drop-chip--expired {
+  color: rgba(245, 255, 232, 0.62);
+  border-color: rgba(245, 255, 232, 0.12);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .shop-preview-badge,

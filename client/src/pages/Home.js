@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import ForestEventBanner from "../components/ForestEventBanner";
+import DailyQuestDropdown from "../components/DailyQuestDropdown";
 import MobileBottomNav from "../components/MobileBottomNav";
 import SplitBouquetHero from "../components/SplitBouquetHero";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -27,6 +28,36 @@ const API_BASE =
 
 const API_URL = `${API_BASE}/api/confessions`;
 const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
+const MOBILE_HOME_PAGE_LIMIT = 20;
+
+function normalizeConfessionResponse(data) {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      page: 1,
+      hasMore: false,
+    };
+  }
+
+  return {
+    items: Array.isArray(data?.items) ? data.items : [],
+    page: Number(data?.page || 1),
+    hasMore: Boolean(data?.hasMore),
+  };
+}
+
+function appendUniqueConfessions(existing, incoming) {
+  const seen = new Set(existing.map((post) => String(post?._id || "")));
+  const uniqueIncoming = incoming.filter((post) => {
+    const id = String(post?._id || "");
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+
+  return [...existing, ...uniqueIncoming];
+}
+
 const POST_EMOJI_GROUPS = [
   {
     label: "mood",
@@ -293,8 +324,10 @@ function ConfessionFeed({ confessions, onCardClick }) {
       <button
         onClick={onClick}
         style={{
-          background: active ? "rgba(10,35,12,0.85)" : "rgba(8,22,9,0.45)",
-          border: `1px solid ${active ? "rgba(120,200,90,0.45)" : "rgba(80,130,70,0.18)"}`,
+          background: active
+            ? "linear-gradient(180deg, rgba(12,22,14,0.24), rgba(8,14,10,0.14))"
+            : "linear-gradient(180deg, rgba(10,18,12,0.16), rgba(7,12,9,0.1))",
+          border: `1px solid ${active ? "rgba(170,230,160,0.28)" : "rgba(190,235,190,0.14)"}`,
           backdropFilter: "blur(10px)",
           borderRadius: "4px",
           width: "52px",
@@ -304,9 +337,12 @@ function ConfessionFeed({ confessions, onCardClick }) {
           alignItems: "center",
           justifyContent: "center",
           transition: "all 0.25s",
-          color: active ? "rgba(160,240,130,0.9)" : "rgba(100,150,90,0.25)",
+          color: active ? "rgba(220,245,212,0.82)" : "rgba(220,245,212,0.32)",
           fontSize: "14px",
           lineHeight: 1,
+          boxShadow: active
+            ? "0 3px 12px rgba(0,0,0,0.18), inset 0 1px 0 rgba(240,255,230,0.04)"
+            : "0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(240,255,230,0.02)",
         }}
       >
         {direction === "up" ? "▲" : "▼"}
@@ -354,6 +390,7 @@ function ConfessionCard({ conf, index, onClick }) {
 
   return (
     <div
+      className={`home-side-card home-side-card--grove${hovered ? " is-hovered" : ""}`}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -362,8 +399,10 @@ function ConfessionCard({ conf, index, onClick }) {
         marginLeft: `-${cardWidth - peekOut}px`,
         transform: `skewY(${skewDeg}deg)`,
         transformOrigin: "left center",
-        background: hovered ? "rgba(12,40,14,0.92)" : "rgba(7,22,8,0.82)",
-        border: `1px solid ${hovered ? "rgba(130,220,100,0.45)" : "rgba(80,150,70,0.22)"}`,
+        background: hovered
+          ? "linear-gradient(180deg, rgba(12, 46, 18, 0.96), rgba(4, 18, 8, 0.94))"
+          : "linear-gradient(180deg, rgba(10, 38, 16, 0.94), rgba(3, 14, 7, 0.92))",
+        border: "1px solid transparent",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
         borderRadius: "3px",
@@ -371,12 +410,15 @@ function ConfessionCard({ conf, index, onClick }) {
         cursor: "pointer",
         transition: "all 0.22s ease",
         boxShadow: hovered
-          ? "0 6px 28px rgba(50,150,50,0.18), inset 0 1px 0 rgba(160,255,130,0.10)"
-          : "0 3px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(160,255,130,0.04)",
+          ? "0 6px 18px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
+          : "0 3px 10px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.02)",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      <span className="home-side-firefly home-side-firefly--grove home-side-firefly--a" />
+      <span className="home-side-firefly home-side-firefly--grove home-side-firefly--b" />
+      <span className="home-side-firefly home-side-firefly--grove home-side-firefly--c" />
       <div
         style={{
           position: "absolute",
@@ -438,8 +480,10 @@ function ScorchedFeed({ confessions, onCardClick }) {
       <button
         onClick={onClick}
         style={{
-          background: active ? "rgba(50,10,8,0.85)" : "rgba(30,8,6,0.45)",
-          border: `1px solid ${active ? "rgba(220,80,50,0.45)" : "rgba(150,50,30,0.18)"}`,
+          background: active
+            ? "linear-gradient(180deg, rgba(22,14,12,0.24), rgba(14,10,9,0.14))"
+            : "linear-gradient(180deg, rgba(18,11,10,0.16), rgba(12,8,7,0.1))",
+          border: `1px solid ${active ? "rgba(236,188,168,0.28)" : "rgba(238,205,190,0.14)"}`,
           backdropFilter: "blur(10px)",
           borderRadius: "4px",
           width: "52px",
@@ -449,9 +493,12 @@ function ScorchedFeed({ confessions, onCardClick }) {
           alignItems: "center",
           justifyContent: "center",
           transition: "all 0.25s",
-          color: active ? "rgba(255,160,100,0.9)" : "rgba(180,80,60,0.25)",
+          color: active ? "rgba(255,232,220,0.82)" : "rgba(255,232,220,0.32)",
           fontSize: "14px",
           lineHeight: 1,
+          boxShadow: active
+            ? "0 3px 12px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,240,230,0.04)"
+            : "0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,240,230,0.02)",
         }}
       >
         {direction === "up" ? "▲" : "▼"}
@@ -499,6 +546,7 @@ function ScorchedCard({ conf, index, onClick }) {
 
   return (
     <div
+      className={`home-side-card home-side-card--scorched${hovered ? " is-hovered" : ""}`}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -508,8 +556,10 @@ function ScorchedCard({ conf, index, onClick }) {
         marginLeft: "auto",
         transform: `skewY(${skewDeg}deg)`,
         transformOrigin: "right center",
-        background: hovered ? "rgba(50,12,8,0.92)" : "rgba(30,7,5,0.82)",
-        border: `1px solid ${hovered ? "rgba(220,90,50,0.45)" : "rgba(160,60,40,0.22)"}`,
+        background: hovered
+          ? "linear-gradient(180deg, rgba(56, 18, 16, 0.96), rgba(20, 7, 7, 0.94))"
+          : "linear-gradient(180deg, rgba(46, 15, 14, 0.94), rgba(16, 6, 6, 0.92))",
+        border: "1px solid transparent",
         backdropFilter: "blur(18px)",
         WebkitBackdropFilter: "blur(18px)",
         borderRadius: "3px",
@@ -517,12 +567,15 @@ function ScorchedCard({ conf, index, onClick }) {
         cursor: "pointer",
         transition: "all 0.22s ease",
         boxShadow: hovered
-          ? "0 6px 28px rgba(200,60,30,0.22), inset 0 1px 0 rgba(255,130,80,0.10)"
-          : "0 3px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,130,80,0.04)",
+          ? "0 6px 18px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)"
+          : "0 3px 10px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.02)",
         position: "relative",
         overflow: "hidden",
       }}
     >
+      <span className="home-side-ember home-side-ember--a" />
+      <span className="home-side-ember home-side-ember--b" />
+      <span className="home-side-ember home-side-ember--c" />
       <p
         style={{
           margin: "0 0 4px",
@@ -898,6 +951,9 @@ function ComposeEnhancements({
 function MobileHomePage({
   user,
   freshPosts,
+  hasMorePosts,
+  loadingMorePosts,
+  onLoadMorePosts,
   navigate,
   showCompose,
   setShowCompose,
@@ -929,7 +985,7 @@ function MobileHomePage({
   pollOptions,
   setPollOptions,
 }) {
-  const visiblePosts = freshPosts.slice(0, 8);
+  const visiblePosts = freshPosts;
 
   const MobileCard = ({ conf }) => {
     const waterCount = conf.wateredBy?.length || 0;
@@ -1000,6 +1056,10 @@ function MobileHomePage({
     <main className="mobile-home-shell" style={{ position: "relative", zIndex: 2 }}>
       <HomeBackgroundVideo />
 
+      <div className="mobile-home-top-tools" data-ui="true">
+        <DailyQuestDropdown variant="navbar" />
+      </div>
+
       <section className="mobile-home-event-strip">
         <ForestEventBanner compact />
       </section>
@@ -1045,6 +1105,17 @@ function MobileHomePage({
           visiblePosts.map((conf) => <MobileCard key={conf._id} conf={conf} />)
         )}
       </section>
+
+      {hasMorePosts && (
+        <button
+          type="button"
+          className="mobile-home-load-more"
+          onClick={onLoadMorePosts}
+          disabled={loadingMorePosts}
+        >
+          {loadingMorePosts ? "Loading..." : "Load more"}
+        </button>
+      )}
 
       <MobileBottomNav onConfess={() => setShowCompose(true)} />
 
@@ -1347,6 +1418,9 @@ const [image, setImage] = useState(null);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", "", "", ""]);
   const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 720);
+  const [mobileFeedPage, setMobileFeedPage] = useState(1);
+  const [mobileFeedHasMore, setMobileFeedHasMore] = useState(false);
+  const [mobileFeedLoadingMore, setMobileFeedLoadingMore] = useState(false);
   const availablePostThemes = useMemo(() => getAvailablePostThemes(user), [user]);
 
   useEffect(() => {
@@ -1385,11 +1459,41 @@ useEffect(() => {
       return;
     }
 
-    fetch(API_URL)
-      .then((r) => r.json())
-      .then((d) => setConfessions(Array.isArray(d) ? d : []))
-      .catch((err) => console.error(err));
-  }, [user, navigate]);
+    let ignore = false;
+
+    const loadConfessions = async () => {
+      try {
+        const url = isMobile
+          ? `${API_URL}?page=1&limit=${MOBILE_HOME_PAGE_LIMIT}`
+          : API_URL;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.message || data?.error || "Could not load confessions.");
+        }
+
+        const normalized = normalizeConfessionResponse(data);
+
+        if (ignore) return;
+
+        setConfessions(normalized.items);
+        setMobileFeedPage(normalized.page || 1);
+        setMobileFeedHasMore(isMobile ? normalized.hasMore : false);
+      } catch (err) {
+        if (!ignore) {
+          console.error(err);
+          setMobileFeedHasMore(false);
+        }
+      }
+    };
+
+    loadConfessions();
+
+    return () => {
+      ignore = true;
+    };
+  }, [user, navigate, isMobile]);
 
   useEffect(() => {
     const equippedTheme = String(user?.equippedCosmetics?.postTheme || "").trim();
@@ -1466,6 +1570,35 @@ useEffect(() => {
   const handleOpenConfession = () => {
     setShowPostEmojiPicker(false);
     setShowCompose(true);
+  };
+
+  const handleMobileLoadMore = async () => {
+    if (mobileFeedLoadingMore || !mobileFeedHasMore) return;
+
+    setMobileFeedLoadingMore(true);
+
+    try {
+      const nextPage = mobileFeedPage + 1;
+      const res = await fetch(
+        `${API_URL}?page=${nextPage}&limit=${MOBILE_HOME_PAGE_LIMIT}`
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || data?.error || "Could not load more confessions.");
+      }
+
+      const normalized = normalizeConfessionResponse(data);
+
+      setConfessions((prev) => appendUniqueConfessions(prev, normalized.items));
+      setMobileFeedPage(normalized.page || nextPage);
+      setMobileFeedHasMore(normalized.hasMore);
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Could not load more confessions.", "error");
+    } finally {
+      setMobileFeedLoadingMore(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -1554,6 +1687,9 @@ useEffect(() => {
       <MobileHomePage
   user={user}
   freshPosts={freshPosts}
+  hasMorePosts={mobileFeedHasMore}
+  loadingMorePosts={mobileFeedLoadingMore}
+  onLoadMorePosts={handleMobileLoadMore}
   navigate={navigate}
   showCompose={showCompose}
   setShowCompose={setShowCompose}
@@ -1597,15 +1733,9 @@ useEffect(() => {
       />
 <div
   data-ui="true"
-  style={{
-    position: "absolute",
-    top: "-10px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    zIndex: 140,
-    pointerEvents: "auto",
-  }}
+  className="home-top-action-rail"
 >
+  <div className="home-confess-button-lift">
   <button
     type="button"
     onClick={(e) => {
@@ -1713,6 +1843,9 @@ useEffect(() => {
       }}
     />
   </button>
+  </div>
+
+  <DailyQuestDropdown variant="home" />
 </div>
 
       <div

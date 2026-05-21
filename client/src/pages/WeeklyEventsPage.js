@@ -196,6 +196,12 @@ export default function WeeklyEventsPage() {
         mostWateredPost: status?.leaderboard?.mostWateredPost,
         mostBurnedPost: status?.leaderboard?.mostBurnedPost,
       };
+  const mostWateredReward = status?.rewards?.mostWateredSeeds;
+  const reboundBoost = status?.rewards?.mostBurnedReboundBoost;
+  const reboundConfig = status?.scorchedReboundBoost || {};
+  const baseWateredSeeds = reboundConfig.baseMostWateredSeeds || 1000;
+  const seedsPerBoost = reboundConfig.seedsPerCharge || 1000;
+  const maxBoostCharges = reboundConfig.maxCharges || 2;
 
   return (
     <div style={pageStyle}>
@@ -216,8 +222,8 @@ export default function WeeklyEventsPage() {
           </h1>
           <p style={sectionBodyStyle}>
             The weekly competition only runs on Monday and Tuesday. Wednesday
-            locks the results, pays the 1000 Seeds reward, and activates the
-            temporary scorched takeover for one week.
+            locks the results and pays the Most Watered reward. The most burned
+            post earns a rebound boost for a future Most Watered win.
           </p>
 
           {currentEvent && (
@@ -283,31 +289,40 @@ export default function WeeklyEventsPage() {
             <div style={rewardCardStyle}>
               <strong style={{ color: "#f3ffe7" }}>Most Watered</strong>
               <p style={sectionBodyStyle}>
-                First place receives 1000 Seeds only after the Wednesday close.
+                First place receives {baseWateredSeeds} Seeds after Wednesday
+                close, plus {seedsPerBoost} extra Seeds for each stored Scorched
+                Rebound Boost.
               </p>
               <div style={rewardStatusStyle}>
-                {status?.rewards?.mostWateredSeeds?.granted
-                  ? `Granted to @${status.rewards.mostWateredSeeds.username}`
+                {mostWateredReward?.granted
+                  ? `Granted ${mostWateredReward.amount || baseWateredSeeds} Seeds to @${mostWateredReward.username}${
+                      mostWateredReward.boostChargesUsed
+                        ? ` using ${mostWateredReward.boostChargesUsed} boost${
+                            mostWateredReward.boostChargesUsed === 1 ? "" : "s"
+                          }`
+                        : ""
+                    }`
                   : isActive
                   ? "Pending Wednesday payout"
-                  : "No 1000 Seeds reward granted yet"}
+                  : "No Seeds reward granted yet"}
               </div>
             </div>
 
             <div style={rewardCardStyle}>
-              <strong style={{ color: "#f3ffe7" }}>Most Burned</strong>
+              <strong style={{ color: "#f3ffe7" }}>Most Burned Rebound</strong>
               <p style={sectionBodyStyle}>
-                First place receives a temporary scorched frame and confession
-                card style for 7 days without overwriting their real cosmetics.
+                First place earns 1 Scorched Rebound Boost, stacking up to{" "}
+                {maxBoostCharges}. Boosts are consumed when that user later wins
+                Most Watered.
               </p>
               <div style={rewardStatusStyle}>
-                {status?.rewards?.mostBurnedOverride?.applied
-                  ? `Applied to @${status.rewards.mostBurnedOverride.username} until ${formatDateTime(
-                      status.rewards.mostBurnedOverride.expiresAt
-                    )}`
+                {reboundBoost?.granted
+                  ? `Boost granted to @${reboundBoost.username}`
+                  : reboundBoost?.skippedReason
+                  ? reboundBoost.skippedReason
                   : isActive
-                  ? "Pending Wednesday payout"
-                  : "No scorched override applied yet"}
+                  ? "Pending Wednesday boost"
+                  : "No rebound boost granted yet"}
               </div>
             </div>
           </div>

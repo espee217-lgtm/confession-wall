@@ -13,6 +13,11 @@ const { reactionLimiter } = require("../middleware/rateLimiter");
 const { createAdminLog } = require("../utils/adminLogger");
 const { awardSeeds } = require("../utils/seedRewards");
 const {
+  applyCommentQuestProgress,
+  applyConfessionQuestProgress,
+  applyReactionQuestProgress,
+} = require("../utils/dailyQuests");
+const {
   USER_PUBLIC_SELECT,
   ensureWeeklyEventMaintenance,
   getCurrentWeeklyEventContext,
@@ -208,6 +213,11 @@ const serializePoll = (poll) => {
 const PAGINATION_DEFAULT_LIMIT = 10;
 const PAGINATION_MAX_LIMIT = 50;
 const SEARCH_DEFAULT_LIMIT = 10;
+const TRENDING_PERIOD_WINDOWS = {
+  day: 24 * 60 * 60 * 1000,
+  week: 7 * 24 * 60 * 60 * 1000,
+  all: null,
+};
 
 const hasPaginationQuery = (query = {}) =>
   Object.prototype.hasOwnProperty.call(query, "page") ||
@@ -272,6 +282,39 @@ const getRealmType = (post) => {
   if (watered > burned) return "grove";
   if (burned > watered) return "scorched";
   return "budding";
+};
+
+const normalizeMoodFilter = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const normalized = raw.toLowerCase().replace(/\s+/g, "-");
+  return (
+    CONFESSION_MOODS.find((mood) => mood.toLowerCase().replace(/\s+/g, "-") === normalized) ||
+    null
+  );
+};
+
+const parseTrendingPeriod = (value) => {
+  const period = String(value || "week").trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(TRENDING_PERIOD_WINDOWS, period)
+    ? period
+    : "week";
+};
+
+const getTrendingMatch = ({ period, mood }) => {
+  const match = { ...PUBLIC_VISIBLE_FILTER };
+  const windowMs = TRENDING_PERIOD_WINDOWS[period];
+
+  if (windowMs) {
+    match.createdAt = { $gte: new Date(Date.now() - windowMs) };
+  }
+
+  if (mood) {
+    match.mood = mood;
+  }
+
+  return match;
 };
 
 const buildPublicQuery = (realm) => {
@@ -486,6 +529,96 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// GET trending public confessions
+router.get("/trending", async (req, res) => {
+  try {
+    await ensureWeeklyEventMaintenance();
+
+    const { page, limit, skip } = parsePagination(req.query, PAGINATION_DEFAULT_LIMIT);
+    const period = parseTrendingPeriod(req.query.period);
+    const mood = normalizeMoodFilter(req.query.mood);
+
+    if (req.query.mood && !mood) {
+      return res.status(400).json({ message: "Invalid mood filter." });
+    }
+
+    const match = getTrendingMatch({ period, mood });
+    const total = await Confession.countDocuments(match);
+    const visibleCommentsExpr = {
+      $filter: {
+        input: { $ifNull: ["$comments", []] },
+        as: "comment",
+        cond: { $ne: ["$$comment.isHidden", true] },
+      },
+    };
+    const comfortCardTotalExpr = {
+      $sum: {
+        $map: {
+          input: { $ifNull: ["$comfortCards", []] },
+          as: "card",
+          in: { $ifNull: ["$$card.count", 0] },
+        },
+      },
+    };
+
+    const confessions = await Confession.aggregate([
+      { $match: match },
+      {
+        $addFields: {
+          visibleComments: visibleCommentsExpr,
+          wateredCount: arraySizeExpr("wateredBy"),
+          burnedCount: arraySizeExpr("burnedBy"),
+          comfortCardCount: comfortCardTotalExpr,
+        },
+      },
+      {
+        $addFields: {
+          visibleCommentCount: { $size: "$visibleComments" },
+        },
+      },
+      {
+        $addFields: {
+          trendingScore: {
+            $add: [
+              { $multiply: ["$wateredCount", 2] },
+              { $multiply: ["$visibleCommentCount", 3] },
+              "$comfortCardCount",
+              "$burnedCount",
+            ],
+          },
+        },
+      },
+      { $sort: { trendingScore: -1, createdAt: -1, _id: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          "comfortCards.sentBy": 0,
+          "poll.voterIds": 0,
+          seedReactionRewardedBy: 0,
+          visibleComments: 0,
+          wateredCount: 0,
+          burnedCount: 0,
+          comfortCardCount: 0,
+          visibleCommentCount: 0,
+          trendingScore: 0,
+        },
+      },
+    ]);
+
+    const populated = await Confession.populate(confessions, {
+      path: "userId",
+      select: USER_PUBLIC_SELECT,
+    });
+    const items = stripHiddenCommentsFromList(populated);
+
+    res.json(buildPaginatedResponse({ items, page, limit, total }));
+  } catch (err) {
+    console.error("Trending confessions error:", err);
+    res.status(500).json({ message: "Could not load trending confessions right now." });
+  }
+});
+
 // GET current weekly event status and leaderboard
 router.get("/weekly-event", async (req, res) => {
   try {
@@ -609,6 +742,8 @@ router.post(
         reasonLabel: "creating a post",
         link: `/confession/${saved._id}`,
       });
+
+      await applyConfessionQuestProgress(req.user._id, `/confession/${saved._id}`);
 
       const responsePost = populated?.toObject ? populated.toObject() : populated;
       responsePost.seedReward = seedReward;
@@ -814,6 +949,8 @@ router.post(
         link: `/confession/${confession._id}`,
       });
 
+      await applyCommentQuestProgress(req.user._id, `/confession/${confession._id}`);
+
       const updated = await Confession.findById(req.params.id)
         .populate("userId", USER_PUBLIC_SELECT)
         .populate("comments.userId", USER_PUBLIC_SELECT);
@@ -901,6 +1038,10 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
     }
 
     await confession.save();
+
+    if (!alreadyVoted) {
+      await applyReactionQuestProgress(userId, confession._id, `/confession/${confession._id}`);
+    }
 
     res.json({
       wateredBy: confession.wateredBy,

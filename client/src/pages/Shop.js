@@ -83,6 +83,110 @@ const SEED_EARNING_RULES = [
 const getDisplayType = (type) => (type === "visualEffect" ? "frame" : type);
 const hasAnimatedPreview = (item) => Boolean(getCosmeticAnimationClass(item?.id));
 
+function getRarityClass(rarity) {
+  return String(rarity || "common")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+}
+
+function isLimitedDrop(item) {
+  return Boolean(item?.isLimited || item?.availableFrom || item?.availableUntil);
+}
+
+function getAvailabilityStatus(item) {
+  return item?.availabilityStatus || "available";
+}
+
+function getUnavailableActionLabel(item) {
+  return getAvailabilityStatus(item) === "upcoming" ? "Soon" : "Ended";
+}
+
+function formatDropCountdown(item, now) {
+  if (!isLimitedDrop(item)) return "";
+
+  const status = getAvailabilityStatus(item);
+
+  if (status === "expired") {
+    return "Ended";
+  }
+
+  const targetValue = status === "upcoming" ? item.availableFrom : item.availableUntil;
+
+  if (!targetValue) {
+    return status === "upcoming" ? "Coming soon" : "Limited";
+  }
+
+  const targetTime = new Date(targetValue).getTime();
+
+  if (!Number.isFinite(targetTime)) {
+    return status === "upcoming" ? "Coming soon" : "Limited";
+  }
+
+  const currentTime = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  const diffMinutes = Math.ceil((targetTime - currentTime) / 60000);
+  const prefix = status === "upcoming" ? "Starts" : "Ends";
+
+  if (diffMinutes <= 0) {
+    return status === "upcoming" ? "Opening soon" : "Ending soon";
+  }
+
+  const days = Math.floor(diffMinutes / 1440);
+  const hours = Math.floor((diffMinutes % 1440) / 60);
+  const minutes = diffMinutes % 60;
+
+  if (days > 0) {
+    return `${prefix} in ${days}d ${hours}h`;
+  }
+
+  if (hours > 0) {
+    return `${prefix} in ${hours}h ${minutes}m`;
+  }
+
+  return `${prefix} in ${minutes}m`;
+}
+
+function getDropBadges(item, now) {
+  const badges = [];
+
+  if (item?.featured) {
+    badges.push({
+      key: "featured",
+      label: "Featured",
+      className: "shop-drop-chip shop-drop-chip--featured",
+    });
+  }
+
+  if (item?.dropLabel) {
+    badges.push({
+      key: "drop-label",
+      label: item.dropLabel,
+      className: "shop-drop-chip shop-drop-chip--limited",
+    });
+  } else if (isLimitedDrop(item)) {
+    badges.push({
+      key: "limited",
+      label: "Limited Time",
+      className: "shop-drop-chip shop-drop-chip--limited",
+    });
+  }
+
+  const countdown = formatDropCountdown(item, now);
+
+  if (countdown) {
+    badges.push({
+      key: "countdown",
+      label: countdown,
+      className: `shop-drop-chip shop-drop-chip--countdown shop-drop-chip--${getAvailabilityStatus(item)}`,
+    });
+  }
+
+  return badges;
+}
+
+function sortDropItems(a, b) {
+  return (a.featuredRank || 999) - (b.featuredRank || 999) || a.name.localeCompare(b.name);
+}
+
 function formatPreviewHandle(username) {
   if (!username) return "@Anonymous";
   return username.startsWith("@") ? username : `@${username}`;
@@ -421,8 +525,13 @@ function CosmeticPreviewModal({
   canAfford,
   onBuy,
   onEquip,
+  now,
 }) {
   if (!item) return null;
+
+  const availabilityStatus = getAvailabilityStatus(item);
+  const unavailableForPurchase = !owned && availabilityStatus !== "available";
+  const dropBadges = getDropBadges(item, now);
 
   return (
     <div className="shop-preview-modal-backdrop" onClick={onClose}>
@@ -443,13 +552,23 @@ function CosmeticPreviewModal({
         </button>
 
         <div className="shop-preview-modal-topline">
-          <span className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}>
+          <span className={`shop-rarity ${getRarityClass(item.rarity)}`}>
             {item.rarity || "Common"}
           </span>
           <span className="shop-item-type">
             {TYPE_LABELS[getDisplayType(item.type)] || item.type}
           </span>
         </div>
+
+        {dropBadges.length > 0 && (
+          <div className="shop-drop-badges shop-drop-badges--modal">
+            {dropBadges.map((badge) => (
+              <span className={badge.className} key={badge.key}>
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="shop-preview-modal-content">
           <div className="shop-preview-modal-stage">
@@ -489,10 +608,22 @@ function CosmeticPreviewModal({
                   type="button"
                   className="shop-buy-btn"
                   onClick={() => onBuy(item)}
-                  disabled={busy || !canAfford}
-                  title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
+                  disabled={busy || !canAfford || unavailableForPurchase}
+                  title={
+                    unavailableForPurchase
+                      ? "This limited drop is not available to buy."
+                      : !canAfford
+                        ? "Not enough Seeds"
+                        : "Buy cosmetic"
+                  }
                 >
-                  {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}
+                  {busy
+                    ? "Buying..."
+                    : unavailableForPurchase
+                      ? getUnavailableActionLabel(item)
+                      : canAfford
+                        ? "Buy"
+                        : "Need Seeds"}
                 </button>
               )}
             </div>
@@ -527,6 +658,7 @@ function Shop() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selectedPreviewCosmetic, setSelectedPreviewCosmetic] = useState(null);
+  const [now, setNow] = useState(() => new Date());
   const speedOverlayUrl = `${process.env.PUBLIC_URL}/assets/speed.png`;
   const blowOverlayUrl = `${process.env.PUBLIC_URL}/assets/blow.png`;
 
@@ -545,6 +677,14 @@ function Shop() {
     setLocalOwned(normalizeOwnedCosmetics(user?.ownedCosmetics));
     setLocalSeeds(user?.seeds || 0);
   }, [user]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 60000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   const equipped = localEquipped;
   const previewUser = user || {};
@@ -565,6 +705,20 @@ function Shop() {
 
   const staticItems = useMemo(() => {
     return filteredItems.filter((item) => !hasAnimatedPreview(item));
+  }, [filteredItems]);
+
+  const limitedDropItems = useMemo(() => {
+    return filteredItems
+      .filter((item) => isLimitedDrop(item))
+      .slice()
+      .sort(sortDropItems);
+  }, [filteredItems]);
+
+  const featuredDropItems = useMemo(() => {
+    return filteredItems
+      .filter((item) => item.featured && !isLimitedDrop(item))
+      .slice()
+      .sort(sortDropItems);
   }, [filteredItems]);
 
   const typeCounts = useMemo(() => {
@@ -613,6 +767,13 @@ function Shop() {
         }
 
         setItems(Array.isArray(data.items) ? data.items : []);
+
+        if (data.serverNow) {
+          const serverNow = new Date(data.serverNow);
+          if (!Number.isNaN(serverNow.getTime())) {
+            setNow(serverNow);
+          }
+        }
 
         try {
           await refreshUser?.();
@@ -745,6 +906,8 @@ function Shop() {
         : equipped[item.type] === item.id;
     const canAfford = (localSeeds || 0) >= item.price;
     const busy = busyItemId === item.id;
+    const availabilityStatus = getAvailabilityStatus(item);
+    const unavailableForPurchase = !owned && availabilityStatus !== "available";
 
     if (isEquipped) {
       return (
@@ -778,65 +941,96 @@ function Shop() {
           event.stopPropagation();
           handleBuy(item);
         }}
-        disabled={busy || Boolean(busyItemId) || !canAfford}
-        title={!canAfford ? "Not enough Seeds" : "Buy cosmetic"}
+        disabled={busy || Boolean(busyItemId) || !canAfford || unavailableForPurchase}
+        title={
+          unavailableForPurchase
+            ? "This limited drop is not available to buy."
+            : !canAfford
+              ? "Not enough Seeds"
+              : "Buy cosmetic"
+        }
       >
-        {busy ? "Buying..." : canAfford ? "Buy" : "Need Seeds"}
+        {busy
+          ? "Buying..."
+          : unavailableForPurchase
+            ? getUnavailableActionLabel(item)
+            : canAfford
+              ? "Buy"
+              : "Need Seeds"}
       </button>
     );
   };
 
-  const renderItemCard = (item) => (
-    <article
-      className="shop-item-card"
-      key={item.id}
-      role="button"
-      tabIndex={0}
-      aria-label={`Preview ${item.name}`}
-      onClick={() => openCosmeticPreview(item)}
-      onKeyDown={(event) => {
-        if (event.target !== event.currentTarget) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openCosmeticPreview(item);
-        }
-      }}
-    >
-      <div className="shop-item-topline">
-        <span
-          className={`shop-rarity ${item.rarity?.toLowerCase() || "common"}`}
-        >
-          {item.rarity || "Common"}
-        </span>
+  const renderItemCard = (item) => {
+    const dropBadges = getDropBadges(item, now);
+    const unavailableForPurchase =
+      !ownedSet.has(item.id) && getAvailabilityStatus(item) !== "available";
 
-        <span className="shop-item-type">
-          {TYPE_LABELS[getDisplayType(item.type)] || item.type}
-        </span>
-      </div>
+    return (
+      <article
+        className={[
+          "shop-item-card",
+          unavailableForPurchase ? "shop-item-card--unavailable" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        key={item.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`Preview ${item.name}`}
+        onClick={() => openCosmeticPreview(item)}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openCosmeticPreview(item);
+          }
+        }}
+      >
+        <div className="shop-item-topline">
+          <span className={`shop-rarity ${getRarityClass(item.rarity)}`}>
+            {item.rarity || "Common"}
+          </span>
 
-      <ShopPreview
-        item={item}
-        mode="card"
-        isAnimating={false}
-        previewUser={previewUser}
-        equipped={equipped}
-      />
+          <span className="shop-item-type">
+            {TYPE_LABELS[getDisplayType(item.type)] || item.type}
+          </span>
+        </div>
 
-      <div className="shop-item-body">
-        <h3>
-          <span>{item.icon}</span>
-          {item.name}
-        </h3>
+        {dropBadges.length > 0 && (
+          <div className="shop-drop-badges">
+            {dropBadges.map((badge) => (
+              <span className={badge.className} key={badge.key}>
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
 
-        <p>{item.description}</p>
-      </div>
+        <ShopPreview
+          item={item}
+          mode="card"
+          isAnimating={false}
+          previewUser={previewUser}
+          equipped={equipped}
+        />
 
-      <div className="shop-item-footer">
-        <div className="shop-price">{SEED_ICON} {item.price}</div>
-        {renderItemAction(item)}
-      </div>
-    </article>
-  );
+        <div className="shop-item-body">
+          <h3>
+            <span>{item.icon}</span>
+            {item.name}
+          </h3>
+
+          <p>{item.description}</p>
+        </div>
+
+        <div className="shop-item-footer">
+          <div className="shop-price">{SEED_ICON} {item.price}</div>
+          {renderItemAction(item)}
+        </div>
+      </article>
+    );
+  };
 
   if (!user || !token) return null;
 
@@ -983,6 +1177,30 @@ function Shop() {
         <div className="shop-loading">Loading forest cosmetics...</div>
       ) : (
         <>
+          {featuredDropItems.length > 0 && (
+            <section className="shop-cosmetic-section shop-drop-section">
+              <div className="shop-section-header">
+                <h2>Featured Drops</h2>
+                <p>Premium cosmetics highlighted for this shop rotation.</p>
+              </div>
+              <div className="shop-grid shop-grid--drops">
+                {featuredDropItems.map(renderItemCard)}
+              </div>
+            </section>
+          )}
+
+          {limitedDropItems.length > 0 && (
+            <section className="shop-cosmetic-section shop-drop-section shop-drop-section--limited">
+              <div className="shop-section-header">
+                <h2>Limited Time</h2>
+                <p>Seasonal drops keep their equip access after purchase, but buying closes when the timer ends.</p>
+              </div>
+              <div className="shop-grid shop-grid--drops">
+                {limitedDropItems.map(renderItemCard)}
+              </div>
+            </section>
+          )}
+
           {animatedItems.length > 0 && (
             <section className="shop-cosmetic-section">
               <div className="shop-section-header">
@@ -1028,6 +1246,7 @@ function Shop() {
           canAfford={(localSeeds || 0) >= selectedPreviewCosmetic.price}
           onBuy={handleBuy}
           onEquip={handleEquip}
+          now={now}
         />
       )}
 

@@ -1040,7 +1040,7 @@ export default function AdminDashboard() {
                 </p>
                 <p className="adminDash-muted">
                   {weeklyEventStatus.rewards?.mostWateredSeeds?.granted
-                    ? "Seeds payout granted"
+                    ? `Seeds payout granted (${weeklyEventStatus.rewards.mostWateredSeeds.amount || 1000})`
                     : "Seeds payout pending"}
                 </p>
               </article>
@@ -1056,9 +1056,9 @@ export default function AdminDashboard() {
                   {weeklyEventStatus.leaderboard?.mostBurnedPost?.burnedCount || 0} burn
                 </p>
                 <p className="adminDash-muted">
-                  {weeklyEventStatus.rewards?.mostBurnedOverride?.applied
-                    ? "Temporary override active"
-                    : "Override pending"}
+                  {weeklyEventStatus.rewards?.mostBurnedReboundBoost?.granted
+                    ? "Rebound boost granted"
+                    : "Rebound boost pending"}
                 </p>
               </article>
             </div>
