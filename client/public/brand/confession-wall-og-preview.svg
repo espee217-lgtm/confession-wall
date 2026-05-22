@@ -1,0 +1,21 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="1200" height="630" fill="#06140C"/>
+<rect x="58" y="58" width="1084" height="514" rx="48" stroke="#62B5AF" stroke-opacity=".18" stroke-width="4"/>
+<g transform="translate(118 88) scale(0.44)">
+
+<rect width="1024" height="1024" rx="250" fill="#06140C"/><circle cx="512" cy="500" r="270" fill="#000000" stroke="#62B5AF" stroke-width="20" stroke-opacity=".32"/><path d="M232.0 500.0C355.2 408.0 444.8 408.0 512.0 408.0C579.2 408.0 668.8 408.0 792.0 500.0C668.8 592.0 579.2 592.0 512.0 592.0C444.8 592.0 355.2 592.0 232.0 500.0Z" fill="#8BCDD3"/><path d="M552.8 418.4
+C510.0 438.8 481.4 481.6 481.4 530.6
+C481.4 583.6 516.1 628.5 565.0 640.8
+C546.7 651.0 524.2 657.1 503.8 657.1
+C416.1 657.1 344.7 585.7 344.7 498.0
+C344.7 410.2 416.1 338.8 503.8 338.8
+C524.2 338.8 542.6 347.0 552.8 418.4Z" fill="#06140C" opacity="0.88"/><circle cx="532" cy="500" r="72" fill="#9BE35A"/>
+<path d="M532 437V563" stroke="#06140C" stroke-width="15" stroke-linecap="round" opacity=".9"/>
+<circle cx="532" cy="500" r="30" fill="#010302"/>
+<circle cx="510" cy="475" r="7" fill="#FFF4C2" opacity=".76"/>
+
+</g>
+<text x="590" y="250" fill="#F2E7A8" font-family="Georgia, serif" font-size="72" font-weight="700">Confession Wall</text>
+<text x="594" y="318" fill="#CDE8E1" font-family="Arial, sans-serif" font-size="31">Anonymous confessions in a quiet forest</text>
+<text x="594" y="372" fill="#9BE35A" font-family="Arial, sans-serif" font-size="25">Read. React. Confess freely.</text>
+</svg>

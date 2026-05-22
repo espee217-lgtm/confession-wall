@@ -1,10 +1,12 @@
-export const SEO_ORIGIN = "https://confession-wall-325.pages.dev";
+export const SEO_ORIGIN = "https://187d12dd.confession-wall-325.pages.dev";
 
 const DEFAULT_TITLE =
   "Confession Wall - Anonymous Confessions in a Forest Grove";
 const DEFAULT_DESCRIPTION =
   "Share anonymous confessions, explore trending stories, and react with the Confession Wall community across Grove, Budding, and Scorched realms.";
-const DEFAULT_IMAGE = `${SEO_ORIGIN}/forest.webp`;
+const DEFAULT_IMAGE =
+  "https://187d12dd.confession-wall-325.pages.dev/brand/confession-wall-og-preview-1200x630.png";
+const DEFAULT_IMAGE_ALT = "Confession Wall anonymous confession icon preview";
 const THEME_COLOR = "#0b1f12";
 
 const hasDocument = () =>
@@ -83,11 +85,17 @@ export const applySeo = ({
   setMetaProperty("og:description", description);
   setMetaProperty("og:url", canonicalUrl);
   setMetaProperty("og:image", image);
+  setMetaProperty("og:image:secure_url", image);
+  setMetaProperty("og:image:type", "image/png");
+  setMetaProperty("og:image:width", "1200");
+  setMetaProperty("og:image:height", "630");
+  setMetaProperty("og:image:alt", DEFAULT_IMAGE_ALT);
 
   setMetaName("twitter:card", "summary_large_image");
   setMetaName("twitter:title", title);
   setMetaName("twitter:description", description);
   setMetaName("twitter:image", image);
+  setMetaName("twitter:image:alt", DEFAULT_IMAGE_ALT);
 };
 
 export const defaultSeo = {
