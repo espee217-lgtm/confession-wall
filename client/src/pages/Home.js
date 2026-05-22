@@ -30,6 +30,7 @@ const API_BASE =
 const API_URL = `${API_BASE}/api/confessions`;
 const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
 const MOBILE_HOME_PAGE_LIMIT = 20;
+const MAX_CONFESSION_IMAGES = 6;
 const LOGIN_PROMPT_MESSAGE =
   "Log in to join the garden - you can still browse freely.";
 
@@ -789,6 +790,7 @@ function buildPollPayload(question, options) {
 
 function ComposeEnhancements({
   compact = false,
+  section = "all",
   selectedMood,
   setSelectedMood,
   contentWarningEnabled,
@@ -813,6 +815,8 @@ function ComposeEnhancements({
   setPollOptions,
   onOpenConfession,
 }) {
+  const showPrompt = section === "all" || section === "prompt";
+  const showSettings = section === "all" || section === "settings";
   const sectionTitleStyle = {
     fontSize: compact ? "10px" : "11px",
     letterSpacing: "0.12em",
@@ -860,78 +864,90 @@ function ComposeEnhancements({
   };
 
   return (
-    <div style={{ marginTop: compact ? "14px" : "16px", display: "grid", gap: compact ? "13px" : "15px" }}>
-      <div
-        style={{
-          borderRadius: "16px",
-          border: "1px solid rgba(170,255,130,0.14)",
-          background: "rgba(255,255,255,0.035)",
-          padding: compact ? "11px" : "12px",
-        }}
-      >
+    <div
+      className={`confession-composer-options confession-composer-options--${section}`}
+      style={{
+        marginTop: compact ? "14px" : "16px",
+        display: "grid",
+        gap: compact ? "13px" : "15px",
+      }}
+    >
+      {showPrompt && (
         <div
+          className="confession-composer-prompt-card"
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-            alignItems: "center",
-            justifyContent: "space-between",
+            borderRadius: "16px",
+            border: "1px solid rgba(170,255,130,0.14)",
+            background: "rgba(255,255,255,0.035)",
+            padding: compact ? "11px" : "12px",
           }}
         >
-          <div>
-            <div style={sectionTitleStyle}>Whisper Prompt</div>
-            <p
-              style={{
-                margin: 0,
-                color: "rgba(255,255,220,0.46)",
-                fontSize: compact ? "11px" : "12px",
-              }}
-            >
-              Need a spark without losing your draft.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onGeneratePrompt}
-            style={chipStyle(Boolean(whisperPrompt))}
-          >
-            {whisperPrompt ? "Another whisper" : "Need a spark?"}
-          </button>
-        </div>
-
-        {whisperPrompt && (
           <div
             style={{
-              marginTop: "10px",
-              padding: compact ? "10px 11px" : "11px 12px",
-              borderRadius: "14px",
-              border: "1px solid rgba(170,255,130,0.12)",
-              background: "rgba(9,28,10,0.52)",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <p
-              style={{
-                margin: "0 0 10px",
-                color: "rgba(240,255,220,0.88)",
-                fontSize: compact ? "12px" : "13px",
-                lineHeight: 1.55,
-              }}
-            >
-              {whisperPrompt}
-            </p>
+            <div>
+              <div style={sectionTitleStyle}>Whisper Prompt</div>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,220,0.46)",
+                  fontSize: compact ? "11px" : "12px",
+                }}
+              >
+                Need a spark without losing your draft.
+              </p>
+            </div>
 
             <button
               type="button"
-              onClick={onUsePrompt}
-              style={chipStyle(false)}
+              onClick={onGeneratePrompt}
+              style={chipStyle(Boolean(whisperPrompt))}
             >
-              Use as opening line
+              {whisperPrompt ? "Another whisper" : "Need a spark?"}
             </button>
           </div>
-        )}
-      </div>
 
+          {whisperPrompt && (
+            <div
+              style={{
+                marginTop: "10px",
+                padding: compact ? "10px 11px" : "11px 12px",
+                borderRadius: "14px",
+                border: "1px solid rgba(170,255,130,0.12)",
+                background: "rgba(9,28,10,0.52)",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 10px",
+                  color: "rgba(240,255,220,0.88)",
+                  fontSize: compact ? "12px" : "13px",
+                  lineHeight: 1.55,
+                }}
+              >
+                {whisperPrompt}
+              </p>
+
+              <button
+                type="button"
+                onClick={onUsePrompt}
+                style={chipStyle(false)}
+              >
+                Use as opening line
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {showSettings && (
+        <>
       <div>
         <div style={sectionTitleStyle}>Mood</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -1134,6 +1150,8 @@ function ComposeEnhancements({
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1149,10 +1167,8 @@ function MobileHomePage({
   setShowCompose,
   message,
   setMessage,
-  image,
-  setImage,
   imagePreview,
-  setImagePreview,
+  removeSelectedImage,
   loading,
   handleImageChange,
   handleSubmit,
@@ -1185,6 +1201,11 @@ function MobileHomePage({
   onOpenConfession,
 }) {
   const visiblePosts = freshPosts;
+  const selectedImagePreviews = Array.isArray(imagePreview)
+    ? imagePreview
+    : imagePreview
+    ? [imagePreview]
+    : [];
 
   const MobileCard = ({ conf }) => {
     const waterCount = conf.wateredBy?.length || 0;
@@ -1379,26 +1400,22 @@ function MobileHomePage({
               setPollOptions={setPollOptions}
             />
 
-            {imagePreview && (
-              <div className="mobile-compose-preview">
-                <img src={imagePreview} alt="preview" />
-                <button
-  type="button"
-  onClick={() => {
-    setImage(null);
-    setImagePreview(null);
-  }}
->
-  <span
-    style={{
-      display: "block",
-      transform: "translateX(-5px) translateY(-5px)",
-      lineHeight: 1,
-    }}
-  >
-    ✕
-  </span>
-</button>
+            {selectedImagePreviews.length > 0 && (
+              <div className="mobile-compose-preview mobile-compose-preview--multi">
+                <div className="mobile-compose-preview-strip">
+                  {selectedImagePreviews.map((src, index) => (
+                    <div className="mobile-compose-preview-item" key={`${src}-${index}`}>
+                      <img src={src} alt={`Selected confession attachment ${index + 1}`} />
+                      <button
+                        type="button"
+                        aria-label={`Remove attached image ${index + 1}`}
+                        onClick={() => removeSelectedImage(index)}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1412,7 +1429,7 @@ function MobileHomePage({
 
   <label>
     ⌘ image
-                <input type="file" accept="image/*" onChange={handleImageChange} />
+                <input type="file" accept="image/*" multiple onChange={handleImageChange} />
               </label>
               <button type="button" onClick={handleSubmit} disabled={loading || !message.trim()}>
                 {loading ? "planting…" : "bloom →"}
@@ -1620,9 +1637,9 @@ const [tutorialStep, setTutorialStep] = useState(0);
   const [message, setMessage] = useState("");
 const [showPostEmojiPicker, setShowPostEmojiPicker] = useState(false);
 const postInputRef = useRef(null);
-const [image, setImage] = useState(null);
+const [image, setImage] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState([]);
   const [selectedMood, setSelectedMood] = useState("");
   const [contentWarningEnabled, setContentWarningEnabled] = useState(false);
   const [contentWarningCategory, setContentWarningCategory] = useState("");
@@ -1639,6 +1656,12 @@ const [image, setImage] = useState(null);
   const [mobileFeedLoadingMore, setMobileFeedLoadingMore] = useState(false);
   const availablePostThemes = useMemo(() => getAvailablePostThemes(user), [user]);
   const isLoggedIn = Boolean(user?._id && token);
+  const selectedImageFiles = Array.isArray(image) ? image : image ? [image] : [];
+  const selectedImagePreviews = Array.isArray(imagePreview)
+    ? imagePreview
+    : imagePreview
+    ? [imagePreview]
+    : [];
 
   const promptLogin = useCallback(() => {
     setShowLoginPrompt(true);
@@ -1783,9 +1806,27 @@ useEffect(() => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImage(file);
-    if (file) setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []).slice(0, MAX_CONFESSION_IMAGES);
+
+    setImage(files);
+    setImagePreview(files.map((file) => URL.createObjectURL(file)));
+
+    if ((e.target.files?.length || 0) > MAX_CONFESSION_IMAGES) {
+      window.cwToast?.(`You can attach up to ${MAX_CONFESSION_IMAGES} images.`, "warning");
+    }
+
+    e.target.value = "";
+  };
+
+  const removeSelectedImage = (indexToRemove) => {
+    setImage((prev) => {
+      const files = Array.isArray(prev) ? prev : prev ? [prev] : [];
+      return files.filter((_, index) => index !== indexToRemove);
+    });
+    setImagePreview((prev) => {
+      const previews = Array.isArray(prev) ? prev : prev ? [prev] : [];
+      return previews.filter((_, index) => index !== indexToRemove);
+    });
   };
 
   const handleOpenConfession = () => {
@@ -1856,7 +1897,9 @@ useEffect(() => {
     try {
       const formData = new FormData();
       formData.append("message", message);
-      if (image) formData.append("image", image);
+      selectedImageFiles.forEach((file) => {
+        formData.append("images", file);
+      });
       if (selectedMood) formData.append("mood", selectedMood);
       if (selectedPostTheme) formData.append("postTheme", selectedPostTheme);
       if (poll) formData.append("poll", JSON.stringify(poll));
@@ -1899,8 +1942,8 @@ useEffect(() => {
 
       setConfessions((prev) => [confessionWithUser, ...prev]);
       setMessage("");
-      setImage(null);
-      setImagePreview(null);
+      setImage([]);
+      setImagePreview([]);
       setSelectedMood("");
       setContentWarningEnabled(false);
       setContentWarningCategory("");
@@ -1941,10 +1984,8 @@ useEffect(() => {
   setShowCompose={setShowCompose}
   message={message}
   setMessage={setMessage}
-  image={image}
-  setImage={setImage}
   imagePreview={imagePreview}
-  setImagePreview={setImagePreview}
+  removeSelectedImage={removeSelectedImage}
   loading={loading}
   handleImageChange={handleImageChange}
   handleSubmit={handleSubmit}
@@ -2147,6 +2188,7 @@ useEffect(() => {
       {showCompose && (
   <div
     data-ui="true"   // ✅ ADD THIS LINE
+    className="confession-composer-backdrop"
     onClick={(e) => {
            e.stopPropagation();  
             if (e.target === e.currentTarget) setShowCompose(false);
@@ -2163,6 +2205,7 @@ useEffect(() => {
           }}
         >
           <div
+            className="confession-composer-shell"
             style={{
               background: "rgba(8,22,6,0.97)",
               border: "1px solid rgba(255,238,136,0.2)",
@@ -2180,6 +2223,9 @@ useEffect(() => {
             }}
           >
             <button
+              type="button"
+              className="confession-composer-close"
+              aria-label="Close confession composer"
   onClick={(e) => {
     e.stopPropagation();   // ✅ IMPORTANT
     setShowCompose(false);
@@ -2196,10 +2242,10 @@ useEffect(() => {
                 lineHeight: 1,
               }}
             >
-              ✕
+              &times;
             </button>
 
-            <div style={{ marginBottom: "20px" }}>
+            <div className="confession-composer-header" style={{ marginBottom: "20px" }}>
               <p style={{ color: "rgba(255,238,136,0.9)", fontSize: "13px", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>
                 ✦ plant a confession
               </p>
@@ -2208,7 +2254,12 @@ useEffect(() => {
               </p>
             </div>
 
+            <div className="confession-composer-body">
+              <div className="confession-composer-left">
+                <div className={`confession-composer-writing-row ${selectedImagePreviews.length > 0 ? "has-image" : "no-image"}`}>
+                  <div className="confession-composer-textarea-wrap">
             <textarea
+  className="confession-composer-textarea"
   ref={postInputRef}
   placeholder="what do you need to confess?"
   value={message}
@@ -2230,8 +2281,39 @@ useEffect(() => {
                 boxSizing: "border-box",
               }}
             />
+                  </div>
+
+            {selectedImagePreviews.length > 0 && (
+              <div className="confession-composer-preview confession-composer-preview--desktop">
+                <div className="confession-composer-preview-strip">
+                  {selectedImagePreviews.map((src, index) => (
+                    <div className="confession-composer-preview-item" key={`${src}-${index}`}>
+                      <img
+  src={src}
+  alt={`Selected confession attachment ${index + 1}`}
+/>
+                      <button
+                        type="button"
+                        className="confession-composer-preview-remove"
+                        aria-label={`Remove attached image ${index + 1}`}
+                        onClick={() => removeSelectedImage(index)}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {selectedImagePreviews.length > 1 && (
+                  <div className="confession-composer-preview-count">
+                    {selectedImagePreviews.length} images
+                  </div>
+                )}
+              </div>
+            )}
+                </div>
 
             <ComposeEnhancements
+              section="prompt"
               selectedMood={selectedMood}
               setSelectedMood={setSelectedMood}
               contentWarningEnabled={contentWarningEnabled}
@@ -2256,53 +2338,62 @@ useEffect(() => {
               setPollOptions={setPollOptions}
             />
 
-            {imagePreview && (
-              <div
-                style={{
-                  marginTop: "12px",
-                  position: "relative",
-                  display: "inline-block",
-                  maxWidth: "100%",
-                }}
-              >
-                <img
-  src={imagePreview}
-  alt="preview"
-  style={{
-    maxHeight: "124px",
-    maxWidth: "100%",
-    borderRadius: "12px",
-    display: "block",
-    objectFit: "cover",
-  }}
+            {selectedImagePreviews.length > 0 && (
+              <div className="confession-composer-preview confession-composer-preview--stacked">
+                <div className="confession-composer-preview-strip">
+                  {selectedImagePreviews.map((src, index) => (
+                    <div className="confession-composer-preview-item" key={`${src}-${index}`}>
+                      <img
+  src={src}
+  alt={`Selected confession attachment ${index + 1}`}
 />
-                <button
-                  onClick={() => {
-                    setImage(null);
-                    setImagePreview(null);
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "-6px",
-                    right: "-6px",
-                    background: "rgba(255,80,80,0.8)",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "18px",
-                    height: "18px",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontSize: "10px",
-                    lineHeight: 1,
-                    zIndex: 11,
-                  }}
-                >
-                  ✕
-                </button>
+                      <button
+                        type="button"
+                        className="confession-composer-preview-remove"
+                        aria-label={`Remove attached image ${index + 1}`}
+                        onClick={() => removeSelectedImage(index)}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
+              </div>
+
+              <div className="confession-composer-right">
+                <ComposeEnhancements
+                  section="settings"
+                  selectedMood={selectedMood}
+                  setSelectedMood={setSelectedMood}
+                  contentWarningEnabled={contentWarningEnabled}
+                  setContentWarningEnabled={setContentWarningEnabled}
+                  contentWarningCategory={contentWarningCategory}
+                  setContentWarningCategory={setContentWarningCategory}
+                  contentWarningNote={contentWarningNote}
+                  setContentWarningNote={setContentWarningNote}
+                  contentWarningSensitive={contentWarningSensitive}
+                  setContentWarningSensitive={setContentWarningSensitive}
+                  availablePostThemes={availablePostThemes}
+                  selectedPostTheme={selectedPostTheme}
+                  setSelectedPostTheme={setSelectedPostTheme}
+                  whisperPrompt={whisperPrompt}
+                  onGeneratePrompt={handleGeneratePrompt}
+                  onUsePrompt={handleUsePrompt}
+                  showPollComposer={showPollComposer}
+                  setShowPollComposer={setShowPollComposer}
+                  pollQuestion={pollQuestion}
+                  setPollQuestion={setPollQuestion}
+                  pollOptions={pollOptions}
+                  setPollOptions={setPollOptions}
+                />
+              </div>
+            </div>
+
             <div
+  className="confession-composer-actions"
   style={{
     display: "grid",
     gridTemplateColumns: "1fr auto",
@@ -2312,6 +2403,7 @@ useEffect(() => {
   }}
 >
   <div
+  className="confession-composer-tools"
   style={{
     display: "flex",
     alignItems: "center",
@@ -2341,13 +2433,25 @@ useEffect(() => {
       <input
         type="file"
         accept="image/*"
+        multiple
         onChange={handleImageChange}
         style={{ display: "none" }}
       />
     </label>
   </div>
 
+  <div className="confession-composer-submit-group">
   <button
+    type="button"
+    className="confession-composer-cancel"
+    onClick={() => setShowCompose(false)}
+  >
+    Cancel
+  </button>
+
+  <button
+    type="button"
+    className="confession-composer-submit"
     onClick={handleSubmit}
     disabled={loading || !message.trim()}
     style={{
@@ -2375,6 +2479,7 @@ useEffect(() => {
   </button>
 </div>
           </div>
+        </div>
         </div>
       )}
     {showTutorial && (

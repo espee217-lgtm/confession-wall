@@ -72,7 +72,16 @@ const storage = new CloudinaryStorage({
   },
 });
 
+const MAX_CONFESSION_IMAGES = 6;
 const upload = multer({ storage, ...imageUploadOptions });
+const confessionUpload = multer({
+  storage,
+  ...imageUploadOptions,
+  limits: {
+    ...imageUploadOptions.limits,
+    files: MAX_CONFESSION_IMAGES,
+  },
+});
 
 const CONFESSION_MOODS = [
   "Hopeful",
@@ -778,9 +787,19 @@ router.post(
   protect,
   blockSuspended,
   postLimiter,
-  upload.single("image"),
+  confessionUpload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "images", maxCount: MAX_CONFESSION_IMAGES },
+  ]),
   async (req, res) => {
     try {
+      const uploadedFiles = [
+        ...(Array.isArray(req.files?.image) ? req.files.image : []),
+        ...(Array.isArray(req.files?.images) ? req.files.images : []),
+      ].slice(0, MAX_CONFESSION_IMAGES);
+      const imagePaths = uploadedFiles
+        .map((file) => file?.path)
+        .filter(Boolean);
       const message = sanitizeText(req.body.message, { maxLength: 2000, allowNewLines: true });
       const mood = sanitizeShortText(req.body.mood || "", 20);
       const moodValue = mood || undefined;
@@ -793,7 +812,7 @@ router.post(
         req.body
       );
 
-      if (!message && !req.file) {
+      if (!message && imagePaths.length === 0) {
         return res.status(400).json({ message: "Post text or image is required." });
       }
 
@@ -816,7 +835,8 @@ router.post(
       const newConfession = new Confession({
         userId: req.user._id,
         message,
-        image: req.file ? req.file.path : null,
+        image: imagePaths[0] || null,
+        images: imagePaths,
         mood: moodValue,
         postTheme,
         contentWarning,
@@ -852,7 +872,8 @@ router.post(
         targetId: saved._id,
         targetType: "confession",
         metadata: {
-          hasImage: Boolean(req.file),
+          hasImage: imagePaths.length > 0,
+          imageCount: imagePaths.length,
           mood: moodValue || "",
           postTheme,
           hasPoll: Boolean(poll),
@@ -878,7 +899,7 @@ router.post(
   }
 );
 
-// SEND an anonymous comfort card to a confession
+// TOGGLE an anonymous comfort card on a confession
 router.post(
   "/:id/comfort-cards",
   protect,
@@ -913,19 +934,32 @@ router.post(
       }
 
       const alreadySent = comfortCard.sentBy?.some((id) => id.equals(userId));
+      let toggled = "added";
 
       if (alreadySent) {
-        return res.status(400).json({
-          message: "You already sent that comfort card to this confession.",
-        });
-      }
+        comfortCard.sentBy = (comfortCard.sentBy || []).filter(
+          (id) => !id.equals(userId)
+        );
+        comfortCard.count = Math.max(0, (comfortCard.count || 0) - 1);
+        toggled = "removed";
 
-      comfortCard.sentBy.push(userId);
-      comfortCard.count += 1;
+        if (comfortCard.count <= 0) {
+          confession.comfortCards = confession.comfortCards.filter(
+            (card) => card.text !== text
+          );
+        }
+      } else {
+        comfortCard.sentBy.push(userId);
+        comfortCard.count += 1;
+      }
 
       await confession.save();
 
-      if (confession.userId && !confession.userId.equals(userId)) {
+      if (
+        toggled === "added" &&
+        confession.userId &&
+        !confession.userId.equals(userId)
+      ) {
         await createNotification({
           userId: confession.userId,
           type: "comment",
@@ -935,6 +969,10 @@ router.post(
       }
 
       res.json({
+        message:
+          toggled === "added"
+            ? "Comfort card sent."
+            : "Comfort card removed.",
         comfortCards: serializeComfortCards(confession.comfortCards),
       });
     } catch (err) {

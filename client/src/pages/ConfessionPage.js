@@ -9,7 +9,6 @@ import {
 } from "../utils/cosmetics";
 import {
   COMFORT_CARD_OPTIONS,
-  getComfortCardSummary,
   getConfessionThemeId,
   getDisplayCosmetics,
   getMoodChipStyle,
@@ -20,6 +19,7 @@ import {
   normalizeContentWarning,
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
+import { getConfessionImages } from "../utils/confessionImages";
 import {
   copyConfessionLink,
   getConfessionExcerpt,
@@ -209,23 +209,20 @@ function ReactionBar({
       <button
         type="button"
         onClick={() => onReact(type)}
+        aria-label={`${isWater ? "Water" : "Burn"} confession`}
+        className={[
+          "confession-detail-reaction-btn",
+          isWater ? "is-water" : "is-burn",
+          active ? "is-active" : "",
+          small ? "confession-detail-reaction-btn--small" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: small ? "4px" : "6px",
-          padding: small ? "3px 10px" : "5px 14px",
-          borderRadius: "20px",
-          border: `0.5px solid ${active ? activeColor : idleColor}`,
-          background: active
-            ? isWater
-              ? "rgba(29,158,117,0.14)"
-              : "rgba(216,90,48,0.14)"
-            : "transparent",
-          cursor: "pointer",
-          fontFamily: "Georgia, serif",
-          fontSize: small ? "11px" : "12px",
-          color: active ? activeText : idleText,
-          transition: "all 0.2s ease",
+          "--reaction-active-border": activeColor,
+          "--reaction-idle-border": idleColor,
+          "--reaction-active-text": activeText,
+          "--reaction-idle-text": idleText,
         }}
       >
         {isWater ? "🌱" : "🔥"}{" "}
@@ -372,6 +369,141 @@ function RelatedConfessionCard({ post, theme }) {
         </div>
       </article>
     </Link>
+  );
+}
+
+function normalizeComfortCount(value) {
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+function getReceivedComfortCards(rawCards) {
+  const cardsByText = new Map();
+  const optionOrder = new Map(
+    COMFORT_CARD_OPTIONS.map((option, index) => [option, index])
+  );
+
+  const addCard = (label, count) => {
+    const text = String(label || "").trim();
+    const safeCount = normalizeComfortCount(count);
+
+    if (!text || safeCount <= 0) return;
+
+    cardsByText.set(text, {
+      text,
+      count: (cardsByText.get(text)?.count || 0) + safeCount,
+    });
+  };
+
+  if (Array.isArray(rawCards)) {
+    rawCards.forEach((card) => {
+      if (typeof card === "string") {
+        addCard(card, 1);
+        return;
+      }
+
+      if (!card || typeof card !== "object") return;
+
+      addCard(
+        card.text || card.label || card.message || card.type || card.key,
+        card.count ?? card.total ?? card.value ?? card.users?.length
+      );
+    });
+  } else if (rawCards && typeof rawCards === "object") {
+    Object.entries(rawCards).forEach(([key, value]) => {
+      if (typeof value === "number" || typeof value === "string") {
+        addCard(key, value);
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        addCard(key, value.length);
+        return;
+      }
+
+      if (!value || typeof value !== "object") return;
+
+      addCard(
+        value.text || value.label || value.message || key,
+        value.count ?? value.total ?? value.value ?? value.users?.length
+      );
+    });
+  }
+
+  return Array.from(cardsByText.values()).sort((a, b) => {
+    const countDiff = b.count - a.count;
+    if (countDiff !== 0) return countDiff;
+
+    const orderA = optionOrder.has(a.text)
+      ? optionOrder.get(a.text)
+      : Number.MAX_SAFE_INTEGER;
+    const orderB = optionOrder.has(b.text)
+      ? optionOrder.get(b.text)
+      : Number.MAX_SAFE_INTEGER;
+
+    return orderA - orderB || a.text.localeCompare(b.text);
+  });
+}
+
+function ComfortSideStack({ cards = [], side = "right" }) {
+  if (!cards.length) return null;
+
+  const isLeft = side === "left";
+
+  return (
+    <aside
+      className={`comfort-side-stack comfort-side-stack--${side}`}
+      aria-label={`${isLeft ? "Left" : "Right"} comfort received`}
+    >
+      {cards.map((card, index) => (
+        <div
+          key={`${card.text}-${side}`}
+          className={`comfort-side-note comfort-side-note--${side}`}
+          aria-label={`${card.text}, sent ${card.count} ${
+            card.count === 1 ? "time" : "times"
+          }`}
+          style={{ animationDelay: `${index * 80}ms` }}
+        >
+          {isLeft ? (
+            <>
+              <span className="comfort-side-note__count">{card.count}</span>
+              <span className="comfort-side-note__text">{card.text}</span>
+              <span className="comfort-side-note__connector" aria-hidden="true" />
+            </>
+          ) : (
+            <>
+              <span className="comfort-side-note__connector" aria-hidden="true" />
+              <span className="comfort-side-note__text">{card.text}</span>
+              <span className="comfort-side-note__count">{card.count}</span>
+            </>
+          )}
+        </div>
+      ))}
+    </aside>
+  );
+}
+
+function ComfortReceivedInline({ cards = [] }) {
+  if (!cards.length) return null;
+
+  return (
+    <div className="comfort-received-mobile" aria-label="Comfort received">
+      <div className="comfort-received-mobile__title">Comfort received</div>
+      <div className="comfort-received-mobile__grid">
+        {cards.map((card) => (
+          <div
+            key={`mobile-${card.text}`}
+            className="comfort-side-note comfort-side-note--mobile"
+            aria-label={`${card.text}, sent ${card.count} ${
+              card.count === 1 ? "time" : "times"
+            }`}
+          >
+            <span className="comfort-side-note__text">{card.text}</span>
+            <span className="comfort-side-note__count">{card.count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -591,13 +723,16 @@ export default function ConfessionPage() {
   const viewerPostThemeStyle = getPostThemeStyle(viewerEquipped.postTheme, realm);
   const viewerHasPostTheme = Boolean(viewerEquipped.postTheme);
   const moodStyle = getMoodChipStyle(confession?.mood);
-  const comfortCards = getComfortCardSummary(confession?.comfortCards);
+  const receivedComfortCards = getReceivedComfortCards(confession?.comfortCards);
+  const rightComfortCards = receivedComfortCards.slice(0, 3);
+  const leftComfortCards = receivedComfortCards.slice(3, 6);
   const pollVotes = getPollTotalVotes(confession?.poll);
   const isSaved = getSavedConfessionIdSet(user).has(String(confession?._id || ""));
   const contentWarning = normalizeContentWarning(confession?.contentWarning);
   const hasContentWarning = contentWarning.enabled;
   const hideSensitiveContent =
     shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
+  const confessionImages = getConfessionImages(confession);
 
 // 📎 COMMENT IMAGE PIN PLACEMENT CONTROLS
 // Change only these 4 values later.
@@ -671,15 +806,9 @@ const activeCommentPinPosition = isPhoneLayout
       (post) => String(post?._id || "") !== String(confession?._id || "")
     ) || null;
   const actionButtonStyle = {
-    borderRadius: "999px",
-    border: `1px solid ${theme.reactionBorder}`,
-    background: "rgba(255,255,255,0.06)",
-    color: theme.text,
-    padding: isPhoneLayout ? "7px 12px" : "8px 13px",
-    fontSize: "11px",
-    fontFamily: "Georgia, serif",
-    cursor: "pointer",
-    letterSpacing: "0.03em",
+    "--confession-action-border": theme.reactionBorder,
+    "--confession-action-text": "rgba(232, 255, 196, 0.96)",
+    "--confession-action-section": "#dfffb4",
   };
 
   const clampScale = (value) => Math.max(0.4, Math.min(6, value));
@@ -934,8 +1063,10 @@ const activeCommentPinPosition = isPhoneLayout
 
   const sendComfortCard = async (text) => {
     if (!token) {
-      window.cwToast?.("You must be logged in to send comfort cards.", "warning") ||
-        alert("You must be logged in to send comfort cards.");
+      window.cwToast?.(
+        "Log in to send comfort - you can still browse freely.",
+        "warning"
+      ) || alert("Log in to send comfort - you can still browse freely.");
       return;
     }
 
@@ -1147,10 +1278,15 @@ const activeCommentPinPosition = isPhoneLayout
             <ForestEventBanner compact />
           </div>
 
-          <div
-            style={cardStyle}
-            className={authorPostThemeClass || undefined}
-          >
+          <div className="confession-detail-shell">
+            <ComfortSideStack side="left" cards={leftComfortCards} />
+
+            <div
+              style={cardStyle}
+              className={["confession-detail-card", authorPostThemeClass]
+                .filter(Boolean)
+                .join(" ")}
+            >
             <PostThemeFxLayers themeId={confessionThemeId} />
             <div
               style={{
@@ -1296,21 +1432,32 @@ const activeCommentPinPosition = isPhoneLayout
               )}
             </div>
 
-            {confession.image && (
-              <div style={{ position: "relative", marginTop: "8px" }}>
-                <img
-                  src={confession.image}
-                  alt="confession"
-                  onClick={() => openImageLightbox(confession.image)}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "300px",
-                    borderRadius: "12px",
-                    filter: hideSensitiveContent ? "blur(12px)" : "none",
-                    transition: "filter 0.18s ease",
-                    cursor: "zoom-in",
-                  }}
-                />
+            {confessionImages.length > 0 && (
+              <div className="confession-image-scroller" style={{ marginTop: "8px" }}>
+                <div className="confession-image-scroller__track">
+                  {confessionImages.map((src, index) => (
+                    <button
+                      type="button"
+                      key={`${src}-${index}`}
+                      className="confession-image-scroller__item"
+                      onClick={() => openImageLightbox(src)}
+                    >
+                      <img
+                        src={src}
+                        alt={`confession attachment ${index + 1}`}
+                        style={{
+                          filter: hideSensitiveContent ? "blur(12px)" : "none",
+                          transition: "filter 0.18s ease",
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+                {confessionImages.length > 1 && (
+                  <div className="confession-image-scroller__count">
+                    {confessionImages.length} images
+                  </div>
+                )}
                 {hideSensitiveContent && (
                   <div
                     style={{
@@ -1421,6 +1568,7 @@ const activeCommentPinPosition = isPhoneLayout
                 type="button"
                 onClick={handleShareConfession}
                 aria-label="Share confession"
+                className="confession-detail-action-btn"
                 style={actionButtonStyle}
               >
                 Share
@@ -1429,6 +1577,7 @@ const activeCommentPinPosition = isPhoneLayout
                 type="button"
                 onClick={handleCopyConfessionLink}
                 aria-label="Copy confession link"
+                className="confession-detail-action-btn"
                 style={actionButtonStyle}
               >
                 Copy Link
@@ -1438,6 +1587,7 @@ const activeCommentPinPosition = isPhoneLayout
                   type="button"
                   onClick={() => navigate(`/confession/${nextConfession._id}`)}
                   aria-label="Read another confession"
+                  className="confession-detail-action-btn"
                   style={actionButtonStyle}
                 >
                   Next Confession
@@ -1472,22 +1622,10 @@ const activeCommentPinPosition = isPhoneLayout
               <button
                 type="button"
                 onClick={togglePressedLeaf}
-                style={{
-                  borderRadius: "999px",
-                  border: `1px solid ${
-                    isSaved
-                      ? "rgba(240, 210, 135, 0.4)"
-                      : "rgba(220, 192, 120, 0.22)"
-                  }`,
-                  background: isSaved
-                    ? "rgba(220, 192, 120, 0.16)"
-                    : "rgba(220, 192, 120, 0.08)",
-                  color: isSaved ? "#ffe6a7" : "#e7d59a",
-                  padding: "6px 12px",
-                  cursor: "pointer",
-                  fontFamily: "Georgia, serif",
-                  fontSize: "11px",
-                }}
+                className={`confession-detail-action-btn confession-detail-action-btn--save${
+                  isSaved ? " is-active" : ""
+                }`}
+                style={actionButtonStyle}
               >
                 {isSaved ? "🍂 saved to Pressed Leaves" : "🍂 save to Pressed Leaves"}
               </button>
@@ -1555,59 +1693,25 @@ const activeCommentPinPosition = isPhoneLayout
                 Comfort Cards
               </div>
 
-              {comfortCards.length > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "7px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  {comfortCards.map((card) => (
-                    <span
-                      key={card.text}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "6px 10px",
-                        borderRadius: "999px",
-                        border: `1px solid ${theme.reactionBorder}`,
-                        background: "rgba(255,255,255,0.05)",
-                        color: theme.text,
-                        fontSize: "11px",
-                      }}
-                    >
-                      <span>{card.text}</span>
-                      <strong>{card.count}</strong>
-                    </span>
-                  ))}
-                </div>
-              )}
+              <ComfortReceivedInline cards={receivedComfortCards} />
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              <div className="comfort-card-action-grid">
                 {COMFORT_CARD_OPTIONS.map((option) => (
                   <button
                     key={option}
                     type="button"
                     onClick={() => sendComfortCard(option)}
-                    style={{
-                      padding: "7px 11px",
-                      borderRadius: "999px",
-                      border: `1px solid ${theme.reactionBorder}`,
-                      background: "rgba(255,255,255,0.04)",
-                      color: theme.text,
-                      cursor: "pointer",
-                      fontFamily: "Georgia, serif",
-                      fontSize: "11px",
-                    }}
+                    className="comfort-card-action-btn"
+                    style={actionButtonStyle}
                   >
                     {option}
                   </button>
                 ))}
               </div>
             </div>
+            </div>
+
+            <ComfortSideStack side="right" cards={rightComfortCards} />
           </div>
 
           <div
@@ -2121,6 +2225,7 @@ onMouseLeave={(e) => {
                     type="button"
                     onClick={() => navigate(`/confession/${nextConfession._id}`)}
                     aria-label="Next confession"
+                    className="confession-detail-action-btn"
                     style={actionButtonStyle}
                   >
                     Read another

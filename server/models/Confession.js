@@ -179,7 +179,8 @@ const confessionSchema = new mongoose.Schema(
       default: null,
     },
     message: { type: String, required: true },
-    image:   { type: String },
+    image: { type: String, default: null },
+    images: [{ type: String }],
     mood: {
       type: String,
       enum: [

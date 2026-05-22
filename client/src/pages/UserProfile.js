@@ -17,6 +17,7 @@ import {
   normalizeContentWarning,
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
+import { getConfessionImages } from "../utils/confessionImages";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -230,6 +231,7 @@ export default function UserProfile() {
             );
             const hideSensitiveContent =
               shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
+            const postImages = getConfessionImages(p);
 
             return (
               <Link
@@ -370,18 +372,35 @@ export default function UserProfile() {
                     )}
                   </div>
 
-                  {p.image && (
-                    <div style={{ position: "relative", marginBottom: "0.75rem" }}>
-                      <img
-                        src={p.image}
-                        alt=""
-                        style={{
-                          ...postImageStyle,
-                          marginBottom: 0,
-                          filter: hideSensitiveContent ? "blur(12px)" : "none",
-                          transition: "filter 0.18s ease",
-                        }}
-                      />
+                  {postImages.length > 0 && (
+                    <div
+                      className="confession-image-scroller confession-image-scroller--profile"
+                      style={{ marginBottom: "0.75rem" }}
+                    >
+                      <div className="confession-image-scroller__track">
+                        {postImages.map((src, index) => (
+                          <div
+                            className="confession-image-scroller__item"
+                            key={`${src}-${index}`}
+                          >
+                            <img
+                              src={src}
+                              alt={`confession attachment ${index + 1}`}
+                              style={{
+                                ...postImageStyle,
+                                marginBottom: 0,
+                                filter: hideSensitiveContent ? "blur(12px)" : "none",
+                                transition: "filter 0.18s ease",
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {postImages.length > 1 && (
+                        <div className="confession-image-scroller__count">
+                          {postImages.length} images
+                        </div>
+                      )}
                       {hideSensitiveContent && (
                         <div
                           style={{
