@@ -3728,6 +3728,113 @@ a.chip {
   background: rgba(210, 255, 145, 0.08);
 }
 
+.composer-emoji-anchor {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.composer-emoji-trigger {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 220, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 220, 0.05);
+  color: rgba(255, 255, 220, 0.82);
+  cursor: pointer;
+  font-size: 19px;
+  line-height: 1;
+  text-align: center;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.composer-emoji-trigger:hover,
+.composer-emoji-trigger.is-open {
+  border-color: rgba(190, 255, 130, 0.45);
+  background: rgba(170, 255, 100, 0.16);
+  box-shadow: 0 0 22px rgba(170, 255, 100, 0.18);
+}
+
+.composer-emoji-trigger:active {
+  transform: scale(0.97);
+}
+
+.composer-emoji-trigger:focus-visible {
+  outline: 2px solid rgba(155, 227, 90, 0.55);
+  outline-offset: 3px;
+}
+
+.composer-emoji-popover {
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid rgba(155, 227, 90, 0.22);
+  background:
+    linear-gradient(145deg, rgba(5, 18, 9, 0.98), rgba(9, 34, 18, 0.96));
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.5),
+    0 0 28px rgba(155, 227, 90, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(190, 255, 130, 0.35) transparent;
+}
+
+.composer-emoji-popover button[type="button"]:hover {
+  border-color: rgba(216, 192, 119, 0.55) !important;
+  background: rgba(155, 227, 90, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.composer-emoji-popover button[type="button"]:focus-visible {
+  outline: 2px solid rgba(155, 227, 90, 0.5);
+  outline-offset: 2px;
+}
+
+.composer-emoji-popover-close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 220, 0.16);
+  background: rgba(255, 255, 220, 0.06);
+  color: rgba(255, 255, 220, 0.78);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.composer-emoji-popover-close:hover {
+  border-color: rgba(255, 125, 110, 0.62);
+  background: rgba(255, 95, 80, 0.16);
+  box-shadow:
+    0 0 0 1px rgba(255, 125, 110, 0.14) inset,
+    0 0 14px rgba(255, 85, 70, 0.26);
+}
+
+.composer-emoji-popover-close:active {
+  transform: scale(0.96);
+}
+
 .confession-image-scroller {
   position: relative;
   max-width: 100%;
@@ -4073,11 +4180,41 @@ button.confession-image-scroller__item {
     border-top: 1px solid rgba(155, 227, 90, 0.14);
     background:
       linear-gradient(90deg, rgba(3, 12, 6, 0.74), rgba(9, 28, 13, 0.72));
+    overflow: visible;
+    position: relative;
+    z-index: 8;
   }
 
   .confession-composer-tools {
     min-width: 0;
     flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .composer-emoji-popover--desktop {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 14px);
+    z-index: 40;
+    width: clamp(340px, 34vw, 460px);
+    max-width: min(460px, calc(100vw - 48px));
+    max-height: min(420px, calc(100vh - 180px));
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .composer-emoji-popover--desktop::after {
+    content: "";
+    position: absolute;
+    left: 28px;
+    bottom: -7px;
+    width: 14px;
+    height: 14px;
+    transform: rotate(45deg);
+    border-right: 1px solid rgba(155, 227, 90, 0.2);
+    border-bottom: 1px solid rgba(155, 227, 90, 0.2);
+    background: rgba(6, 22, 11, 0.98);
+    pointer-events: none;
   }
 
   .confession-composer-submit-group {
@@ -4091,6 +4228,25 @@ button.confession-image-scroller__item {
 }
 
 @media (max-width: 900px) {
+  .composer-emoji-trigger {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+  }
+
+  .composer-emoji-popover--compact,
+  .composer-emoji-popover--desktop {
+    position: absolute;
+    left: 0;
+    bottom: 48px;
+    z-index: 40;
+    width: 236px;
+    max-width: calc(100vw - 48px);
+    max-height: 210px;
+    padding: 10px;
+    border-radius: 18px;
+  }
+
   .confession-composer-writing-row {
     display: block;
   }

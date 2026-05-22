@@ -230,6 +230,32 @@ function HomeBackgroundVideo() {
 }
 
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
+  const anchorRef = useRef(null);
+  const pickerId = compact ? "mobile-confession-emoji-picker" : "desktop-confession-emoji-picker";
+
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnOutsidePress = (event) => {
+      if (anchorRef.current?.contains(event.target)) return;
+      setOpen(false);
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open, setOpen]);
+
   const handlePick = (emoji) => {
     onPick(emoji);
 
@@ -242,41 +268,22 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
 
   return (
     <div
+      ref={anchorRef}
       data-ui="true"
-      style={{
-        position: "relative",
-        display: "inline-flex",
-        overflow: "visible",
-      }}
+      className={`composer-emoji-anchor ${compact ? "composer-emoji-anchor--compact" : "composer-emoji-anchor--desktop"}`}
     >
       <button
         type="button"
+        className={`composer-emoji-trigger ${open ? "is-open" : ""}`}
+        aria-label="Choose confession emoji"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-controls={open ? pickerId : undefined}
         onClick={(e) => {
           e.stopPropagation();
           setOpen((v) => !v);
         }}
         title="Add emoji"
-        style={{
-          width: compact ? "36px" : "42px",
-          height: compact ? "36px" : "42px",
-          display: "grid",
-          placeItems: "center",
-          padding: 0,
-          textAlign: "center",
-          lineHeight: 1,
-          borderRadius: "999px",
-          border: open
-            ? "1px solid rgba(190,255,130,0.45)"
-            : "1px solid rgba(255,255,220,0.18)",
-          background: open
-            ? "rgba(170,255,100,0.16)"
-            : "rgba(255,255,220,0.05)",
-          color: "rgba(255,255,220,0.82)",
-          cursor: "pointer",
-          fontSize: compact ? "17px" : "19px",
-          boxShadow: open ? "0 0 22px rgba(170,255,100,0.18)" : "none",
-          flexShrink: 0,
-        }}
       >
         <span
           style={{
@@ -291,33 +298,12 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
 
       {open && (
         <div
+          id={pickerId}
           data-ui="true"
+          role="dialog"
+          aria-label="Choose emoji"
+          className={`composer-emoji-popover ${compact ? "composer-emoji-popover--compact" : "composer-emoji-popover--desktop"}`}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            position: compact ? "absolute" : "fixed",
-            left: compact ? "0" : "calc(50% + 275px)",
-            bottom: compact ? "48px" : "auto",
-            top: compact ? "auto" : "50%",
-            transform: compact ? "none" : "translateY(-50%)",
-            width: compact ? "236px" : "360px",
-            maxWidth: compact ? "calc(100vw - 48px)" : "360px",
-            maxHeight: compact ? "210px" : "390px",
-            overflowY: "auto",
-            overflowX: "hidden",
-            boxSizing: "border-box",
-            padding: compact ? "10px" : "14px",
-            borderRadius: compact ? "18px" : "22px",
-            border: "1px solid rgba(170,255,130,0.22)",
-            background:
-              "linear-gradient(180deg, rgba(8,28,10,0.98), rgba(3,13,5,0.98))",
-            boxShadow:
-              "0 24px 90px rgba(0,0,0,0.72), 0 0 42px rgba(135,255,100,0.13), inset 0 1px 0 rgba(255,255,255,0.07)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            zIndex: 999999,
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(190,255,130,0.35) transparent",
-          }}
         >
           <div
             style={{
@@ -343,19 +329,10 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
 
             <button
               type="button"
+              className="composer-emoji-popover-close"
               onClick={() => setOpen(false)}
-              style={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "999px",
-                border: "1px solid rgba(255,255,220,0.14)",
-                background: "rgba(255,255,220,0.05)",
-                color: "rgba(255,255,220,0.65)",
-                cursor: "pointer",
-                lineHeight: 1,
-              }}
             >
-              ×
+              &times;
             </button>
           </div>
 
@@ -1349,14 +1326,20 @@ function MobileHomePage({
           className="mobile-compose-backdrop"
           onClick={(e) => {
             e.stopPropagation();
-            if (e.target === e.currentTarget) setShowCompose(false);
+            if (e.target === e.currentTarget) {
+              setShowPostEmojiPicker(false);
+              setShowCompose(false);
+            }
           }}
         >
           <div className="mobile-compose-card">
             <button
               type="button"
               className="mobile-compose-close"
-              onClick={() => setShowCompose(false)}
+              onClick={() => {
+                setShowPostEmojiPicker(false);
+                setShowCompose(false);
+              }}
               aria-label="Close compose"
             >
               {"\u00D7"}
@@ -2191,7 +2174,10 @@ useEffect(() => {
     className="confession-composer-backdrop"
     onClick={(e) => {
            e.stopPropagation();  
-            if (e.target === e.currentTarget) setShowCompose(false);
+            if (e.target === e.currentTarget) {
+              setShowPostEmojiPicker(false);
+              setShowCompose(false);
+            }
           }}
           style={{
             position: "fixed",
@@ -2228,18 +2214,26 @@ useEffect(() => {
               aria-label="Close confession composer"
   onClick={(e) => {
     e.stopPropagation();   // ✅ IMPORTANT
+    setShowPostEmojiPicker(false);
     setShowCompose(false);
   }}
               style={{
                 position: "absolute",
                 top: "16px",
                 right: "18px",
-                background: "none",
-                border: "none",
-                color: "rgba(255,255,220,0.4)",
-                fontSize: "20px",
+                width: "40px",
+                height: "40px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255,255,220,0.055)",
+                border: "1px solid rgba(255,255,220,0.12)",
+                borderRadius: "999px",
+                color: "rgba(255,255,220,0.58)",
+                fontSize: "24px",
                 cursor: "pointer",
                 lineHeight: 1,
+                padding: 0,
               }}
             >
               &times;
@@ -2444,7 +2438,10 @@ useEffect(() => {
   <button
     type="button"
     className="confession-composer-cancel"
-    onClick={() => setShowCompose(false)}
+    onClick={() => {
+      setShowPostEmojiPicker(false);
+      setShowCompose(false);
+    }}
   >
     Cancel
   </button>
