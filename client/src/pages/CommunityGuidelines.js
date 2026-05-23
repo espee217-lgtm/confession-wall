@@ -1,184 +1,130 @@
 import { Link } from "react-router-dom";
+import "../styles/legalPages.css";
 
-const pageStyle = {
-  minHeight: "100vh",
-  padding: "90px 18px",
-  background: "#020806",
-  color: "#eaffdf",
-  fontFamily: "Georgia, serif",
-  position: "relative",
-  overflow: "hidden",
-};
-
-const cardStyle = {
-  maxWidth: "820px",
-  margin: "0 auto",
-  padding: "38px 42px",
-  borderRadius: "26px",
-  background: "rgba(4, 22, 10, 0.56)",
-  border: "1px solid rgba(160, 255, 180, 0.18)",
-  boxShadow:
-    "0 20px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-};
-
-const sectionStyle = {
-  marginTop: "24px",
-  padding: "18px 20px",
-  borderRadius: "18px",
-  background: "rgba(255,255,255,0.045)",
-  border: "1px solid rgba(160,255,180,0.11)",
-};
-
-const h1Style = {
-  margin: "0 0 12px",
-  fontSize: "38px",
-  letterSpacing: "0.04em",
-  color: "#f1ffe8",
-  textShadow: "0 0 18px rgba(150,255,160,0.35)",
-};
-
-const h3Style = {
-  margin: "0 0 10px",
-  fontSize: "20px",
-  color: "#bfffc8",
-  letterSpacing: "0.04em",
-};
-
-const pStyle = {
-  margin: 0,
-  fontSize: "16px",
-  lineHeight: 1.75,
-  color: "rgba(235,255,225,0.86)",
-};
+const supportEmail = "confession.wall.origins@gmail.com";
 
 export default function CommunityGuidelines() {
   return (
-  <div style={pageStyle}>
-    <span className="page-firefly page-firefly-1" />
-<span className="page-firefly page-firefly-2" />
-<span className="page-firefly page-firefly-3" />
-<span className="page-firefly page-firefly-4" />
-<span className="page-firefly page-firefly-5" />
-<span className="page-firefly page-firefly-6" />
-    {/* Dark atmosphere overlay */}
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background:
-          "radial-gradient(circle at center, rgba(20,60,35,0.18), rgba(0,0,0,0.92))",
-        zIndex: 0,
-        pointerEvents: "none",
-      }}
-    />
-
-    {/* Krishna - same Home.js proportion */}
-    <img
-      src="/krishna.webp"
-      alt=""
-      style={{
-        position: "fixed",
-        left: 0,
-        bottom: 0,
-        maxHeight: "130%",
-        maxWidth: "45vw",
-        objectFit: "contain",
-        opacity: 0.52,
-        pointerEvents: "none",
-        transform: "translateX(17%) translateY(6%) scale(1.43)",
-        filter:
-          "drop-shadow(0 0 18px rgba(120,255,180,0.28))",
-        zIndex: 1,
-      }}
-    />
-
-    {/* Demon - same Home.js proportion */}
-    <img
-      src="/Demon.webp"
-      alt=""
-      style={{
-        position: "fixed",
-        right: 0,
-        bottom: 0,
-        maxHeight: "130%",
-        maxWidth: "45vw",
-        objectFit: "contain",
-        opacity: 0.52,
-        pointerEvents: "none",
-        transform: "translateX(-17%) translateY(6%) scale(1.43)",
-        filter:
-          "drop-shadow(0 0 18px rgba(255,80,60,0.25))",
-        zIndex: 1,
-      }}
-    />
-
-    {/* Reading card */}
-    <div style={{ ...cardStyle, position: "relative", zIndex: 2 }}>
-        <Link
-          to="/"
-          style={{
-            color: "#9FE1CB",
-            textDecoration: "none",
-            fontSize: "13px",
-            letterSpacing: "0.08em",
-          }}
-        >
-          ← back to wall
+    <main className="legal-page">
+      <article className="legal-card">
+        <Link className="legal-back-link" to="/">
+          Back to wall
         </Link>
 
-        <h1 style={h1Style}>Community Guidelines</h1>
+        <h1 className="legal-title">Community Guidelines</h1>
+        <p className="legal-updated">Last updated: May 23, 2026</p>
 
-        <p style={{ ...pStyle, fontSize: "17px" }}>
-          Confession Wall is a space for honest expression, anonymous thoughts,
-          and emotional release — but it must remain safe, respectful, and
-          moderated.
-        </p>
-
-        <div style={sectionStyle}>
-          <h3 style={h3Style}>Allowed</h3>
-          <p style={pStyle}>
-            Personal thoughts, anonymous confessions, emotional experiences,
-            respectful discussions, light humor, and supportive replies.
+        <section className="legal-section">
+          <h2>1. Purpose</h2>
+          <p>
+            Confession Wall is a platform for anonymous emotional venting,
+            thoughts, stories, dilemmas, life experiences, and community
+            support. The goal is to create a place where people can speak
+            honestly while respecting others.
           </p>
-        </div>
+        </section>
 
-        <div style={sectionStyle}>
-          <h3 style={h3Style}>Not Allowed</h3>
-          <p style={pStyle}>
-            Harassment, hate speech, threats, sexual exploitation, doxxing,
-            spam, impersonation, targeted abuse, or content encouraging harm.
+        <section className="legal-section">
+          <h2>2. Not Therapy or an Emergency Service</h2>
+          <p>
+            Confession Wall is not therapy, medical advice, legal advice,
+            financial advice, or an emergency service. If users are in immediate
+            danger or crisis, they should contact local emergency services or
+            trusted people nearby.
           </p>
-        </div>
+        </section>
 
-        <div style={sectionStyle}>
-          <h3 style={h3Style}>Moderation</h3>
-          <p style={pStyle}>
-            Posts and comments can be reported. Admins may review, resolve,
-            remove, or restrict content and accounts when needed to protect the
-            community. Some safety actions may use internal account, timestamp,
-            report, and security information.
-          </p>
-        </div>
+        <section className="legal-section">
+          <h2>3. Respectful Behavior</h2>
+          <p>Users should:</p>
+          <ul className="legal-list">
+            <li>Be respectful.</li>
+            <li>Avoid targeted attacks.</li>
+            <li>Avoid humiliating others.</li>
+            <li>Disagree without harassment.</li>
+            <li>Support others without pretending to be professionals.</li>
+          </ul>
+        </section>
 
-        <div style={sectionStyle}>
-          <h3 style={h3Style}>Remember</h3>
-          <p style={pStyle}>
-            Anonymous does not mean consequence-free. Use the platform
-            responsibly and do not use anonymity to harm others. Public posts may
-            look anonymous, but the platform is still moderated for safety.
-          </p>
-        </div>
+        <section className="legal-section">
+          <h2>4. Prohibited Content</h2>
+          <p>Do not post or promote:</p>
+          <ul className="legal-list">
+            <li>Harassment or bullying.</li>
+            <li>Hate speech.</li>
+            <li>Threats or incitement to violence.</li>
+            <li>Doxxing or sharing private personal information.</li>
+            <li>Impersonation.</li>
+            <li>Spam.</li>
+            <li>Scams or fraud.</li>
+            <li>Illegal content.</li>
+            <li>Sexual content involving minors.</li>
+            <li>Adult solicitation.</li>
+            <li>Graphic violence.</li>
+            <li>Self-harm encouragement.</li>
+            <li>Instructions for dangerous or illegal acts.</li>
+            <li>Promotion of drugs, weapons, gambling, illegal services, or fraud.</li>
+            <li>Content that violates someone's privacy or rights.</li>
+            <li>Copyrighted content posted without permission.</li>
+            <li>Malicious links, viruses, or harmful software.</li>
+          </ul>
+        </section>
 
-        <div style={sectionStyle}>
-          <h3 style={h3Style}>Need Help?</h3>
-          <p style={pStyle}>
-            If you see dangerous, abusive, targeted, or privacy-invasive content,
-            report it from the post or comment menu so an admin can review it.
+        <section className="legal-section">
+          <h2>5. User-Generated Content</h2>
+          <p>
+            Users are responsible for what they post. Anonymous posting does
+            not mean users can harm, threaten, expose, or abuse others.
           </p>
-        </div>
-      </div>
-    </div>
+        </section>
+
+        <section className="legal-section">
+          <h2>6. Reporting</h2>
+          <p>
+            Users can report posts or comments that violate these guidelines.
+            Reports will be reviewed by moderation or admin where possible.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <h2>7. Enforcement</h2>
+          <p>Violations may result in:</p>
+          <ul className="legal-list">
+            <li>Content removal.</li>
+            <li>Comment removal.</li>
+            <li>Warning.</li>
+            <li>Temporary restriction.</li>
+            <li>Suspension.</li>
+            <li>Ban.</li>
+            <li>Seed or digital credit reversal.</li>
+            <li>Cosmetic or access reversal.</li>
+            <li>Escalation if legally required.</li>
+          </ul>
+        </section>
+
+        <section className="legal-section">
+          <h2>8. Digital Credits and Seeds</h2>
+          <p>
+            Seeds are digital credits used only inside Confession Wall. Seeds
+            are not crypto, not gambling, not investment, not withdrawable, not
+            redeemable for cash, and not transferable outside Confession Wall.
+          </p>
+          <p>
+            Abuse, fraud, chargebacks, or policy violations may lead to Seed
+            reversal or account restriction.
+          </p>
+        </section>
+
+        <section className="legal-section">
+          <h2>9. Contact</h2>
+          <p>
+            For guideline questions or appeals, contact{" "}
+            <span className="legal-email">{supportEmail}</span>.
+          </p>
+        </section>
+
+        <div className="legal-divider" />
+      </article>
+    </main>
   );
 }

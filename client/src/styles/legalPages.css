@@ -1,0 +1,126 @@
+.legal-page {
+  min-height: 100vh;
+  padding: 96px 18px 72px;
+  background:
+    radial-gradient(circle at top left, rgba(76, 128, 54, 0.16), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(173, 143, 71, 0.1), transparent 28rem),
+    linear-gradient(180deg, #020806 0%, #04140b 48%, #010403 100%);
+  color: #edf9df;
+  font-family: Georgia, "Times New Roman", serif;
+  overflow-x: hidden;
+}
+
+.legal-card {
+  width: min(940px, 100%);
+  margin: 0 auto;
+  padding: clamp(26px, 4vw, 48px);
+  border-radius: 26px;
+  background: rgba(4, 22, 10, 0.74);
+  border: 1px solid rgba(166, 222, 143, 0.2);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.legal-back-link {
+  display: inline-flex;
+  margin-bottom: 22px;
+  color: #9fe1cb;
+  text-decoration: none;
+  font-size: 0.84rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legal-back-link:hover,
+.legal-back-link:focus-visible {
+  color: #dfffb6;
+}
+
+.legal-title {
+  margin: 0 0 10px;
+  color: #f4ffe6;
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: 0.03em;
+}
+
+.legal-updated {
+  margin: 0 0 28px;
+  color: rgba(226, 244, 205, 0.68);
+  font-size: 0.98rem;
+}
+
+.legal-section {
+  margin-top: 22px;
+  padding: clamp(18px, 2.6vw, 24px);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(166, 222, 143, 0.13);
+}
+
+.legal-section h2 {
+  margin: 0 0 10px;
+  color: #cfffbd;
+  font-size: clamp(1.12rem, 2vw, 1.35rem);
+  letter-spacing: 0.02em;
+}
+
+.legal-section p {
+  margin: 0;
+  color: rgba(238, 250, 225, 0.86);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.legal-section p + p {
+  margin-top: 12px;
+}
+
+.legal-list {
+  margin: 10px 0 0;
+  padding-left: 1.25rem;
+  color: rgba(238, 250, 225, 0.86);
+  line-height: 1.7;
+}
+
+.legal-list li + li {
+  margin-top: 6px;
+}
+
+.legal-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(216, 192, 119, 0.08);
+  border: 1px solid rgba(216, 192, 119, 0.24);
+  color: rgba(255, 245, 199, 0.9);
+  line-height: 1.65;
+}
+
+.legal-email {
+  color: #dfffb6;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.legal-divider {
+  height: 1px;
+  margin: 28px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(216, 192, 119, 0.35), transparent);
+}
+
+@media (max-width: 700px) {
+  .legal-page {
+    padding: 84px 12px 52px;
+  }
+
+  .legal-card {
+    border-radius: 20px;
+  }
+
+  .legal-section {
+    border-radius: 15px;
+  }
+}
