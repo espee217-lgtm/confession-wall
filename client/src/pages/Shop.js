@@ -526,6 +526,7 @@ function CosmeticPreviewModal({
   canAfford,
   onBuy,
   onEquip,
+  isGuest = false,
   now,
 }) {
   if (!item) return null;
@@ -609,11 +610,13 @@ function CosmeticPreviewModal({
                   type="button"
                   className="shop-buy-btn"
                   onClick={() => onBuy(item)}
-                  disabled={busy || !canAfford || unavailableForPurchase}
+                  disabled={busy || unavailableForPurchase || (!isGuest && !canAfford)}
                   title={
                     unavailableForPurchase
                       ? "This limited drop is not available to buy."
-                      : !canAfford
+                      : isGuest
+                        ? "Log in or register to unlock this cosmetic."
+                        : !canAfford
                         ? "Not enough Seeds"
                         : "Buy cosmetic"
                   }
@@ -622,6 +625,8 @@ function CosmeticPreviewModal({
                     ? "Buying..."
                     : unavailableForPurchase
                       ? getUnavailableActionLabel(item)
+                      : isGuest
+                        ? "Log in to unlock"
                       : canAfford
                         ? "Buy"
                         : "Need Seeds"}
@@ -650,7 +655,7 @@ function normalizeOwnedCosmetics(ownedCosmetics) {
 function Shop() {
   const navigate = useNavigate();
   const { user, token, updateUser, refreshUser } = useAuth();
-  const userId = user?._id || "";
+  const isLoggedIn = Boolean(user?._id && token);
 
   const [items, setItems] = useState([]);
   const [activeType, setActiveType] = useState("all");
@@ -749,12 +754,12 @@ function Shop() {
     }
   };
 
-  useEffect(() => {
-    if (!userId || !token) {
-      navigate("/login");
-      return;
-    }
+  const showGuestShopPrompt = () => {
+    setError("");
+    setMessage("Log in or create an account to buy Seeds and use Shop items.");
+  };
 
+  useEffect(() => {
     const loadShop = async () => {
       try {
         setLoading(true);
@@ -776,10 +781,12 @@ function Shop() {
           }
         }
 
-        try {
-          await refreshUser?.();
-        } catch (err) {
-          console.warn("Could not refresh user while loading shop:", err);
+        if (isLoggedIn) {
+          try {
+            await refreshUser?.();
+          } catch (err) {
+            console.warn("Could not refresh user while loading shop:", err);
+          }
         }
       } catch (err) {
         setError(err.message || "Could not load shop.");
@@ -789,7 +796,7 @@ function Shop() {
     };
 
     loadShop();
-  }, [userId, token, navigate, refreshUser]);
+  }, [isLoggedIn, refreshUser]);
 
   useEffect(() => {
     if (!isPreviewOpen) return undefined;
@@ -813,6 +820,11 @@ function Shop() {
   };
 
   const handleBuy = async (item) => {
+    if (!isLoggedIn) {
+      showGuestShopPrompt();
+      return;
+    }
+
     if (!token || busyItemId) return;
 
     setMessage("");
@@ -842,6 +854,11 @@ function Shop() {
   };
 
   const handleEquip = async (item) => {
+    if (!isLoggedIn) {
+      showGuestShopPrompt();
+      return;
+    }
+
     if (!token || busyItemId) return;
 
     setMessage("");
@@ -871,6 +888,11 @@ function Shop() {
   };
 
   const handleUnequip = async (type) => {
+    if (!isLoggedIn) {
+      showGuestShopPrompt();
+      return;
+    }
+
     if (!token || busyItemId) return;
 
     setMessage("");
@@ -909,6 +931,27 @@ function Shop() {
     const busy = busyItemId === item.id;
     const availabilityStatus = getAvailabilityStatus(item);
     const unavailableForPurchase = !owned && availabilityStatus !== "available";
+
+    if (!isLoggedIn) {
+      return (
+        <button
+          type="button"
+          className="shop-buy-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            showGuestShopPrompt();
+          }}
+          disabled={unavailableForPurchase}
+          title={
+            unavailableForPurchase
+              ? "This limited drop is not available to buy."
+              : "Log in or register to unlock this cosmetic."
+          }
+        >
+          {unavailableForPurchase ? getUnavailableActionLabel(item) : "Log in to unlock"}
+        </button>
+      );
+    }
 
     if (isEquipped) {
       return (
@@ -1033,8 +1076,6 @@ function Shop() {
     );
   };
 
-  if (!user || !token) return null;
-
   return (
     <main className="shop-page">
       <section className="shop-hero">
@@ -1053,10 +1094,28 @@ function Shop() {
         </div>
 
         <div className="shop-seeds-panel">
-          <span>Available Seeds</span>
-          <strong>{SEED_ICON} {localSeeds || 0}</strong>
+          <span>{isLoggedIn ? "Available Seeds" : "Guest Preview"}</span>
+          <strong>{isLoggedIn ? `${SEED_ICON} ${localSeeds || 0}` : "Log in to buy"}</strong>
         </div>
       </section>
+
+      {!isLoggedIn && (
+        <section className="shop-guest-notice" aria-label="Guest shop preview">
+          <div>
+            <p className="shop-kicker">Browsing as guest</p>
+            <h2>Preview the Forest Shop freely.</h2>
+            <p>Log in or create an account to buy Seeds, unlock cosmetics, or equip Shop items.</p>
+          </div>
+          <div className="shop-guest-actions">
+            <button type="button" onClick={() => navigate("/login")}>
+              Login
+            </button>
+            <button type="button" onClick={() => navigate("/register")}>
+              Register
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="shop-buyseeds-cta" aria-label="Buy Seed packs">
         <div>
@@ -1127,10 +1186,11 @@ function Shop() {
 
       <section className="shop-equipped-panel">
         <div>
-          <h2>Equipped right now</h2>
+          <h2>{isLoggedIn ? "Equipped right now" : "Your cosmetics after login"}</h2>
           <p>
-            Your active cosmetics. Frames, titles, badges, and post themes
-            now display across your profile and posts.
+            {isLoggedIn
+              ? "Your active cosmetics. Frames, titles, badges, and post themes now display across your profile and posts."
+              : "Create an account or log in to unlock, equip, and manage cosmetics from the Shop."}
           </p>
         </div>
 
@@ -1262,6 +1322,7 @@ function Shop() {
           canAfford={(localSeeds || 0) >= selectedPreviewCosmetic.price}
           onBuy={handleBuy}
           onEquip={handleEquip}
+          isGuest={!isLoggedIn}
           now={now}
         />
       )}

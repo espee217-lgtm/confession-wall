@@ -723,7 +723,7 @@ function Navbar() {
             minWidth: 0,
           }}
         >
-          {user && <ShopButton />}
+          <ShopButton />
           {user && <SeedCounter />}
 
           <Link

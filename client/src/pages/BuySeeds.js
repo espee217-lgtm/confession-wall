@@ -25,6 +25,57 @@ const CURRENCY_LOCALE_MAP = {
   USD: "en-US",
   GBP: "en-GB",
 };
+const GUEST_SEED_PACKS = {
+  "starter-bloom": {
+    name: "Starter Bloom",
+    baseSeeds: 100,
+    description: "Small premium Seed boost for first unlocks.",
+  },
+  "grove-pack": {
+    name: "Grove Pack",
+    baseSeeds: 300,
+    description: "Balanced Seed pack for cosmetics and profile style.",
+  },
+  "ancient-pack": {
+    name: "Ancient Pack",
+    baseSeeds: 800,
+    description: "Premium bundle for bigger cosmetic unlocks.",
+  },
+  "mythic-grove-pack": {
+    name: "Mythic Grove Pack",
+    baseSeeds: 1800,
+    description: "Best-value supporter pack for major unlocks.",
+  },
+};
+const GUEST_REGION_PRICING = {
+  IN: {
+    currency: "INR",
+    amounts: {
+      "starter-bloom": 9900,
+      "grove-pack": 19900,
+      "ancient-pack": 49900,
+      "mythic-grove-pack": 99900,
+    },
+  },
+  US: {
+    currency: "USD",
+    amounts: {
+      "starter-bloom": 299,
+      "grove-pack": 599,
+      "ancient-pack": 1299,
+      "mythic-grove-pack": 2499,
+    },
+  },
+  GB: {
+    currency: "GBP",
+    amounts: {
+      "starter-bloom": 249,
+      "grove-pack": 499,
+      "ancient-pack": 1099,
+      "mythic-grove-pack": 2199,
+    },
+  },
+};
 
 function normalizeClientRegion(region) {
   const value = String(region || "").trim().toUpperCase();
@@ -85,6 +136,29 @@ function formatCurrencyMinor(amountMinor, currency) {
   } catch {
     return `${safeAmountMinor / 100} ${currencyCode}`;
   }
+}
+
+function buildGuestSeedPackPreviews(region) {
+  const normalizedRegion = normalizeClientRegion(region) || DEFAULT_PAYMENT_REGION;
+  const pricing = GUEST_REGION_PRICING[normalizedRegion] || GUEST_REGION_PRICING.IN;
+
+  return Object.entries(GUEST_SEED_PACKS)
+    .map(([id, pack]) => {
+      const amountMinor = pricing.amounts[id];
+      if (!amountMinor) return null;
+
+      return {
+        id,
+        ...pack,
+        amountMinor,
+        currency: pricing.currency,
+        region: normalizedRegion,
+        bonusPercentPreview: 0,
+        bonusSeedsPreview: 0,
+        totalSeedsPreview: pack.baseSeeds,
+      };
+    })
+    .filter(Boolean);
 }
 
 async function readJsonSafe(response) {
@@ -212,7 +286,16 @@ function BuySeeds() {
 
   const loadSeedPacks = useCallback(
     async (region) => {
-      if (!token) return;
+      if (!token) {
+        setSeedPackLoading(false);
+        setSeedPacks(buildGuestSeedPackPreviews(region));
+        setSeedPackMeta({
+          successfulSeedPurchaseCount: 0,
+          nextPurchaseNumber: 1,
+          bonusPercentForNextPurchase: 0,
+        });
+        return;
+      }
 
       try {
         setSeedPackLoading(true);
@@ -246,9 +329,9 @@ function BuySeeds() {
   );
 
   useEffect(() => {
-    if (!isLoggedIn || !hasRegionForFetch) return;
+    if (!hasRegionForFetch) return;
     loadSeedPacks(paymentRegion);
-  }, [isLoggedIn, paymentRegion, loadSeedPacks, hasRegionForFetch]);
+  }, [paymentRegion, loadSeedPacks, hasRegionForFetch]);
 
   const verifySeedPackPayment = useCallback(
     async (payload) => {
@@ -313,8 +396,8 @@ function BuySeeds() {
     if (!pack?.id || seedPackBusyId) return;
 
     if (!isLoggedIn) {
-      setError("Please log in to buy Seed packs.");
-      navigate("/login");
+      setError("");
+      setMessage("Log in or create an account to buy Seed packs.");
       return;
     }
 
@@ -422,8 +505,8 @@ function BuySeeds() {
         </div>
 
         <div className="buy-seeds-balance" title="Current Seeds">
-          <span>Available Seeds</span>
-          <strong>{SEED_ICON} {localSeeds || 0}</strong>
+          <span>{isLoggedIn ? "Available Seeds" : "Guest Preview"}</span>
+          <strong>{isLoggedIn ? `${SEED_ICON} ${localSeeds || 0}` : "Login to buy"}</strong>
         </div>
       </section>
 
@@ -440,81 +523,96 @@ function BuySeeds() {
         )}
       </div>
 
-      {!isLoggedIn ? (
+      {!isLoggedIn && (
         <section className="buy-seeds-auth-card">
-          <h2>Log in to buy Seeds.</h2>
-          <p>Your account is required to create secure payment orders.</p>
-          <button type="button" onClick={() => navigate("/login")}>
-            Go to Login
-          </button>
-        </section>
-      ) : (
-        <section className="buy-seeds-panel" aria-label="Paid Seed Packs">
-          <div className="buy-seeds-header">
-            <div>
-              <p className="buy-seeds-kicker">Paid Seed Packs</p>
-              <h2>Choose your pack</h2>
-              <p>Bonus previews are based on your next eligible purchase.</p>
-            </div>
+          <h2>Browsing Seed packs as guest.</h2>
+          <p>Your account is required before any secure payment order can be created.</p>
+          <div className="buy-seeds-auth-actions">
+            <button type="button" onClick={() => navigate("/login")}>
+              Login
+            </button>
+            <button type="button" onClick={() => navigate("/register")}>
+              Register
+            </button>
           </div>
-
-          <div className="buy-seeds-meta">
-            <span>Successful purchases: {seedPackMeta.successfulSeedPurchaseCount}</span>
-            <span>Next purchase number: {seedPackMeta.nextPurchaseNumber}</span>
-            <span>{bonusLabel}</span>
-          </div>
-
-          {seedPackLoading ? (
-            <div className="buy-seeds-loading">Loading Seed packs...</div>
-          ) : seedPacks.length === 0 ? (
-            <div className="buy-seeds-empty">
-              Seed packs are unavailable for this region right now.
-            </div>
-          ) : (
-            <div className="buy-seeds-grid">
-              {seedPacks.map((pack) => {
-                const hasBonus = Number(pack.bonusPercentPreview || 0) > 0;
-                const isBusy = seedPackBusyId === pack.id;
-
-                return (
-                  <article className="buy-seeds-card" key={pack.id}>
-                    <div className="buy-seeds-card-top">
-                      <h3>{pack.name}</h3>
-                      <div className="buy-seeds-price">
-                        {formatCurrencyMinor(pack.amountMinor, pack.currency)}
-                      </div>
-                    </div>
-
-                    <p className="buy-seeds-description">{pack.description}</p>
-
-                    <div className="buy-seeds-breakdown">
-                      <p>{pack.baseSeeds} Seeds</p>
-                      {hasBonus ? (
-                        <>
-                          <p>{pack.bonusPercentPreview}% purchase bonus</p>
-                          <p>Next purchase bonus: +{pack.bonusSeedsPreview}</p>
-                          <p>You receive: {pack.totalSeedsPreview} Seeds</p>
-                        </>
-                      ) : (
-                        <p>You receive: {pack.baseSeeds} Seeds</p>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      className="buy-seeds-buy-btn"
-                      onClick={() => handleSeedPackBuy(pack)}
-                      disabled={Boolean(seedPackBusyId)}
-                    >
-                      {isBusy ? "Opening..." : "Buy"}
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-          )}
         </section>
       )}
+
+      <section className="buy-seeds-panel" aria-label="Paid Seed Packs">
+        <div className="buy-seeds-header">
+          <div>
+            <p className="buy-seeds-kicker">Paid Seed Packs</p>
+            <h2>Choose your pack</h2>
+            <p>
+              {isLoggedIn
+                ? "Bonus previews are based on your next eligible purchase."
+                : "Preview current Seed pack pricing. Log in to buy and see account-specific bonuses."}
+            </p>
+          </div>
+        </div>
+
+        <div className="buy-seeds-meta">
+          {isLoggedIn ? (
+            <>
+              <span>Successful purchases: {seedPackMeta.successfulSeedPurchaseCount}</span>
+              <span>Next purchase number: {seedPackMeta.nextPurchaseNumber}</span>
+              <span>{bonusLabel}</span>
+            </>
+          ) : (
+            <span>Login required before checkout opens.</span>
+          )}
+        </div>
+
+        {seedPackLoading ? (
+          <div className="buy-seeds-loading">Loading Seed packs...</div>
+        ) : seedPacks.length === 0 ? (
+          <div className="buy-seeds-empty">
+            Seed packs are unavailable for this region right now.
+          </div>
+        ) : (
+          <div className="buy-seeds-grid">
+            {seedPacks.map((pack) => {
+              const hasBonus = Number(pack.bonusPercentPreview || 0) > 0;
+              const isBusy = seedPackBusyId === pack.id;
+
+              return (
+                <article className="buy-seeds-card" key={pack.id}>
+                  <div className="buy-seeds-card-top">
+                    <h3>{pack.name}</h3>
+                    <div className="buy-seeds-price">
+                      {formatCurrencyMinor(pack.amountMinor, pack.currency)}
+                    </div>
+                  </div>
+
+                  <p className="buy-seeds-description">{pack.description}</p>
+
+                  <div className="buy-seeds-breakdown">
+                    <p>{pack.baseSeeds} Seeds</p>
+                    {hasBonus ? (
+                      <>
+                        <p>{pack.bonusPercentPreview}% purchase bonus</p>
+                        <p>Next purchase bonus: +{pack.bonusSeedsPreview}</p>
+                        <p>You receive: {pack.totalSeedsPreview} Seeds</p>
+                      </>
+                    ) : (
+                      <p>You receive: {pack.baseSeeds} Seeds</p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="buy-seeds-buy-btn"
+                    onClick={() => handleSeedPackBuy(pack)}
+                    disabled={Boolean(seedPackBusyId)}
+                  >
+                    {isBusy ? "Opening..." : isLoggedIn ? "Buy" : "Log in to buy"}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       <MobileBottomNav />
     </main>

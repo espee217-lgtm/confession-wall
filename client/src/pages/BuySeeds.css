@@ -116,8 +116,15 @@
   line-height: 1.6;
 }
 
-.buy-seeds-auth-card button {
+.buy-seeds-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 16px;
+}
+
+.buy-seeds-auth-actions button {
+  margin-top: 0;
   min-height: 40px;
   padding: 10px 16px;
   border-radius: 999px;

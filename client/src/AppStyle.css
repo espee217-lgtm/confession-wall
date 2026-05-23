@@ -984,6 +984,10 @@ a.chip {
     grid-template-columns: 1fr 1.2fr 1fr 1fr;
   }
 
+  .mobile-home-bottom-nav.mobile-home-bottom-nav--public-shop {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
   .mobile-home-bottom-nav button {
     border: 0;
     background: transparent;

@@ -31,7 +31,19 @@ export default function MobileBottomNav({ onConfess }) {
 
   if (!user) {
     return (
-      <nav className="mobile-home-bottom-nav" aria-label="Mobile public navigation">
+      <nav
+        className="mobile-home-bottom-nav mobile-home-bottom-nav--public-shop"
+        aria-label="Mobile public navigation"
+      >
+        <button
+          type="button"
+          onClick={() => navigate("/shop")}
+          className={isActive("/shop") ? "active" : ""}
+        >
+          {SHOP_ICON}
+          <span>Shop</span>
+        </button>
+
         <button
           type="button"
           onClick={() => navigate("/trending")}
