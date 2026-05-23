@@ -79,8 +79,8 @@ export default function ContactSupport() {
         <section className="legal-section">
           <h2>Operator</h2>
           <p>
-            Confession Wall is operated by Sumeet Kumar / [registered business
-            name after registration].
+            Confession Wall is operated by Confession Wall Origins, a
+            registered Micro enterprise.
           </p>
         </section>
 
