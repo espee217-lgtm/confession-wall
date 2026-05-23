@@ -127,7 +127,12 @@ const stripHiddenCommentsFromConfession = (confession) => {
     return plain;
   }
 
-  plain.comments = plain.comments.filter((comment) => !comment?.isHidden);
+  plain.comments = plain.comments
+    .filter((comment) => !comment?.isHidden)
+    .map((comment) => ({
+      ...comment,
+      replies: Array.isArray(comment?.replies) ? comment.replies : [],
+    }));
   return plain;
 };
 
@@ -767,7 +772,8 @@ router.get("/:id", async (req, res) => {
       isHidden: { $ne: true },
     })
       .populate("userId", USER_PUBLIC_SELECT)
-      .populate("comments.userId", USER_PUBLIC_SELECT);
+      .populate("comments.userId", USER_PUBLIC_SELECT)
+      .populate("comments.replies.userId", USER_PUBLIC_SELECT);
 
     if (!confession) {
       return res.status(404).json({ message: "Confession not found" });
@@ -1141,12 +1147,108 @@ router.post(
 
       const updated = await Confession.findById(req.params.id)
         .populate("userId", USER_PUBLIC_SELECT)
-        .populate("comments.userId", USER_PUBLIC_SELECT);
+        .populate("comments.userId", USER_PUBLIC_SELECT)
+      .populate("comments.replies.userId", USER_PUBLIC_SELECT);
 
       const responsePost = stripHiddenCommentsFromConfession(updated);
       responsePost.seedReward = seedReward;
 
       res.json(responsePost);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// ADD a reply to a specific comment root
+// Banned users are blocked by protect.
+// Suspended users are blocked by blockSuspended.
+router.post(
+  "/:id/comments/:commentId/replies",
+  protect,
+  blockSuspended,
+  commentLimiter,
+  async (req, res) => {
+    try {
+      const confession = await Confession.findById(req.params.id);
+
+      if (!confession) {
+        return res.status(404).json({ message: "Confession not found" });
+      }
+
+      const comment = confession.comments.id(req.params.commentId);
+
+      if (!comment || comment.isHidden) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+
+      const replies = Array.isArray(comment.replies) ? comment.replies : [];
+
+      if (replies.length >= 500) {
+        return res.status(400).json({
+          message: "This root already has the maximum 500 replies.",
+        });
+      }
+
+      const text = sanitizeText(req.body.text, { maxLength: 700, allowNewLines: true });
+
+      if (!text) {
+        return res.status(400).json({ message: "Reply text is required." });
+      }
+
+      comment.replies.push({
+        text,
+        userId: req.user._id,
+      });
+
+      const newReply = comment.replies[comment.replies.length - 1];
+
+      const replySafetyFlags = scanSafetyText(text, {
+        source: "comment",
+        commentId: comment?._id || null,
+      });
+
+      if (replySafetyFlags.length > 0) {
+        const existingSafetyFlags = Array.isArray(confession.safetyFlags)
+          ? confession.safetyFlags
+          : [];
+
+        confession.safetyFlags = [...existingSafetyFlags, ...replySafetyFlags]
+          .sort((a, b) => new Date(a?.createdAt || 0) - new Date(b?.createdAt || 0))
+          .slice(-SAFETY_FLAGS_MAX);
+      }
+
+      await confession.save();
+
+      if (comment.userId && !comment.userId.equals(req.user._id)) {
+        await createNotification({
+          userId: comment.userId,
+          type: "root_reply",
+          message: `${req.user.username || "Someone"} echoed back under your Echo Root.`,
+          link: `/confession/${confession._id}/comment/${comment._id}`,
+        });
+      }
+
+      await createAdminLog({
+        req,
+        type: "comment_create",
+        message: `@${req.user.username || "Someone"} replied to a comment root.`,
+        user: req.user,
+        targetId: newReply?._id || comment._id,
+        targetType: "comment",
+        metadata: {
+          confessionId: String(confession._id),
+          commentId: String(comment._id),
+          isReply: true,
+        },
+      });
+
+      const updated = await Confession.findById(req.params.id)
+        .populate("userId", USER_PUBLIC_SELECT)
+        .populate("comments.userId", USER_PUBLIC_SELECT)
+        .populate("comments.replies.userId", USER_PUBLIC_SELECT);
+
+      res.json(stripHiddenCommentsFromConfession(updated));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

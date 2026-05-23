@@ -139,6 +139,16 @@ const safetyFlagSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const commentReplySchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  text: { type: String, required: true, trim: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const commentSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -149,6 +159,10 @@ const commentSchema = new mongoose.Schema({
   image: { type: String, default: null },
   wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   burnedBy:  [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  replies: {
+    type: [commentReplySchema],
+    default: [],
+  },
   isHidden: {
     type: Boolean,
     default: false,

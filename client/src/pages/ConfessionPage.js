@@ -508,11 +508,13 @@ function ComfortReceivedInline({ cards = [] }) {
 }
 
 export default function ConfessionPage() {
-  const { id } = useParams();
+  const { id, commentId: routeCommentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const targetCommentId = searchParams.get("comment");
+  const selectedCommentId = routeCommentId || targetCommentId || "";
+  const isCommentFocusPage = Boolean(routeCommentId);
   const { token, user, refreshUser, updateUser } = useAuth();
 
   const [confession, setConfession] = useState(null);
@@ -524,6 +526,9 @@ export default function ConfessionPage() {
   const [comment, setComment] = useState("");
   const [commentImage, setCommentImage] = useState(null);
   const [commentPreview, setCommentPreview] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replySubmitting, setReplySubmitting] = useState(false);
+  const replyInputRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
   const [lightboxImage, setLightboxImage] = useState("");
@@ -660,15 +665,15 @@ export default function ConfessionPage() {
   }, [lightboxImage]);
 
   useEffect(() => {
-    if (!targetCommentId || !confession) return;
+    if (!selectedCommentId || !confession) return;
 
-    const el = document.getElementById(`comment-${targetCommentId}`);
+    const el = document.getElementById(`comment-${selectedCommentId}`);
     if (el) {
       setTimeout(() => {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 250);
     }
-  }, [targetCommentId, confession]);
+  }, [selectedCommentId, confession]);
   useEffect(() => {
   if (!showEmojiPicker) return;
 
@@ -801,6 +806,16 @@ const activeCommentPinPosition = isPhoneLayout
     WebkitBackdropFilter: isPhoneLayout ? "blur(10px)" : "blur(14px)",
     ...viewerPostThemeStyle,
   };
+  const comments = Array.isArray(confession?.comments) ? confession.comments : [];
+  const selectedComment = selectedCommentId
+    ? comments.find((c) => String(c?._id || "") === String(selectedCommentId))
+    : null;
+  const selectedCommentIndex = selectedComment
+    ? comments.findIndex((c) => String(c?._id || "") === String(selectedComment?._id || ""))
+    : -1;
+  const selectedReplies = Array.isArray(selectedComment?.replies)
+    ? selectedComment.replies
+    : [];
   const nextConfession =
     relatedConfessions.find(
       (post) => String(post?._id || "") !== String(confession?._id || "")
@@ -1019,6 +1034,68 @@ const activeCommentPinPosition = isPhoneLayout
       console.error(err);
       window.cwToast?.("Could not add comment.", "error") ||
         alert("Could not add comment.");
+    }
+  };
+
+  const openCommentRoot = (commentId) => {
+    if (!commentId) return;
+    navigate(`/confession/${id}/comment/${commentId}`);
+  };
+
+  const focusReplyInput = () => {
+    setTimeout(() => {
+      replyInputRef.current?.focus();
+      replyInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  };
+
+  const handleReplySubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedComment?._id || !replyText.trim() || replySubmitting) return;
+
+    if (!token) {
+      window.cwToast?.("You must be logged in to reply.", "warning") ||
+        alert("You must be logged in to reply.");
+      return;
+    }
+
+    if (selectedReplies.length >= 500) {
+      window.cwToast?.("This root already has the maximum 500 replies.", "warning") ||
+        alert("This root already has the maximum 500 replies.");
+      return;
+    }
+
+    try {
+      setReplySubmitting(true);
+      const res = await fetch(`${API_URL}/${id}/comments/${selectedComment._id}/replies`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: replyText }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        window.cwToast?.(
+          data.message || data.error || "Could not add reply.",
+          "error"
+        ) || alert(data.message || data.error || "Could not add reply.");
+        return;
+      }
+
+      setConfession(data);
+      setReplyText("");
+      window.cwToast?.("Echo reply added.", "success");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Could not add reply.", "error") ||
+        alert("Could not add reply.");
+    } finally {
+      setReplySubmitting(false);
     }
   };
 
@@ -1722,10 +1799,215 @@ const activeCommentPinPosition = isPhoneLayout
             }}
           >
             <span>✦</span>
-            <span>{confession.comments?.length || 0} echo roots</span>
+            <span>{comments.length || 0} echo roots</span>
           </div>
 
-          {confession.comments?.length > 0 ? (
+          {isCommentFocusPage && selectedComment ? (
+            <section
+              className="echo-focus-section"
+              style={{
+                "--echo-tree-card-bg": theme.cardBg,
+                "--echo-tree-card-border": isPhoneLayout
+                  ? theme.cardBorder
+                  : "1px solid rgba(216, 192, 119, 0.42)",
+                "--echo-tree-text": theme.text,
+                "--echo-tree-muted": theme.muted,
+                "--echo-tree-section": theme.section,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => navigate(`/confession/${id}`)}
+                className="echo-root-action-btn echo-root-action-btn--primary echo-focus-back-btn"
+              >
+                ← Back to echo roots
+              </button>
+
+              {(() => {
+                const c = selectedComment;
+                const i = selectedCommentIndex;
+                const commentEquipped = getDisplayCosmetics(c.userId);
+                const commentThemeId = getConfessionThemeId(c, commentEquipped, c.userId);
+                const commentPostThemeStyle = getPostThemeStyle(commentThemeId, realm);
+                const commentPostThemeClass = getCosmeticAnimationClass(commentThemeId);
+                const commentTextColor = commentThemeId
+                  ? "rgba(240,255,235,0.94)"
+                  : theme.text;
+
+                return (
+                  <article
+                    id={`comment-${c._id}`}
+                    className={`cw-confession-comment-card echo-root-card echo-focus-root-card${
+                      commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
+                    }`}
+                    style={{
+                      ...commentCardStyle,
+                      ...commentPostThemeStyle,
+                      color: commentTextColor,
+                      border: commentPostThemeStyle.border || commentCardStyle.border,
+                      boxShadow: commentPostThemeStyle.boxShadow || commentCardStyle.boxShadow,
+                    }}
+                  >
+                    <PostThemeFxLayers themeId={commentThemeId} />
+
+                    <div className="echo-root-card-topline">
+                      <span className="echo-root-type-pill">🌿 Open Echo Root</span>
+                      <span className="echo-root-position">#{i + 1}</span>
+                    </div>
+
+                    <div className="echo-author-line">
+                      <Link
+                        to={c.userId ? `/user/${c.userId._id}` : "#"}
+                        style={{
+                          marginRight: "10px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <FramedAvatar
+                          src={c.userId?.profilePicture}
+                          username={c.userId?.username || "?"}
+                          size={34}
+                          frameId={commentEquipped.frame}
+                          effectId={commentEquipped.visualEffect}
+                          placeholder="🌿"
+                        />
+                      </Link>
+
+                      <Link
+                        to={c.userId ? `/user/${c.userId._id}` : "#"}
+                        style={{
+                          fontWeight: 700,
+                          fontSize: isPhoneLayout ? "12px" : "13px",
+                          color: theme.username,
+                          textDecoration: "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        @{c.userId?.username || "anonymous"}
+                        <AnimatedBadge badgeId={commentEquipped.badge} size="sm" />
+                      </Link>
+                      <DisplayTitlePill titleId={commentEquipped.title} />
+                    </div>
+
+                    {c.text && (
+                      <p
+                        style={{
+                          fontSize: isPhoneLayout ? "14px" : "15px",
+                          color: commentTextColor,
+                          lineHeight: isPhoneLayout ? 1.6 : 1.72,
+                          margin: "10px 0 0",
+                        }}
+                      >
+                        {c.text}
+                      </p>
+                    )}
+
+                    {c.image && (
+                      <img
+                        src={c.image}
+                        alt="comment"
+                        onClick={() => openImageLightbox(c.image)}
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "240px",
+                          borderRadius: "10px",
+                          marginTop: "10px",
+                          cursor: "zoom-in",
+                        }}
+                      />
+                    )}
+
+                    <div className="echo-root-actions-row">
+                      <button
+                        type="button"
+                        onClick={focusReplyInput}
+                        className="echo-root-action-btn echo-root-action-btn--primary"
+                      >
+                        Echo back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => reportComment(c._id)}
+                        className="echo-root-action-btn echo-root-action-btn--report"
+                        style={{
+                          "--echo-report-bg": theme.reportBg,
+                          "--echo-report-border": theme.reportBorder,
+                          "--echo-report-color": theme.reportColor,
+                        }}
+                      >
+                        Report
+                      </button>
+                    </div>
+                  </article>
+                );
+              })()}
+
+              <div className="echo-replies-thread" style={{ color: theme.text }}>
+                <div className="echo-replies-thread-title">
+                  <span>golden echoes below this root</span>
+                  <strong>{selectedReplies.length}/500</strong>
+                </div>
+
+                {selectedReplies.length > 0 ? (
+                  <div className="echo-reply-list">
+                    {selectedReplies.map((reply, replyIndex) => {
+                      const replyEquipped = getDisplayCosmetics(reply.userId);
+                      return (
+                        <div key={reply._id || replyIndex} className="echo-reply-row">
+                          <span className="echo-reply-string" aria-hidden="true" />
+                          <div className="echo-reply-bubble">
+                            <div className="echo-reply-meta">
+                              <Link
+                                to={reply.userId ? `/user/${reply.userId._id}` : "#"}
+                                className="echo-reply-author"
+                              >
+                                <FramedAvatar
+                                  src={reply.userId?.profilePicture}
+                                  username={reply.userId?.username || "?"}
+                                  size={24}
+                                  frameId={replyEquipped.frame}
+                                  effectId={replyEquipped.visualEffect}
+                                  placeholder="🌿"
+                                />
+                                @{reply.userId?.username || "anonymous"}
+                              </Link>
+                              <span>#{replyIndex + 1}</span>
+                            </div>
+                            <p>{reply.text}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="echo-root-empty-state echo-reply-empty" style={{ color: theme.muted }}>
+                    no replies yet · echo back first 🌿
+                  </div>
+                )}
+
+                <form onSubmit={handleReplySubmit} className="echo-reply-form">
+                  <input
+                    ref={replyInputRef}
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="write an echo back…"
+                    disabled={replySubmitting || selectedReplies.length >= 500}
+                  />
+                  <button
+                    type="submit"
+                    disabled={replySubmitting || !replyText.trim() || selectedReplies.length >= 500}
+                  >
+                    {replySubmitting ? "posting…" : "reply"}
+                  </button>
+                </form>
+              </div>
+            </section>
+          ) : comments.length > 0 ? (
             <section
               className="echo-root-tree-section"
               style={{
@@ -1741,213 +2023,254 @@ const activeCommentPinPosition = isPhoneLayout
               <div className="echo-root-trunk" aria-hidden="true" />
 
               <div className="echo-root-grid">
-                {confession.comments.map((c, i) => {
-  const isTargetComment =
-    targetCommentId && c._id?.toString() === targetCommentId;
+                {comments.map((c, i) => {
+                  const isTargetComment = selectedCommentId && c._id?.toString() === selectedCommentId;
+                  const replies = Array.isArray(c.replies) ? c.replies : [];
+                  const previewReplies = replies.slice(0, 2);
+                  const hiddenReplyCount = Math.max(0, replies.length - previewReplies.length);
 
-  const commentEquipped = getDisplayCosmetics(c.userId);
-  const commentThemeId = getConfessionThemeId(c, commentEquipped, c.userId);
-  const commentPostThemeStyle = getPostThemeStyle(commentThemeId, realm);
-  const commentPostThemeClass = getCosmeticAnimationClass(commentThemeId);
-  const commentHasTheme = Boolean(commentThemeId);
+                  const commentEquipped = getDisplayCosmetics(c.userId);
+                  const commentThemeId = getConfessionThemeId(c, commentEquipped, c.userId);
+                  const commentPostThemeStyle = getPostThemeStyle(commentThemeId, realm);
+                  const commentPostThemeClass = getCosmeticAnimationClass(commentThemeId);
+                  const commentHasTheme = Boolean(commentThemeId);
 
-  const commentTextColor = commentHasTheme
-    ? "rgba(240,255,235,0.94)"
-    : theme.text;
+                  const commentTextColor = commentHasTheme
+                    ? "rgba(240,255,235,0.94)"
+                    : theme.text;
 
-  return (
-                <article
-                  key={c._id || i}
-                  className={`echo-root-slot echo-root-slot--${i % 6}${
-                    isTargetComment ? " is-target" : ""
-                  }`}
-                >
-                  <span className="echo-root-drop-line" aria-hidden="true" />
-
-                  <div
-                    id={`comment-${c._id}`}
-                    className={`cw-confession-comment-card echo-root-card${
-                      commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
-                    }`}
-                    style={{
-  ...commentCardStyle,
-  ...commentPostThemeStyle,
-  marginBottom: 0,
-  color: commentTextColor,
-  transform: isTargetComment ? "scale(1.035)" : "scale(1)",
-                    border: isTargetComment
-                      ? "1px solid rgba(255,230,120,0.75)"
-                      : commentPostThemeStyle.border || commentCardStyle.border,
-                    boxShadow: isTargetComment
-                      ? "0 0 35px rgba(255,230,120,0.55)"
-                      : commentPostThemeStyle.boxShadow || commentCardStyle.boxShadow,
-                    transition: "all 0.35s ease",
-                  }}
-                >
-                  <PostThemeFxLayers themeId={commentThemeId} />
-
-                  <div className="echo-root-card-topline">
-                    <span className="echo-root-type-pill">🌿 Echo Root</span>
-                    <span className="echo-root-position">#{i + 1}</span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: isPhoneLayout ? "flex-start" : "center",
-                      flexWrap: "wrap",
-                      gap: isPhoneLayout ? "6px" : "0",
-                    }}
-                  >
-                    <Link
-                      to={c.userId ? `/user/${c.userId._id}` : "#"}
-                      style={{
-                        marginRight: isPhoneLayout ? "6px" : "10px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        textDecoration: "none",
-                      }}
+                  return (
+                    <article
+                      key={c._id || i}
+                      className={`echo-root-slot echo-root-slot--${i % 6}${
+                        isTargetComment ? " is-target" : ""
+                      }`}
                     >
-                      <FramedAvatar
-                        src={c.userId?.profilePicture}
-                        username={c.userId?.username || "?"}
-                        size={30}
-                        frameId={commentEquipped.frame}
-                        effectId={commentEquipped.visualEffect}
-                        placeholder="🌿"
-                      />
-                    </Link>
+                      <span className="echo-root-drop-line" aria-hidden="true" />
 
-                    <Link
-                      to={c.userId ? `/user/${c.userId._id}` : "#"}
-                      style={{
-                        fontWeight: 600,
-                        fontSize: isPhoneLayout ? "12px" : "13px",
-                        color: theme.username,
-                        textDecoration: "none",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      @{c.userId?.username || "anonymous"}
-                      <AnimatedBadge badgeId={commentEquipped.badge} size="sm" />
-                    </Link>
-                    <DisplayTitlePill titleId={commentEquipped.title} />
-                  </div>
+                      <div
+                        id={`comment-${c._id}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openCommentRoot(c._id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openCommentRoot(c._id);
+                          }
+                        }}
+                        className={`cw-confession-comment-card echo-root-card echo-root-card--clickable${
+                          commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
+                        }`}
+                        style={{
+                          ...commentCardStyle,
+                          ...commentPostThemeStyle,
+                          marginBottom: 0,
+                          color: commentTextColor,
+                          transform: isTargetComment ? "scale(1.035)" : "scale(1)",
+                          border: isTargetComment
+                            ? "1px solid rgba(255,230,120,0.75)"
+                            : commentPostThemeStyle.border || commentCardStyle.border,
+                          boxShadow: isTargetComment
+                            ? "0 0 35px rgba(255,230,120,0.55)"
+                            : commentPostThemeStyle.boxShadow || commentCardStyle.boxShadow,
+                          transition: "all 0.35s ease",
+                        }}
+                      >
+                        <PostThemeFxLayers themeId={commentThemeId} />
 
-                  {c.text && (
-                    <p
-                      style={{
-                        fontSize: isPhoneLayout ? "13px" : "14px",
-                        color: commentTextColor,
-                        lineHeight: isPhoneLayout ? 1.58 : 1.65,
-                        margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
-                      }}
-                    >
-                      {c.text}
-                    </p>
-                  )}
+                        <div className="echo-root-card-topline">
+                          <span className="echo-root-type-pill">🌿 Echo Root</span>
+                          <span className="echo-root-position">#{i + 1}</span>
+                        </div>
 
-                  {c.image && (
-                    <img
-                      src={c.image}
-                      alt="comment"
-                      onClick={() => openImageLightbox(c.image)}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "200px",
-                        borderRadius: "10px",
-                        marginTop: "8px",
-                        cursor: "zoom-in",
-                      }}
-                    />
-                  )}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: isPhoneLayout ? "flex-start" : "center",
+                            flexWrap: "wrap",
+                            gap: isPhoneLayout ? "6px" : "0",
+                          }}
+                        >
+                          <Link
+                            to={c.userId ? `/user/${c.userId._id}` : "#"}
+                            onClick={(event) => event.stopPropagation()}
+                            style={{
+                              marginRight: isPhoneLayout ? "6px" : "10px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <FramedAvatar
+                              src={c.userId?.profilePicture}
+                              username={c.userId?.username || "?"}
+                              size={30}
+                              frameId={commentEquipped.frame}
+                              effectId={commentEquipped.visualEffect}
+                              placeholder="🌿"
+                            />
+                          </Link>
 
-                  <div className="echo-root-actions-row">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        commentInputRef.current?.focus();
-                        commentInputRef.current?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                        });
-                      }}
-                      className="echo-root-action-btn echo-root-action-btn--primary"
-                    >
-                      Echo back
-                    </button>
+                          <Link
+                            to={c.userId ? `/user/${c.userId._id}` : "#"}
+                            onClick={(event) => event.stopPropagation()}
+                            style={{
+                              fontWeight: 600,
+                              fontSize: isPhoneLayout ? "12px" : "13px",
+                              color: theme.username,
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            @{c.userId?.username || "anonymous"}
+                            <AnimatedBadge badgeId={commentEquipped.badge} size="sm" />
+                          </Link>
+                          <DisplayTitlePill titleId={commentEquipped.title} />
+                        </div>
 
-                    <button
-                      type="button"
-                      onClick={() => reportComment(c._id)}
-                      className="echo-root-action-btn echo-root-action-btn--report"
-                      style={{
-                        "--echo-report-bg": theme.reportBg,
-                        "--echo-report-border": theme.reportBorder,
-                        "--echo-report-color": theme.reportColor,
-                      }}
-                    >
-                      Report
-                    </button>
-                  </div>
+                        {c.text && (
+                          <p
+                            style={{
+                              fontSize: isPhoneLayout ? "13px" : "14px",
+                              color: commentTextColor,
+                              lineHeight: isPhoneLayout ? 1.58 : 1.65,
+                              margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
+                            }}
+                          >
+                            {c.text}
+                          </p>
+                        )}
 
-                  <ReactionBar
-                    wateredBy={c.wateredBy || []}
-                    burnedBy={c.burnedBy || []}
-                    userId={user?._id}
-                    theme={theme}
-                    small
-                    onReact={async (type) => {
-                      if (!token) {
-                        window.cwToast?.(
-                          "You must be logged in to react.",
-                          "warning"
-                        ) || alert("You must be logged in to react.");
-                        return;
-                      }
+                        {c.image && (
+                          <img
+                            src={c.image}
+                            alt="comment"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openImageLightbox(c.image);
+                            }}
+                            style={{
+                              maxWidth: "100%",
+                              maxHeight: "200px",
+                              borderRadius: "10px",
+                              marginTop: "8px",
+                              cursor: "zoom-in",
+                            }}
+                          />
+                        )}
 
-                      const res = await fetch(
-                        `${API_URL}/${id}/comments/${i}/react`,
-                        {
-                          method: "POST",
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({ type }),
-                        }
-                      );
+                        {previewReplies.length > 0 && (
+                          <div className="echo-root-reply-preview">
+                            {previewReplies.map((reply, replyIndex) => (
+                              <div key={reply._id || replyIndex} className="echo-root-reply-preview-row">
+                                <span>@{reply.userId?.username || "anon"}</span>
+                                <p>{reply.text}</p>
+                              </div>
+                            ))}
+                            {hiddenReplyCount > 0 && (
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openCommentRoot(c._id);
+                                }}
+                              >
+                                show {hiddenReplyCount} more {hiddenReplyCount === 1 ? "reply" : "replies"}
+                              </button>
+                            )}
+                          </div>
+                        )}
 
-                      const data = await res.json();
+                        <div className="echo-root-actions-row">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openCommentRoot(c._id);
+                              focusReplyInput();
+                            }}
+                            className="echo-root-action-btn echo-root-action-btn--primary"
+                          >
+                            Echo back {replies.length ? `(${replies.length})` : ""}
+                          </button>
 
-                      if (!res.ok) {
-                        window.cwToast?.(
-                          data.message || data.error || "Could not react.",
-                          "error"
-                        ) ||
-                          alert(
-                            data.message || data.error || "Could not react."
-                          );
-                        return;
-                      }
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              reportComment(c._id);
+                            }}
+                            className="echo-root-action-btn echo-root-action-btn--report"
+                            style={{
+                              "--echo-report-bg": theme.reportBg,
+                              "--echo-report-border": theme.reportBorder,
+                              "--echo-report-color": theme.reportColor,
+                            }}
+                          >
+                            Report
+                          </button>
+                        </div>
 
-                      setConfession((prev) => {
-                        const updated = [...prev.comments];
-                        updated[i] = {
-                          ...updated[i],
-                          wateredBy: data.wateredBy,
-                          burnedBy: data.burnedBy,
-                        };
-                        return { ...prev, comments: updated };
-                      });
-                    }}
-                  />
-                  </div>
-                </article>
-              );
-            })}
+                        <div onClick={(event) => event.stopPropagation()}>
+                          <ReactionBar
+                            wateredBy={c.wateredBy || []}
+                            burnedBy={c.burnedBy || []}
+                            userId={user?._id}
+                            theme={theme}
+                            small
+                            onReact={async (type) => {
+                              if (!token) {
+                                window.cwToast?.(
+                                  "You must be logged in to react.",
+                                  "warning"
+                                ) || alert("You must be logged in to react.");
+                                return;
+                              }
+
+                              const res = await fetch(
+                                `${API_URL}/${id}/comments/${i}/react`,
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({ type }),
+                                }
+                              );
+
+                              const data = await res.json();
+
+                              if (!res.ok) {
+                                window.cwToast?.(
+                                  data.message || data.error || "Could not react.",
+                                  "error"
+                                ) ||
+                                  alert(
+                                    data.message || data.error || "Could not react."
+                                  );
+                                return;
+                              }
+
+                              setConfession((prev) => {
+                                const updated = [...prev.comments];
+                                updated[i] = {
+                                  ...updated[i],
+                                  wateredBy: data.wateredBy,
+                                  burnedBy: data.burnedBy,
+                                };
+                                return { ...prev, comments: updated };
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </section>
           ) : (

@@ -13,6 +13,8 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "comment",
+        "root_reply",
+        "mention",
         "reaction",
         "report_resolved",
         "content_removed",

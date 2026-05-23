@@ -1551,8 +1551,40 @@ a.chip {
   background: rgba(73, 150, 62, 0.22);
 }
 
+.activity-item.root-reply.unread {
+  border-color: rgba(235, 205, 95, 0.48);
+  background: linear-gradient(135deg, rgba(55, 135, 55, 0.22), rgba(170, 128, 34, 0.17));
+  box-shadow: 0 14px 34px rgba(235, 205, 95, 0.1);
+}
+
 .activity-item.read {
   opacity: 0.76;
+}
+
+.activity-item-icon {
+  width: 30px;
+  height: 30px;
+  margin: 0 !important;
+  border-radius: 50%;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(225, 255, 190, 0.18);
+  background: rgba(4, 18, 7, 0.62);
+  color: #f5ffd8 !important;
+  font-size: 14px !important;
+  box-shadow: inset 0 0 12px rgba(105, 255, 125, 0.08);
+}
+
+.activity-item-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #f4d779;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
 }
 
 .activity-dot {
@@ -4608,4 +4640,327 @@ button.confession-image-scroller__item {
   .echo-root-card-topline {
     margin-bottom: 8px;
   }
+}
+
+/* Echo root replies + focused comment page */
+.echo-root-card--clickable {
+  cursor: pointer;
+}
+
+.echo-root-card--clickable:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(216, 192, 119, 0.56) !important;
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.34),
+    0 0 24px rgba(216, 192, 119, 0.13) !important;
+}
+
+.echo-root-reply-preview {
+  position: relative;
+  margin-top: 11px;
+  padding: 9px 10px 9px 13px;
+  border-left: 1px solid rgba(216, 192, 119, 0.46);
+  border-radius: 12px;
+  background: rgba(5, 18, 10, 0.26);
+}
+
+.echo-root-reply-preview-row {
+  display: grid;
+  gap: 2px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(216, 192, 119, 0.12);
+}
+
+.echo-root-reply-preview-row:last-of-type {
+  border-bottom: 0;
+}
+
+.echo-root-reply-preview-row span {
+  color: rgba(216, 192, 119, 0.9);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.echo-root-reply-preview-row p {
+  margin: 0;
+  color: rgba(235, 255, 218, 0.88);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.echo-root-reply-preview button {
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d8c077;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.echo-focus-section {
+  position: relative;
+  width: min(900px, calc(100vw - 38px));
+  margin: 8px 0 28px 50%;
+  padding: 8px 0 0;
+  transform: translateX(-50%);
+}
+
+.echo-focus-back-btn {
+  margin-bottom: 14px;
+}
+
+.echo-focus-root-card {
+  min-height: auto;
+}
+
+.echo-author-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.echo-replies-thread {
+  position: relative;
+  margin-top: 20px;
+  padding: 28px 0 0 28px;
+}
+
+.echo-replies-thread::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: 58px;
+  left: 12px;
+  width: 1px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(216, 192, 119, 0.8),
+    rgba(155, 227, 90, 0.22),
+    rgba(216, 192, 119, 0.12)
+  );
+  box-shadow: 0 0 12px rgba(216, 192, 119, 0.23);
+}
+
+.echo-replies-thread-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--echo-tree-section, #dfffb4);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.echo-replies-thread-title strong {
+  min-width: max-content;
+  color: rgba(255, 241, 178, 0.92);
+}
+
+.echo-reply-list {
+  display: grid;
+  gap: 12px;
+}
+
+.echo-reply-row {
+  position: relative;
+}
+
+.echo-reply-string {
+  position: absolute;
+  top: 22px;
+  left: -16px;
+  width: 16px;
+  height: 1px;
+  background: rgba(216, 192, 119, 0.55);
+  box-shadow: 0 0 8px rgba(216, 192, 119, 0.22);
+}
+
+.echo-reply-string::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d8c077;
+  box-shadow: 0 0 8px rgba(216, 192, 119, 0.66);
+  transform: translateY(-50%);
+}
+
+.echo-reply-bubble {
+  border: 1px solid rgba(216, 192, 119, 0.22);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(216, 192, 119, 0.08), transparent 40%),
+    rgba(7, 20, 12, 0.48);
+  padding: 11px 13px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.echo-reply-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  color: rgba(216, 192, 119, 0.78);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.echo-reply-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #dfffb4;
+  text-decoration: none;
+}
+
+.echo-reply-bubble p {
+  margin: 0;
+  color: rgba(235, 255, 218, 0.94);
+  font-size: 13px;
+  line-height: 1.52;
+}
+
+.echo-reply-empty {
+  width: 100%;
+  margin: 0 0 12px;
+  transform: none;
+}
+
+.echo-reply-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  border: 1px solid rgba(216, 192, 119, 0.24);
+  border-radius: 999px;
+  background: rgba(6, 18, 11, 0.58);
+  padding: 7px;
+}
+
+.echo-reply-form input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: rgba(235, 255, 218, 0.96);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  padding: 0 10px;
+}
+
+.echo-reply-form input::placeholder {
+  color: rgba(235, 255, 218, 0.48);
+}
+
+.echo-reply-form button {
+  min-height: 32px;
+  border: 1px solid rgba(155, 227, 90, 0.36);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(19, 70, 34, 0.82), rgba(7, 28, 14, 0.88));
+  color: #dfffb4;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 16px;
+  cursor: pointer;
+}
+
+.echo-reply-form button:disabled,
+.echo-reply-form input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 720px) {
+  .echo-focus-section {
+    width: 100%;
+    margin-left: 0;
+    transform: none;
+  }
+
+  .echo-replies-thread {
+    padding-left: 20px;
+  }
+
+  .echo-replies-thread::before {
+    left: 7px;
+  }
+
+  .echo-reply-string {
+    left: -13px;
+    width: 13px;
+  }
+
+  .echo-reply-form {
+    border-radius: 18px;
+    flex-direction: column;
+  }
+
+  .echo-reply-form input {
+    min-height: 34px;
+  }
+}
+
+/* Performance guard: echo root cards keep their cosmetic skins but stay still until hover/focus. */
+.echo-root-card:not(:hover):not(:focus-within),
+.echo-root-card:not(:hover):not(:focus-within)::before,
+.echo-root-card:not(:hover):not(:focus-within)::after,
+.echo-root-card:not(:hover):not(:focus-within) *,
+.echo-root-card:not(:hover):not(:focus-within) *::before,
+.echo-root-card:not(:hover):not(:focus-within) *::after {
+  animation-play-state: paused !important;
+}
+
+.echo-root-card:hover,
+.echo-root-card:hover::before,
+.echo-root-card:hover::after,
+.echo-root-card:hover *,
+.echo-root-card:hover *::before,
+.echo-root-card:hover *::after,
+.echo-root-card:focus-within,
+.echo-root-card:focus-within::before,
+.echo-root-card:focus-within::after,
+.echo-root-card:focus-within *,
+.echo-root-card:focus-within *::before,
+.echo-root-card:focus-within *::after {
+  animation-play-state: running !important;
+}
+
+.echo-root-card:not(:hover):not(:focus-within) .cw-cosmetic-fx-layer,
+.echo-root-card:not(:hover):not(:focus-within) .cw-cosmetic-fx-layer *,
+.echo-root-card:not(:hover):not(:focus-within) .cw-framed-avatar,
+.echo-root-card:not(:hover):not(:focus-within) .cw-framed-avatar *,
+.echo-root-card:not(:hover):not(:focus-within) .cw-animated-badge,
+.echo-root-card:not(:hover):not(:focus-within) .cw-animated-badge * {
+  will-change: auto !important;
+}
+
+.echo-root-card:hover .cw-cosmetic-fx-layer,
+.echo-root-card:hover .cw-cosmetic-fx-layer *,
+.echo-root-card:hover .cw-framed-avatar,
+.echo-root-card:hover .cw-framed-avatar *,
+.echo-root-card:hover .cw-animated-badge,
+.echo-root-card:hover .cw-animated-badge *,
+.echo-root-card:focus-within .cw-cosmetic-fx-layer,
+.echo-root-card:focus-within .cw-cosmetic-fx-layer *,
+.echo-root-card:focus-within .cw-framed-avatar,
+.echo-root-card:focus-within .cw-framed-avatar *,
+.echo-root-card:focus-within .cw-animated-badge,
+.echo-root-card:focus-within .cw-animated-badge * {
+  will-change: transform, opacity, filter, background-position;
 }

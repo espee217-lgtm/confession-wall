@@ -29,9 +29,6 @@ import BuddingLand from "./pages/BuddingLand";
 import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
-import RefundCancellationPolicy from "./pages/RefundCancellationPolicy";
-import ContactSupport from "./pages/ContactSupport";
-import ModerationReportPolicy from "./pages/ModerationReportPolicy";
 import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
@@ -92,10 +89,6 @@ const ROUTE_SEO = {
     title: "Community Guidelines - Confession Wall",
     description: "Read the community guidelines for posting and reacting on Confession Wall.",
   },
-  "/community-guidelines": {
-    title: "Community Guidelines - Confession Wall",
-    description: "Read the community guidelines for posting and reacting on Confession Wall.",
-  },
   "/terms": {
     title: "Terms - Confession Wall",
     description: "Read the Confession Wall terms of use.",
@@ -103,18 +96,6 @@ const ROUTE_SEO = {
   "/privacy": {
     title: "Privacy Policy - Confession Wall",
     description: "Read the Confession Wall privacy policy.",
-  },
-  "/refund-policy": {
-    title: "Refund & Cancellation Policy - Confession Wall",
-    description: "Read the Confession Wall refund and cancellation policy for Seeds and digital credits.",
-  },
-  "/contact-support": {
-    title: "Contact & Support - Confession Wall",
-    description: "Contact Confession Wall for support, payment issues, safety concerns, and moderation appeals.",
-  },
-  "/moderation-policy": {
-    title: "Moderation & Report Policy - Confession Wall",
-    description: "Read how Confession Wall reviews reports and handles moderation decisions.",
   },
 };
 
@@ -436,6 +417,38 @@ function NotificationBell() {
     });
   };
 
+  const getNotificationMeta = (notification) => {
+    if (notification?.type === "root_reply") {
+      return {
+        icon: "🌿",
+        label: "Golden echo",
+        hint: "Open root",
+      };
+    }
+
+    if (notification?.type === "comment") {
+      return {
+        icon: "💬",
+        label: "Comment",
+        hint: "Open",
+      };
+    }
+
+    if (notification?.type === "reaction") {
+      return {
+        icon: "💧",
+        label: "Reaction",
+        hint: "Open",
+      };
+    }
+
+    return {
+      icon: "🔔",
+      label: "Notification",
+      hint: "Open",
+    };
+  };
+
   if (!user || !token) return null;
 
   return (
@@ -557,69 +570,137 @@ function NotificationBell() {
               No notifications yet.
             </div>
           ) : (
-            notifications.map((notification) => (
-              <button
-                type="button"
-                key={notification._id}
-                onClick={() => markOneAsRead(notification)}
-                style={{
-                  width: "100%",
-                  margin: "0 0 7px",
-                  padding: "11px 12px",
-                  borderRadius: "12px",
-                  border: notification.read
-                    ? "1px solid rgba(160,210,160,0.12)"
-                    : "1px solid rgba(140,255,150,0.35)",
-                  background: notification.read
-                    ? "rgba(255,255,255,0.045)"
-                    : "rgba(100,255,135,0.13)",
-                  color: "#efffde",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  boxShadow: notification.read
-                    ? "none"
-                    : "0 0 16px rgba(110,255,140,0.12)",
-                }}
-              >
-                <div
+            notifications.map((notification) => {
+              const meta = getNotificationMeta(notification);
+
+              return (
+                <button
+                  type="button"
+                  key={notification._id}
+                  onClick={() => markOneAsRead(notification)}
                   style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "8px",
+                    width: "100%",
+                    margin: "0 0 7px",
+                    padding: "11px 12px",
+                    borderRadius: "12px",
+                    border: notification.read
+                      ? "1px solid rgba(160,210,160,0.12)"
+                      : notification.type === "root_reply"
+                      ? "1px solid rgba(235,205,95,0.46)"
+                      : "1px solid rgba(140,255,150,0.35)",
+                    background: notification.read
+                      ? "rgba(255,255,255,0.045)"
+                      : notification.type === "root_reply"
+                      ? "linear-gradient(135deg, rgba(126,255,135,0.13), rgba(230,190,70,0.12))"
+                      : "rgba(100,255,135,0.13)",
+                    color: "#efffde",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    boxShadow: notification.read
+                      ? "none"
+                      : notification.type === "root_reply"
+                      ? "0 0 18px rgba(230,205,90,0.15)"
+                      : "0 0 16px rgba(110,255,140,0.12)",
                   }}
                 >
-                  {!notification.read && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "9px",
+                    }}
+                  >
                     <span
+                      aria-hidden="true"
                       style={{
-                        width: "8px",
-                        height: "8px",
+                        width: "24px",
+                        height: "24px",
                         borderRadius: "50%",
-                        background: "#7dff8a",
-                        marginTop: "6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         flex: "0 0 auto",
-                        boxShadow: "0 0 10px rgba(125,255,138,0.9)",
-                      }}
-                    />
-                  )}
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "13px", lineHeight: 1.35 }}>
-                      {notification.message}
-                    </div>
-
-                    <div
-                      style={{
-                        marginTop: "5px",
-                        fontSize: "11px",
-                        color: "rgba(230,255,220,0.55)",
+                        marginTop: "1px",
+                        border: notification.read
+                          ? "1px solid rgba(210,255,190,0.13)"
+                          : "1px solid rgba(245,225,120,0.35)",
+                        background: notification.read
+                          ? "rgba(255,255,255,0.04)"
+                          : "rgba(8,30,10,0.55)",
+                        boxShadow:
+                          !notification.read && notification.type === "root_reply"
+                            ? "0 0 12px rgba(230,205,90,0.2)"
+                            : "none",
+                        fontSize: "13px",
                       }}
                     >
-                      {formatNotificationTime(notification.createdAt)}
+                      {meta.icon}
+                    </span>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "8px",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            color:
+                              notification.type === "root_reply"
+                                ? "#f4d779"
+                                : "rgba(200,255,190,0.7)",
+                            fontSize: "10px",
+                            fontWeight: 800,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            fontFamily: "'Cinzel', Georgia, serif",
+                          }}
+                        >
+                          {meta.label}
+                        </span>
+
+                        {!notification.read && (
+                          <span
+                            style={{
+                              width: "7px",
+                              height: "7px",
+                              borderRadius: "50%",
+                              background: "#7dff8a",
+                              flex: "0 0 auto",
+                              boxShadow: "0 0 10px rgba(125,255,138,0.9)",
+                            }}
+                          />
+                        )}
+                      </div>
+
+                      <div style={{ fontSize: "13px", lineHeight: 1.35 }}>
+                        {notification.message}
+                      </div>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "10px",
+                          marginTop: "6px",
+                          fontSize: "11px",
+                          color: "rgba(230,255,220,0.55)",
+                        }}
+                      >
+                        <span>{formatNotificationTime(notification.createdAt)}</span>
+                        <span style={{ color: "rgba(244,215,121,0.72)" }}>
+                          {meta.hint} →
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))
+                </button>
+              );
+            })
           )}
         </div>
       )}
@@ -723,7 +804,7 @@ function Navbar() {
             minWidth: 0,
           }}
         >
-          <ShopButton />
+          {user && <ShopButton />}
           {user && <SeedCounter />}
 
           <Link
@@ -885,54 +966,26 @@ function Footer() {
         © Confession Wall
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: "10px 18px",
-        }}
-      >
+      <div>
+        <Link
+          to="/guidelines"
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
+        >
+          Guidelines
+        </Link>
+
         <Link
           to="/terms"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
         >
           Terms
         </Link>
 
         <Link
           to="/privacy"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
+          style={{ margin: "0 12px", color: "#9FE1CB", textDecoration: "none" }}
         >
           Privacy
-        </Link>
-
-        <Link
-          to="/refund-policy"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
-        >
-          Refund/Cancellation
-        </Link>
-
-        <Link
-          to="/contact-support"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
-        >
-          Contact
-        </Link>
-
-        <Link
-          to="/community-guidelines"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
-        >
-          Community Guidelines
-        </Link>
-
-        <Link
-          to="/moderation-policy"
-          style={{ color: "#9FE1CB", textDecoration: "none" }}
-        >
-          Moderation Policy
         </Link>
       </div>
     </div>
@@ -957,6 +1010,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/confession/:id" element={<ConfessionPage />} />
+        <Route path="/confession/:id/comment/:commentId" element={<ConfessionPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -977,12 +1031,8 @@ function AppContent() {
         <Route path="/choose" element={<ChoicePage />} />
         <Route path="/reena" element={<ReenaPage />} />
         <Route path="/guidelines" element={<CommunityGuidelines />} />
-        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
-        <Route path="/refund-policy" element={<RefundCancellationPolicy />} />
-        <Route path="/contact-support" element={<ContactSupport />} />
-        <Route path="/moderation-policy" element={<ModerationReportPolicy />} />
         <Route path="/pressed-leaves" element={<PressedLeaves />} />
         <Route path="/weekly-events" element={<WeeklyEventsPage />} />
         <Route path="/reena-kundali" element={<ReenaKundaliPage />} />

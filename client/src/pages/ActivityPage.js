@@ -98,6 +98,22 @@ export default function ActivityPage() {
     });
   };
 
+  const getNotificationMeta = (notification) => {
+    if (notification?.type === "root_reply") {
+      return { icon: "🌿", label: "Golden echo", hint: "Open root" };
+    }
+
+    if (notification?.type === "comment") {
+      return { icon: "💬", label: "Comment", hint: "Open" };
+    }
+
+    if (notification?.type === "reaction") {
+      return { icon: "💧", label: "Reaction", hint: "Open" };
+    }
+
+    return { icon: "🔔", label: "Notification", hint: "Open" };
+  };
+
   if (!user || !token) {
     return (
       <main className="activity-page-shell">
@@ -145,20 +161,32 @@ export default function ActivityPage() {
       )}
 
       <section className="activity-list">
-        {notifications.map((notification) => (
-          <button
-            key={notification._id}
-            type="button"
-            onClick={() => markOneAsRead(notification)}
-            className={`activity-item ${notification.read ? "read" : "unread"}`}
-          >
-            {!notification.read && <span className="activity-dot" />}
-            <div>
-              <p>{notification.message}</p>
-              <span>{formatTime(notification.createdAt)}</span>
-            </div>
-          </button>
-        ))}
+        {notifications.map((notification) => {
+          const meta = getNotificationMeta(notification);
+
+          return (
+            <button
+              key={notification._id}
+              type="button"
+              onClick={() => markOneAsRead(notification)}
+              className={`activity-item ${notification.read ? "read" : "unread"} ${
+                notification.type === "root_reply" ? "root-reply" : ""
+              }`}
+            >
+              {!notification.read && <span className="activity-dot" />}
+              <span className="activity-item-icon" aria-hidden="true">
+                {meta.icon}
+              </span>
+              <div>
+                <strong className="activity-item-label">{meta.label}</strong>
+                <p>{notification.message}</p>
+                <span>
+                  {formatTime(notification.createdAt)} · {meta.hint} →
+                </span>
+              </div>
+            </button>
+          );
+        })}
       </section>
       <MobileBottomNav />
     </main>
