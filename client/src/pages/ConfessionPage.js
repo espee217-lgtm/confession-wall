@@ -1715,23 +1715,33 @@ const activeCommentPinPosition = isPhoneLayout
           </div>
 
           <div
+            className="echo-roots-heading"
             style={{
-              fontSize: isPhoneLayout ? "11px" : "12px",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
               color: theme.section,
               marginBottom: isPhoneLayout ? "12px" : "14px",
-              display: "flex",
-              alignItems: "center",
-              gap: isPhoneLayout ? "6px" : "8px",
             }}
           >
             <span>✦</span>
-            <span>{confession.comments?.length || 0} comments</span>
+            <span>{confession.comments?.length || 0} echo roots</span>
           </div>
 
           {confession.comments?.length > 0 ? (
-            confession.comments.map((c, i) => {
+            <section
+              className="echo-root-tree-section"
+              style={{
+                "--echo-tree-card-bg": theme.cardBg,
+                "--echo-tree-card-border": isPhoneLayout
+                  ? theme.cardBorder
+                  : "1px solid rgba(216, 192, 119, 0.34)",
+                "--echo-tree-text": theme.text,
+                "--echo-tree-muted": theme.muted,
+                "--echo-tree-section": theme.section,
+              }}
+            >
+              <div className="echo-root-trunk" aria-hidden="true" />
+
+              <div className="echo-root-grid">
+                {confession.comments.map((c, i) => {
   const isTargetComment =
     targetCommentId && c._id?.toString() === targetCommentId;
 
@@ -1746,27 +1756,41 @@ const activeCommentPinPosition = isPhoneLayout
     : theme.text;
 
   return (
-                <div
+                <article
                   key={c._id || i}
-                  id={`comment-${c._id}`}
-                  className={`cw-confession-comment-card${
-                    commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
+                  className={`echo-root-slot echo-root-slot--${i % 6}${
+                    isTargetComment ? " is-target" : ""
                   }`}
-                  style={{
+                >
+                  <span className="echo-root-drop-line" aria-hidden="true" />
+
+                  <div
+                    id={`comment-${c._id}`}
+                    className={`cw-confession-comment-card echo-root-card${
+                      commentPostThemeClass ? ` ${commentPostThemeClass}` : ""
+                    }`}
+                    style={{
   ...commentCardStyle,
   ...commentPostThemeStyle,
+  marginBottom: 0,
   color: commentTextColor,
   transform: isTargetComment ? "scale(1.035)" : "scale(1)",
                     border: isTargetComment
                       ? "1px solid rgba(255,230,120,0.75)"
-                      : commentCardStyle.border,
+                      : commentPostThemeStyle.border || commentCardStyle.border,
                     boxShadow: isTargetComment
                       ? "0 0 35px rgba(255,230,120,0.55)"
-                      : commentCardStyle.boxShadow,
+                      : commentPostThemeStyle.boxShadow || commentCardStyle.boxShadow,
                     transition: "all 0.35s ease",
                   }}
                 >
                   <PostThemeFxLayers themeId={commentThemeId} />
+
+                  <div className="echo-root-card-topline">
+                    <span className="echo-root-type-pill">🌿 Echo Root</span>
+                    <span className="echo-root-position">#{i + 1}</span>
+                  </div>
+
                   <div
                     style={{
                       display: "flex",
@@ -1840,23 +1864,34 @@ const activeCommentPinPosition = isPhoneLayout
                     />
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => reportComment(c._id)}
-                    style={{
-                      marginTop: "10px",
-                      background: theme.reportBg,
-                      border: theme.reportBorder,
-                      color: theme.reportColor,
-                      borderRadius: "12px",
-                      padding: isPhoneLayout ? "5px 10px" : "5px 11px",
-                      fontSize: isPhoneLayout ? "10px" : "11px",
-                      cursor: "pointer",
-                      fontFamily: "Georgia, serif",
-                    }}
-                  >
-                    Report
-                  </button>
+                  <div className="echo-root-actions-row">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        commentInputRef.current?.focus();
+                        commentInputRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      }}
+                      className="echo-root-action-btn echo-root-action-btn--primary"
+                    >
+                      Echo back
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => reportComment(c._id)}
+                      className="echo-root-action-btn echo-root-action-btn--report"
+                      style={{
+                        "--echo-report-bg": theme.reportBg,
+                        "--echo-report-border": theme.reportBorder,
+                        "--echo-report-color": theme.reportColor,
+                      }}
+                    >
+                      Report
+                    </button>
+                  </div>
 
                   <ReactionBar
                     wateredBy={c.wateredBy || []}
@@ -1909,20 +1944,20 @@ const activeCommentPinPosition = isPhoneLayout
                       });
                     }}
                   />
-                </div>
+                  </div>
+                </article>
               );
-            })
+            })}
+              </div>
+            </section>
           ) : (
             <div
+              className="echo-root-empty-state"
               style={{
-                textAlign: "center",
                 color: theme.muted,
-                fontSize: "13px",
-                padding: "24px 0",
-                letterSpacing: "0.06em",
               }}
             >
-              no confessions yet · be the first 🌿
+              no echoes yet · be the first root 🌿
             </div>
           )}
 
@@ -1973,7 +2008,7 @@ const activeCommentPinPosition = isPhoneLayout
               <input
                 ref={commentInputRef}
                 type="text"
-                placeholder="leave a confession…"
+                placeholder="leave an echo…"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 style={{
