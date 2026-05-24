@@ -7247,3 +7247,251 @@ button.confession-image-scroller__item {
     --trending-stage-mask-opacity: 0.64;
   }
 }
+
+
+/* Trending hero back button + image previews for ranked/feed cards. */
+.trending-page-shell .trending-leaderboard-hero .search-back-btn {
+  position: absolute !important;
+  top: 18px !important;
+  left: 22px !important;
+  margin: 0 !important;
+  padding: 7px 13px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(198, 255, 145, 0.22) !important;
+  background: rgba(4, 17, 7, 0.58) !important;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: rgba(220, 255, 180, 0.96) !important;
+  z-index: 4 !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-back-btn:hover {
+  transform: translateY(-1px) !important;
+  border-color: rgba(198, 255, 145, 0.42) !important;
+  background: rgba(12, 37, 13, 0.78) !important;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.24),
+    0 0 20px rgba(154, 255, 96, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.trending-clean-main--with-image .trending-clean-copy {
+  padding-right: clamp(132px, 19vw, 178px) !important;
+}
+
+.trending-image-preview {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  width: clamp(104px, 14vw, 148px);
+  height: clamp(74px, 9vw, 104px);
+  transform: translateY(-50%);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(205, 255, 160, 0.24);
+  background:
+    radial-gradient(circle at 30% 10%, rgba(200, 255, 150, 0.14), transparent 42%),
+    rgba(3, 16, 7, 0.62);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.035),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.trending-image-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 34%),
+    linear-gradient(90deg, rgba(2, 14, 5, 0.10), transparent 55%, rgba(2, 14, 5, 0.28));
+  pointer-events: none;
+}
+
+.trending-image-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(0.92) contrast(1.02) brightness(0.82);
+}
+
+.trending-image-preview__count,
+.post-card-image-preview__count {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(232, 255, 188, 0.35);
+  background: rgba(2, 11, 4, 0.72);
+  color: #efffd0;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 18px rgba(156, 255, 82, 0.16);
+  z-index: 2;
+}
+
+.post-card-image-preview {
+  width: min(180px, 42vw);
+  height: 112px;
+  margin: -4px 0 12px auto;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(176, 255, 148, 0.22);
+  background: rgba(3, 18, 7, 0.52);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.post-card-image-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: saturate(0.95) contrast(1.02) brightness(0.9);
+}
+
+.post-card-image-preview img.is-blurred {
+  filter: blur(12px) saturate(0.7) brightness(0.75);
+  transform: scale(1.08);
+}
+
+.post-card-image-preview::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%),
+    radial-gradient(circle at 15% 10%, rgba(190, 255, 145, 0.12), transparent 34%);
+  pointer-events: none;
+}
+
+@media (max-width: 780px) {
+  .trending-page-shell .trending-leaderboard-hero .search-back-btn {
+    top: 14px !important;
+    left: 16px !important;
+    padding: 6px 11px !important;
+    font-size: 12px !important;
+  }
+
+  .trending-clean-main--with-image .trending-clean-copy {
+    padding-right: 0 !important;
+  }
+
+  .trending-image-preview {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: min(100%, 220px);
+    height: 118px;
+    margin: 12px 0 2px;
+    display: block;
+  }
+
+  .post-card-image-preview {
+    width: 100%;
+    height: 140px;
+    margin: 0 0 12px;
+  }
+}
+
+/* === Trending floating Back button cleanup ===
+   Back now lives outside the hero card, fixed in the top-left page corner. */
+.trending-floating-back-btn {
+  position: fixed;
+  top: clamp(76px, 8.5vh, 104px);
+  left: clamp(14px, 2.8vw, 34px);
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(215, 255, 166, 0.30);
+  background:
+    radial-gradient(circle at 28% 18%, rgba(207, 255, 146, 0.16), transparent 38%),
+    linear-gradient(135deg, rgba(10, 38, 13, 0.86), rgba(2, 14, 5, 0.82));
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.34),
+    0 0 24px rgba(137, 255, 90, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.20);
+  color: rgba(239, 255, 210, 0.96);
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.015em;
+  text-transform: lowercase;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.trending-floating-back-btn::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: inherit;
+  border: 1px solid rgba(215, 255, 166, 0.09);
+  pointer-events: none;
+}
+
+.trending-floating-back-btn:hover,
+.trending-floating-back-btn:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(204, 255, 144, 0.52);
+  background:
+    radial-gradient(circle at 28% 18%, rgba(211, 255, 148, 0.24), transparent 40%),
+    linear-gradient(135deg, rgba(15, 54, 18, 0.92), rgba(3, 19, 6, 0.90));
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.42),
+    0 0 26px rgba(155, 255, 95, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.22);
+  color: #f4ffd8;
+  outline: none;
+}
+
+.trending-floating-back-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* The old back button no longer exists inside the hero, but keep the hero clean
+   if a cached build briefly renders the previous element. */
+.trending-page-shell .trending-leaderboard-hero .search-back-btn {
+  display: none !important;
+}
+
+@media (max-width: 780px) {
+  .trending-floating-back-btn {
+    top: 74px;
+    left: 12px;
+    min-width: 66px;
+    height: 34px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+}

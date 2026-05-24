@@ -19,10 +19,29 @@ import {
   normalizeContentWarning,
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
+import { getConfessionImages } from "../utils/confessionImages";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
 const PRESSED_LEAVES_URL = `${API_BASE}/api/auth/pressed-leaves`;
+
+function PostCardImagePreview({ images, blurred }) {
+  if (!Array.isArray(images) || images.length === 0) return null;
+
+  const extraCount = images.length - 1;
+
+  return (
+    <div className="post-card-image-preview" aria-label={`${images.length} attached image${images.length === 1 ? "" : "s"}`}>
+      <img
+        src={images[0]}
+        alt="confession attachment preview"
+        loading="lazy"
+        className={blurred ? "is-blurred" : ""}
+      />
+      {extraCount > 0 && <span className="post-card-image-preview__count">+{extraCount}</span>}
+    </div>
+  );
+}
 
 export default function PostCard({ post, realm, highlighted, onOpen }) {
   const { token, user, updateUser } = useAuth();
@@ -60,6 +79,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const hasContentWarning = contentWarning.enabled;
   const hideSensitiveContent =
     shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
+  const confessionImages = getConfessionImages(localPost);
 
   const reportPost = async (e) => {
     e.stopPropagation();
@@ -385,6 +405,8 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
           </div>
         )}
       </div>
+
+      <PostCardImagePreview images={confessionImages} blurred={hideSensitiveContent} />
 
       {localPost.poll?.question && Array.isArray(localPost.poll.options) && (
         <div

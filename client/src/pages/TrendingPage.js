@@ -12,6 +12,7 @@ import {
   getConfessionThemeId,
   getDisplayCosmetics,
 } from "../utils/engagement";
+import { getConfessionImages } from "../utils/confessionImages";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -20,7 +21,6 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const PAGE_LIMIT = 10;
-const BACK_ARROW = "\u2190";
 const PERIODS = [
   { key: "day", label: "Today" },
   { key: "week", label: "This Week" },
@@ -168,24 +168,44 @@ function TrendingThemeStage({ themeId, realm }) {
   );
 }
 
+
+function TrendingImagePreview({ images }) {
+  if (!Array.isArray(images) || images.length === 0) return null;
+
+  const extraCount = images.length - 1;
+
+  return (
+    <span className="trending-image-preview" aria-label={`${images.length} attached image${images.length === 1 ? "" : "s"}`}>
+      <img src={images[0]} alt="confession attachment preview" loading="lazy" />
+      {extraCount > 0 && <span className="trending-image-preview__count">+{extraCount}</span>}
+    </span>
+  );
+}
+
 function TrendingPostPreview({ post, realm, stats, onOpen }) {
   const username = getPostAuthorUsername(post);
   const moodLabel = getPostMoodLabel(post, realm);
   const message = getPostMessage(post);
   const comfortCards = Array.isArray(post?.comfortCards) ? post.comfortCards.slice(0, 4) : [];
+  const confessionImages = getConfessionImages(post);
 
   const themeId = getTrendingPostThemeId(post);
 
   return (
     <button
       type="button"
-      className={["trending-clean-main", themeId ? "trending-clean-main--with-theme" : ""]
+      className={[
+        "trending-clean-main",
+        themeId ? "trending-clean-main--with-theme" : "",
+        confessionImages.length ? "trending-clean-main--with-image" : "",
+      ]
         .filter(Boolean)
         .join(" ")}
       onClick={onOpen}
     >
       <TrendingThemeStage themeId={themeId} realm={realm} />
       <div className="trending-clean-copy">
+        <TrendingImagePreview images={confessionImages} />
         <div className="trending-clean-topline">
           <span className="trending-clean-author">@{username}</span>
           <span className={`trending-clean-mood trending-clean-mood--${realm}`}>
@@ -415,11 +435,11 @@ export default function TrendingPage() {
 
   return (
     <main className="search-page-shell trending-page-shell">
-      <section className="search-hero-card trending-hero-card trending-leaderboard-hero">
-        <button type="button" className="search-back-btn" onClick={() => navigate(-1)}>
-          {BACK_ARROW} back
-        </button>
+      <button type="button" className="trending-floating-back-btn" onClick={() => navigate(-1)}>
+        back
+      </button>
 
+      <section className="search-hero-card trending-hero-card trending-leaderboard-hero">
         <p className="search-kicker">{"\u2726"} public discovery</p>
         <h1>{mood ? `${mood} Confessions` : "Trending Confessions"}</h1>
         <p>
