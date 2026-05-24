@@ -662,6 +662,42 @@ router.put("/profile", protect, upload.single("profilePicture"), async (req, res
 // GET /api/auth/me
 // ─────────────────────────────────────────────────────────────────────────────
 
+
+router.get("/mention-suggestions", protect, async (req, res) => {
+  try {
+    const q = String(req.query.q || "").trim();
+
+    if (q.length < 2) {
+      return res.json([]);
+    }
+
+    const safeQuery = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const users = await User.find({
+      username: { $regex: `^${safeQuery}`, $options: "i" },
+      isBanned: { $ne: true },
+    })
+      .select("_id username profilePicture equippedCosmetics role isAdmin")
+      .sort({ username: 1 })
+      .limit(8)
+      .lean();
+
+    return res.json(
+      users.map((suggestedUser) => ({
+        _id: suggestedUser._id,
+        username: suggestedUser.username,
+        profilePicture: suggestedUser.profilePicture || null,
+        role: suggestedUser.role || "user",
+        isAdmin: Boolean(suggestedUser.isAdmin),
+        equippedCosmetics: suggestedUser.equippedCosmetics || {},
+      }))
+    );
+  } catch (err) {
+    console.error("Mention suggestions error:", err);
+    return res.status(500).json({ message: "Could not load mention suggestions." });
+  }
+});
+
 router.get("/me", protect, async (req, res) => {
   await ensureWeeklyEventMaintenance();
   const dailyVisitUpdate = await applyDailyVisit(req.user._id, "/");

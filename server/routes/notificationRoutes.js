@@ -48,6 +48,23 @@ router.patch("/read-all", protect, async (req, res) => {
   }
 });
 
+
+// DELETE /api/notifications/clear
+// Permanently clears the logged-in user's notification inbox from MongoDB.
+router.delete("/clear", protect, async (req, res) => {
+  try {
+    const result = await Notification.deleteMany({ userId: req.user._id });
+
+    res.json({
+      message: "Notification inbox cleared",
+      deletedCount: result.deletedCount || 0,
+    });
+  } catch (err) {
+    console.error("Clear notification inbox error:", err);
+    res.status(500).json({ message: "Could not clear notification inbox" });
+  }
+});
+
 // PATCH /api/notifications/:id/read
 router.patch("/:id/read", protect, async (req, res) => {
   try {

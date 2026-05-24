@@ -6,6 +6,7 @@ const express = require("express");
 const router = express.Router();
 const Confession = require("../models/Confession");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 const rateLimit = require("express-rate-limit");
 const { protect, blockSuspended } = require("../middleware/auth");
 const { sanitizeText } = require("../middleware/sanitizeInput");
@@ -61,6 +62,72 @@ const createNotification = async ({ userId, type, message, link }) => {
     });
   } catch (err) {
     console.error("Create notification error:", err);
+  }
+};
+
+const escapeRegex = (value = "") =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const extractMentionUsernames = (text = "") => {
+  const mentions = new Set();
+  const mentionRegex = /(^|[^a-zA-Z0-9_.-])@([a-zA-Z0-9_.-]{2,40})\b/g;
+  let match;
+
+  while ((match = mentionRegex.exec(String(text || ""))) !== null) {
+    const username = String(match[2] || "").trim().replace(/[.,!?;:]+$/, "");
+    if (username) mentions.add(username.toLowerCase());
+    if (mentions.size >= 10) break;
+  }
+
+  return [...mentions];
+};
+
+const createMentionNotifications = async ({
+  text,
+  actor,
+  confessionId,
+  commentId = null,
+  excludeUserIds = [],
+}) => {
+  try {
+    const mentionedUsernames = extractMentionUsernames(text);
+    if (mentionedUsernames.length === 0) return;
+
+    const excludedIds = new Set(
+      [actor?._id, ...excludeUserIds]
+        .filter(Boolean)
+        .map((id) => String(id))
+    );
+
+    const mentionedUsers = await User.find({
+      $or: mentionedUsernames.map((username) => ({
+        username: { $regex: `^${escapeRegex(username)}$`, $options: "i" },
+      })),
+    }).select("_id username");
+
+    const uniqueRecipients = new Map();
+    mentionedUsers.forEach((mentionedUser) => {
+      const id = String(mentionedUser?._id || "");
+      if (!id || excludedIds.has(id)) return;
+      uniqueRecipients.set(id, mentionedUser);
+    });
+
+    const link = commentId
+      ? `/confession/${confessionId}/comment/${commentId}`
+      : `/confession/${confessionId}`;
+
+    await Promise.all(
+      [...uniqueRecipients.values()].map((mentionedUser) =>
+        createNotification({
+          userId: mentionedUser._id,
+          type: "mention",
+          message: `${actor?.username || "Someone"} mentioned you in an Echo.`,
+          link,
+        })
+      )
+    );
+  } catch (err) {
+    console.error("Create mention notifications error:", err);
   }
 };
 
@@ -1114,6 +1181,8 @@ router.post(
       const postOwnerId = confession.userId;
       const commenterId = req.user._id;
 
+      const alreadyNotifiedUserIds = [];
+
       if (postOwnerId && !postOwnerId.equals(commenterId)) {
         await createNotification({
           userId: postOwnerId,
@@ -1121,7 +1190,16 @@ router.post(
           message: `${req.user.username || "Someone"} commented on your post.`,
           link: `/confession/${confession._id}`,
         });
+        alreadyNotifiedUserIds.push(postOwnerId);
       }
+
+      await createMentionNotifications({
+        text,
+        actor: req.user,
+        confessionId: confession._id,
+        commentId: newComment?._id || null,
+        excludeUserIds: alreadyNotifiedUserIds,
+      });
 
       await createAdminLog({
         req,
@@ -1220,6 +1298,8 @@ router.post(
 
       await confession.save();
 
+      const alreadyNotifiedUserIds = [];
+
       if (comment.userId && !comment.userId.equals(req.user._id)) {
         await createNotification({
           userId: comment.userId,
@@ -1227,7 +1307,16 @@ router.post(
           message: `${req.user.username || "Someone"} echoed back under your Echo Root.`,
           link: `/confession/${confession._id}/comment/${comment._id}`,
         });
+        alreadyNotifiedUserIds.push(comment.userId);
       }
+
+      await createMentionNotifications({
+        text,
+        actor: req.user,
+        confessionId: confession._id,
+        commentId: comment._id,
+        excludeUserIds: alreadyNotifiedUserIds,
+      });
 
       await createAdminLog({
         req,

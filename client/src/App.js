@@ -403,6 +403,36 @@ function NotificationBell() {
     }
   };
 
+  const clearNotificationInbox = async (event) => {
+    event.stopPropagation();
+
+    if (!notifications.length) return;
+
+    const confirmed = window.confirm(
+      "Clear all notifications from your inbox? This permanently deletes them from MongoDB for your account only."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/notifications/clear`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+
+      if (!res.ok) {
+        throw new Error("Could not clear notification inbox");
+      }
+
+      setNotifications([]);
+      setUnreadCount(0);
+      window.cwToast?.("Notification inbox cleared.", "success");
+    } catch (err) {
+      console.error("Clear notification inbox error:", err);
+      window.cwToast?.("Could not clear notifications right now.", "error");
+    }
+  };
+
   const formatNotificationTime = (dateValue) => {
     if (!dateValue) return "";
 
@@ -423,6 +453,14 @@ function NotificationBell() {
         icon: "🌿",
         label: "Golden echo",
         hint: "Open root",
+      };
+    }
+
+    if (notification?.type === "mention") {
+      return {
+        icon: "@",
+        label: "Mention",
+        hint: "Open echo",
       };
     }
 
@@ -542,22 +580,49 @@ function NotificationBell() {
             </strong>
 
             {notifications.length > 0 && (
-              <button
-                type="button"
-                onClick={markAllAsRead}
+              <div
                 style={{
-                  margin: 0,
-                  padding: "6px 8px",
-                  borderRadius: "10px",
-                  border: "1px solid rgba(170,255,170,0.28)",
-                  background: "rgba(130,255,150,0.12)",
-                  color: "#caffc5",
-                  fontSize: "11px",
-                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
                 }}
               >
-                Mark all read
-              </button>
+                <button
+                  type="button"
+                  onClick={markAllAsRead}
+                  style={{
+                    margin: 0,
+                    padding: "6px 8px",
+                    borderRadius: "10px",
+                    border: "1px solid rgba(170,255,170,0.28)",
+                    background: "rgba(130,255,150,0.12)",
+                    color: "#caffc5",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Mark all read
+                </button>
+
+                <button
+                  type="button"
+                  onClick={clearNotificationInbox}
+                  style={{
+                    margin: 0,
+                    padding: "6px 8px",
+                    borderRadius: "10px",
+                    border: "1px solid rgba(255,190,120,0.32)",
+                    background: "rgba(255,115,75,0.11)",
+                    color: "#ffd6a8",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Clear inbox
+                </button>
+              </div>
             )}
           </div>
 
@@ -585,12 +650,12 @@ function NotificationBell() {
                     borderRadius: "12px",
                     border: notification.read
                       ? "1px solid rgba(160,210,160,0.12)"
-                      : notification.type === "root_reply"
+                      : (notification.type === "root_reply" || notification.type === "mention")
                       ? "1px solid rgba(235,205,95,0.46)"
                       : "1px solid rgba(140,255,150,0.35)",
                     background: notification.read
                       ? "rgba(255,255,255,0.045)"
-                      : notification.type === "root_reply"
+                      : (notification.type === "root_reply" || notification.type === "mention")
                       ? "linear-gradient(135deg, rgba(126,255,135,0.13), rgba(230,190,70,0.12))"
                       : "rgba(100,255,135,0.13)",
                     color: "#efffde",
@@ -598,7 +663,7 @@ function NotificationBell() {
                     textAlign: "left",
                     boxShadow: notification.read
                       ? "none"
-                      : notification.type === "root_reply"
+                      : (notification.type === "root_reply" || notification.type === "mention")
                       ? "0 0 18px rgba(230,205,90,0.15)"
                       : "0 0 16px rgba(110,255,140,0.12)",
                   }}
@@ -628,7 +693,7 @@ function NotificationBell() {
                           ? "rgba(255,255,255,0.04)"
                           : "rgba(8,30,10,0.55)",
                         boxShadow:
-                          !notification.read && notification.type === "root_reply"
+                          !notification.read && (notification.type === "root_reply" || notification.type === "mention")
                             ? "0 0 12px rgba(230,205,90,0.2)"
                             : "none",
                         fontSize: "13px",
@@ -650,7 +715,7 @@ function NotificationBell() {
                         <span
                           style={{
                             color:
-                              notification.type === "root_reply"
+                              (notification.type === "root_reply" || notification.type === "mention")
                                 ? "#f4d779"
                                 : "rgba(200,255,190,0.7)",
                             fontSize: "10px",

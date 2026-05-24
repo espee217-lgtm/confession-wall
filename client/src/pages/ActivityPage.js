@@ -86,6 +86,35 @@ export default function ActivityPage() {
     }
   };
 
+  const clearNotificationInbox = async () => {
+    if (!notifications.length) return;
+
+    const confirmed = window.confirm(
+      "Clear all notifications from your inbox? This permanently deletes them from MongoDB for your account only."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/notifications/clear`, {
+        method: "DELETE",
+        headers: authHeaders,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Could not clear notification inbox");
+      }
+
+      setNotifications([]);
+      window.cwToast?.("Notification inbox cleared.", "success");
+    } catch (err) {
+      console.error("Clear notification inbox error:", err);
+      window.cwToast?.("Could not clear notifications right now.", "error");
+    }
+  };
+
   const formatTime = (dateValue) => {
     if (!dateValue) return "";
     const date = new Date(dateValue);
@@ -101,6 +130,10 @@ export default function ActivityPage() {
   const getNotificationMeta = (notification) => {
     if (notification?.type === "root_reply") {
       return { icon: "🌿", label: "Golden echo", hint: "Open root" };
+    }
+
+    if (notification?.type === "mention") {
+      return { icon: "@", label: "Mention", hint: "Open echo" };
     }
 
     if (notification?.type === "comment") {
@@ -144,9 +177,14 @@ export default function ActivityPage() {
         </p>
 
         {notifications.length > 0 && (
-          <button type="button" className="activity-read-all" onClick={markAllAsRead}>
-            Mark all read
-          </button>
+          <div className="activity-notification-actions">
+            <button type="button" className="activity-read-all" onClick={markAllAsRead}>
+              Mark all read
+            </button>
+            <button type="button" className="activity-clear-inbox" onClick={clearNotificationInbox}>
+              Clear inbox
+            </button>
+          </div>
         )}
       </section>
 
@@ -170,7 +208,7 @@ export default function ActivityPage() {
               type="button"
               onClick={() => markOneAsRead(notification)}
               className={`activity-item ${notification.read ? "read" : "unread"} ${
-                notification.type === "root_reply" ? "root-reply" : ""
+                notification.type === "root_reply" || notification.type === "mention" ? "root-reply" : ""
               }`}
             >
               {!notification.read && <span className="activity-dot" />}

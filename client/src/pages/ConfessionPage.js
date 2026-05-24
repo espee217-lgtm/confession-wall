@@ -507,6 +507,245 @@ function ComfortReceivedInline({ cards = [] }) {
   );
 }
 
+
+function MentionInput({
+  value,
+  onChange,
+  inputRef,
+  token,
+  placeholder,
+  disabled,
+  inputStyle,
+  inputClassName = "",
+  wrapperClassName = "",
+}) {
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [caretPosition, setCaretPosition] = useState(0);
+  const [isSearchingMentions, setIsSearchingMentions] = useState(false);
+  const [mentionLoadError, setMentionLoadError] = useState("");
+  const blurTimerRef = useRef(null);
+
+  const syncMentionQuery = (nextValue, nextCaret) => {
+    const beforeCaret = String(nextValue || "").slice(0, nextCaret || 0);
+    const match = beforeCaret.match(/(^|[\s([{])@([a-zA-Z0-9_.-]{0,40})$/);
+
+    setCaretPosition(nextCaret || 0);
+
+    if (!match || match[2].length < 2) {
+      setMentionQuery("");
+      setSuggestions([]);
+      setIsSearchingMentions(false);
+      setMentionLoadError("");
+      setIsOpen(false);
+      setActiveIndex(0);
+      return;
+    }
+
+    setMentionQuery(match[2]);
+    setMentionLoadError("");
+    setIsOpen(true);
+  };
+
+  useEffect(() => {
+    if (!token || mentionQuery.length < 2) {
+      setIsSearchingMentions(false);
+      setMentionLoadError("");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setIsSearchingMentions(true);
+    setMentionLoadError("");
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/auth/mention-suggestions?q=${encodeURIComponent(mentionQuery)}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: controller.signal,
+          }
+        );
+
+        if (!res.ok) throw new Error("Could not load mention suggestions.");
+
+        const data = await res.json().catch(() => []);
+        const nextSuggestions = Array.isArray(data) ? data.slice(0, 5) : [];
+        setSuggestions(nextSuggestions);
+        setActiveIndex(0);
+        setIsOpen(true);
+      } catch (err) {
+        if (err?.name === "AbortError") return;
+        setSuggestions([]);
+        setMentionLoadError("could not load mentions");
+        setIsOpen(true);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSearchingMentions(false);
+        }
+      }
+    }, 160);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+      setIsSearchingMentions(false);
+    };
+  }, [mentionQuery, token]);
+
+  const insertMention = (suggestion) => {
+    if (!suggestion?.username) return;
+
+    const input = inputRef?.current;
+    const currentCaret = input?.selectionStart ?? caretPosition ?? String(value || "").length;
+    const beforeCaret = String(value || "").slice(0, currentCaret);
+    const match = beforeCaret.match(/(^|[\s([{])@([a-zA-Z0-9_.-]{0,40})$/);
+
+    if (!match) return;
+
+    const mentionStart = currentCaret - match[2].length - 1;
+    const inserted = `@${suggestion.username} `;
+    const nextValue = `${String(value || "").slice(0, mentionStart)}${inserted}${String(value || "").slice(currentCaret)}`;
+    const nextCaret = mentionStart + inserted.length;
+
+    onChange(nextValue);
+    setMentionQuery("");
+    setSuggestions([]);
+    setIsSearchingMentions(false);
+    setMentionLoadError("");
+    setIsOpen(false);
+    setActiveIndex(0);
+
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.setSelectionRange(nextCaret, nextCaret);
+    });
+  };
+
+  const handleChange = (e) => {
+    const nextValue = e.target.value;
+    const nextCaret = e.target.selectionStart;
+    onChange(nextValue);
+    syncMentionQuery(nextValue, nextCaret);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen) return;
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      return;
+    }
+
+    if (suggestions.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((current) => (current + 1) % suggestions.length);
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((current) => (current - 1 + suggestions.length) % suggestions.length);
+      return;
+    }
+
+    if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      insertMention(suggestions[activeIndex] || suggestions[0]);
+    }
+  };
+
+  const handlePointerDownSuggestion = (e, suggestion) => {
+    e.preventDefault();
+    insertMention(suggestion);
+  };
+
+  return (
+    <div className={`mention-input-shell ${wrapperClassName}`.trim()}>
+      <input
+        ref={inputRef}
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onKeyUp={(e) => {
+          syncMentionQuery(e.target.value, e.target.selectionStart);
+        }}
+        onClick={(e) => {
+          syncMentionQuery(e.target.value, e.target.selectionStart);
+        }}
+        onFocus={(e) => {
+          if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+          syncMentionQuery(e.target.value, e.target.selectionStart);
+        }}
+        onBlur={() => {
+          blurTimerRef.current = setTimeout(() => setIsOpen(false), 140);
+        }}
+        disabled={disabled}
+        className={inputClassName}
+        style={inputStyle}
+        autoComplete="off"
+        spellCheck="true"
+      />
+
+      {isOpen && mentionQuery.length >= 2 && (
+        <div
+          className="mention-suggestions mention-suggestions--above"
+          role="listbox"
+          aria-label="Mention suggestions"
+        >
+          {isSearchingMentions ? (
+            <div className="mention-suggestions__state">searching golden roots…</div>
+          ) : mentionLoadError ? (
+            <div className="mention-suggestions__state mention-suggestions__state--error">
+              {mentionLoadError}
+            </div>
+          ) : suggestions.length === 0 ? (
+            <div className="mention-suggestions__state">no matching users</div>
+          ) : (
+            suggestions.map((suggestion, index) => {
+              const active = index === activeIndex;
+              const equipped = suggestion.equippedCosmetics || {};
+
+              return (
+                <button
+                  key={suggestion._id || suggestion.username}
+                  type="button"
+                  className={`mention-suggestion${active ? " mention-suggestion--active" : ""}`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseDown={(e) => handlePointerDownSuggestion(e, suggestion)}
+                  role="option"
+                  aria-selected={active}
+                >
+                  <FramedAvatar
+                    src={suggestion.profilePicture}
+                    username={suggestion.username || "?"}
+                    size={26}
+                    frameId={equipped.frame}
+                    effectId={equipped.visualEffect}
+                    placeholder="🌿"
+                  />
+                  <span className="mention-suggestion__name">@{suggestion.username}</span>
+                  {(suggestion.isAdmin || suggestion.role === "admin" || suggestion.role === "moderator") && (
+                    <span className="mention-suggestion__role">{suggestion.role || "admin"}</span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ConfessionPage() {
   const { id, commentId: routeCommentId } = useParams();
   const navigate = useNavigate();
@@ -1990,13 +2229,14 @@ const activeCommentPinPosition = isPhoneLayout
                 )}
 
                 <form onSubmit={handleReplySubmit} className="echo-reply-form">
-                  <input
-                    ref={replyInputRef}
-                    type="text"
+                  <MentionInput
+                    inputRef={replyInputRef}
+                    token={token}
                     value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
+                    onChange={setReplyText}
                     placeholder="write an echo back…"
                     disabled={replySubmitting || selectedReplies.length >= 500}
+                    wrapperClassName="mention-input-shell--reply"
                   />
                   <button
                     type="submit"
@@ -2328,13 +2568,14 @@ const activeCommentPinPosition = isPhoneLayout
             )}
 
             <div className="comment-input-row" style={inputRowStyle}>
-              <input
-                ref={commentInputRef}
-                type="text"
+              <MentionInput
+                inputRef={commentInputRef}
+                token={token}
                 placeholder="leave an echo…"
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                style={{
+                onChange={setComment}
+                wrapperClassName="mention-input-shell--comment"
+                inputStyle={{
                   flex: isPhoneLayout ? "1 1 100%" : 1,
                   width: isPhoneLayout ? "100%" : "auto",
                   minHeight: isPhoneLayout ? "42px" : undefined,
