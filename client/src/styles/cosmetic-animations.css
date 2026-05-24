@@ -2292,7 +2292,7 @@
 .cw-framed-avatar.cw-cosmetic-frame-lotus-aura,
 .shop-preview-avatar.cw-cosmetic-frame-lotus-aura {
   /* Lotus sheet is 512px cells, so the overlay is scaled as one unit. */
-  --cw-lotus-aura-scale: 0.26;
+  --cw-lotus-aura-scale: 0.22;
   position: relative;
   border-radius: 50%;
   padding: 4px !important;
@@ -2302,24 +2302,24 @@
 }
 
 .cw-framed-avatar--nav.cw-cosmetic-frame-lotus-aura {
-  --cw-lotus-aura-scale: 0.16;
+  --cw-lotus-aura-scale: 0.14;
 }
 
 .cw-framed-avatar--post.cw-cosmetic-frame-lotus-aura {
-  --cw-lotus-aura-scale: 0.2;
+  --cw-lotus-aura-scale: 0.17;
 }
 
 .cw-framed-avatar--comment.cw-cosmetic-frame-lotus-aura {
-  --cw-lotus-aura-scale: 0.15;
+  --cw-lotus-aura-scale: 0.13;
 }
 
 .cw-framed-avatar--shop.cw-cosmetic-frame-lotus-aura,
 .shop-preview-avatar.cw-cosmetic-frame-lotus-aura {
-  --cw-lotus-aura-scale: 0.24;
+  --cw-lotus-aura-scale: 0.20;
 }
 
 .cw-framed-avatar--profile.cw-cosmetic-frame-lotus-aura {
-  --cw-lotus-aura-scale: 0.34;
+  --cw-lotus-aura-scale: 0.29;
 }
 
 .cw-framed-avatar.cw-cosmetic-frame-ice-monarch,
