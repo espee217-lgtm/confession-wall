@@ -1,124 +1,165 @@
-# Confession Wall cleanup pass 3
-# Removes generated/duplicate frame-source assets only after checking they are not referenced by app files.
-# Run from the project root: powershell -ExecutionPolicy Bypass -File ".\scripts\cleanup-pass3-generated-assets.ps1"
+# cleanup-pass3-generated-assets.ps1
+# Guarded cleanup for generated/duplicate cosmetic assets.
+# It only deletes a target when no references are found in project source/public files.
 
 $ErrorActionPreference = "Stop"
 
 $Root = (Get-Location).Path
 $ReportPath = Join-Path $Root "cleanup-pass3-report.txt"
-$Removed = New-Object System.Collections.Generic.List[string]
-$Skipped = New-Object System.Collections.Generic.List[string]
-$Missing = New-Object System.Collections.Generic.List[string]
 
-$TextExtensions = @(
-  ".js", ".jsx", ".ts", ".tsx", ".css", ".scss", ".html", ".json", ".md", ".txt", ".xml", ".yml", ".yaml", ".env", ".gitignore"
+$SearchRoots = @(
+  "client/src",
+  "client/public",
+  "client/package.json",
+  "client/package-lock.json"
 )
 
-function Normalize-RelPath([string]$Path) {
-  return ($Path -replace "\\", "/").TrimStart("/", "\\")
+$CandidateTargets = @(
+  "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-frames",
+  "client/src/assets/avatarFrames/grove-butterfly-greenkey-frames",
+  "client/src/assets/avatarFrames/storm-hoodie-greenkey-frames",
+  "client/src/assets/avatarFrames/venom-screen-record-frames",
+  "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-preview.gif",
+  "client/src/assets/avatarFrames/grove-butterfly-greenkey-preview.gif",
+  "client/src/assets/avatarFrames/storm-hoodie-greenkey-preview.gif",
+  "client/src/assets/avatarFrames/venom-screen-record-preview.gif",
+  "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-sample.png",
+  "client/src/assets/avatarFrames/grove-butterfly-greenkey-sample.png",
+  "client/src/assets/avatarFrames/storm-hoodie-greenkey-sample.png",
+  "client/src/assets/avatarFrames/venom-screen-record-sample.png",
+  "client/src/assets/cosmetics/lotus-avatar-frame/transparent_frames",
+  "client/src/assets/cosmetics/ice-monarch-frame/transparent_frames",
+  "client/src/assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_horizontal.png"
+)
+
+$TextExtensions = @(".js", ".jsx", ".ts", ".tsx", ".css", ".scss", ".html", ".json", ".md", ".txt")
+
+function Write-ReportLine {
+  param([string]$Line)
+  Add-Content -Path $ReportPath -Value $Line
+  Write-Host $Line
 }
 
-function Get-SearchableFiles {
-  Get-ChildItem -Path $Root -Recurse -File -Force |
-    Where-Object {
-      $full = $_.FullName
-      $rel = Normalize-RelPath($full.Substring($Root.Length))
-      if ($rel -match "(^|/)node_modules(/|$)") { return $false }
-      if ($rel -match "(^|/)\.git(/|$)") { return $false }
-      if ($rel -match "(^|/)build(/|$)") { return $false }
-      if ($rel -match "(^|/)dist(/|$)") { return $false }
-      if ($rel -match "(^|/)coverage(/|$)") { return $false }
-      if ($rel -eq "cleanup-pass3-report.txt") { return $false }
-      return $TextExtensions -contains $_.Extension.ToLowerInvariant()
+function Get-ProjectTextFiles {
+  $files = New-Object System.Collections.Generic.List[string]
+
+  foreach ($relativeRoot in $SearchRoots) {
+    $absoluteRoot = Join-Path $Root $relativeRoot
+    if (Test-Path $absoluteRoot -PathType Leaf) {
+      $files.Add($absoluteRoot) | Out-Null
     }
-}
-
-function Test-References([string]$CandidateRel, [string[]]$Tokens) {
-  $candidateNorm = Normalize-RelPath $CandidateRel
-  $hits = New-Object System.Collections.Generic.List[string]
-  $files = Get-SearchableFiles
-
-  foreach ($file in $files) {
-    $fileRel = Normalize-RelPath($file.FullName.Substring($Root.Length))
-
-    # Do not count self-references inside files/folders we are deleting.
-    if ($fileRel -eq $candidateNorm -or $fileRel.StartsWith($candidateNorm.TrimEnd("/") + "/")) {
-      continue
-    }
-
-    $content = $null
-    try {
-      $content = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop
-    } catch {
-      continue
-    }
-
-    foreach ($token in $Tokens) {
-      if ([string]::IsNullOrWhiteSpace($token)) { continue }
-      if ($content.Contains($token)) {
-        $hits.Add("$fileRel -> $token") | Out-Null
+    elseif (Test-Path $absoluteRoot -PathType Container) {
+      Get-ChildItem -Path $absoluteRoot -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($TextExtensions -contains $_.Extension.ToLowerInvariant()) {
+          $files.Add($_.FullName) | Out-Null
+        }
       }
     }
   }
-  return $hits
+
+  return $files
 }
 
-function Remove-Candidate([string]$RelPath, [string[]]$Tokens, [string]$Reason) {
-  $rel = Normalize-RelPath $RelPath
-  $full = Join-Path $Root $rel
+function Convert-ToForwardSlashPath {
+  param([string]$PathValue)
+  return ($PathValue -replace "\\", "/")
+}
 
-  if (-not (Test-Path -LiteralPath $full)) {
-    $Missing.Add("$rel | missing already") | Out-Null
-    return
+function Get-ReferenceTokens {
+  param([string]$RelativeTarget)
+
+  $normalized = Convert-ToForwardSlashPath $RelativeTarget
+  $name = [System.IO.Path]::GetFileName($normalized)
+  $nameWithoutExt = [System.IO.Path]::GetFileNameWithoutExtension($normalized)
+  $parent = Split-Path $normalized -Parent
+  $parent = Convert-ToForwardSlashPath $parent
+
+  $tokens = New-Object System.Collections.Generic.List[string]
+
+  if ($normalized) { $tokens.Add($normalized) | Out-Null }
+  if ($normalized.StartsWith("client/src/")) { $tokens.Add($normalized.Substring("client/src/".Length)) | Out-Null }
+  if ($normalized.StartsWith("client/public/")) { $tokens.Add($normalized.Substring("client/public/".Length)) | Out-Null }
+  if ($normalized.StartsWith("client/public")) { $tokens.Add($normalized.Substring("client/public".Length)) | Out-Null }
+  if ($parent) { $tokens.Add($parent) | Out-Null }
+  if ($name) { $tokens.Add($name) | Out-Null }
+  if ($nameWithoutExt -and $nameWithoutExt.Length -ge 8) { $tokens.Add($nameWithoutExt) | Out-Null }
+
+  return $tokens | Where-Object { $_ -and $_.Trim().Length -gt 0 } | Select-Object -Unique
+}
+
+function Find-References {
+  param(
+    [string]$RelativeTarget,
+    [string[]]$TextFiles
+  )
+
+  $tokens = Get-ReferenceTokens $RelativeTarget
+  $matches = New-Object System.Collections.Generic.List[string]
+
+  foreach ($file in $TextFiles) {
+    $fileRel = Convert-ToForwardSlashPath ($file.Substring($Root.Length).TrimStart([char]'\\').TrimStart([char]'/'))
+
+    # Do not count the target itself as a reference.
+    if ($fileRel -eq (Convert-ToForwardSlashPath $RelativeTarget)) { continue }
+    if ($fileRel.StartsWith((Convert-ToForwardSlashPath $RelativeTarget).TrimEnd('/') + "/")) { continue }
+
+    $content = Get-Content -Path $file -Raw -ErrorAction SilentlyContinue
+    if (-not $content) { continue }
+
+    foreach ($token in $tokens) {
+      if ($token.Length -lt 4) { continue }
+      if ($content.Contains($token)) {
+        $matches.Add("$fileRel -> $token") | Out-Null
+        break
+      }
+    }
   }
 
-  $hits = Test-References -CandidateRel $rel -Tokens $Tokens
-  if ($hits.Count -gt 0) {
-    $Skipped.Add("$rel | SKIPPED because references were found:`n  $($hits -join "`n  ")") | Out-Null
-    return
+  return $matches
+}
+
+"Confession Wall cleanup pass 3 report" | Set-Content -Path $ReportPath
+"Generated at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Add-Content -Path $ReportPath
+"Project root: $Root" | Add-Content -Path $ReportPath
+"" | Add-Content -Path $ReportPath
+
+Write-Host "Running guarded cleanup pass 3..."
+Write-Host "Report will be saved to: $ReportPath"
+
+$TextFiles = Get-ProjectTextFiles
+Write-ReportLine "Scanned text files: $($TextFiles.Count)"
+Write-ReportLine ""
+
+foreach ($target in $CandidateTargets) {
+  $absoluteTarget = Join-Path $Root $target
+  $normalizedTarget = Convert-ToForwardSlashPath $target
+
+  if (-not (Test-Path $absoluteTarget)) {
+    Write-ReportLine "SKIP missing: $normalizedTarget"
+    continue
   }
 
-  Remove-Item -LiteralPath $full -Recurse -Force
-  $Removed.Add("$rel | $Reason") | Out-Null
+  $refs = Find-References -RelativeTarget $target -TextFiles $TextFiles
+
+  if ($refs.Count -gt 0) {
+    Write-ReportLine "SKIP referenced: $normalizedTarget"
+    foreach ($ref in $refs | Select-Object -First 10) {
+      Write-ReportLine "  reference: $ref"
+    }
+    if ($refs.Count -gt 10) {
+      Write-ReportLine "  ... plus $($refs.Count - 10) more references"
+    }
+    continue
+  }
+
+  try {
+    Remove-Item -Path $absoluteTarget -Recurse -Force
+    Write-ReportLine "REMOVED unused: $normalizedTarget"
+  }
+  catch {
+    Write-ReportLine "ERROR removing: $normalizedTarget :: $($_.Exception.Message)"
+  }
 }
 
-# Generated source-frame folders. Active app uses spritesheets, not the individual PNG frames.
-Remove-Candidate "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-frames" @("demon-thorn-greenkey-fixed-frames", "demon-thorn-greenkey-fixed-frame-001.png") "removed generated individual PNG frames; active spritesheet is kept"
-Remove-Candidate "client/src/assets/avatarFrames/grove-butterfly-greenkey-frames" @("grove-butterfly-greenkey-frames", "grove-butterfly-greenkey-frame-001.png") "removed generated individual PNG frames; active spritesheet is kept"
-Remove-Candidate "client/src/assets/avatarFrames/storm-hoodie-greenkey-frames" @("storm-hoodie-greenkey-frames", "storm-hoodie-greenkey-frame-001.png") "removed generated individual PNG frames; active spritesheet is kept"
-Remove-Candidate "client/src/assets/avatarFrames/venom-screen-record-frames" @("venom-screen-record-frames", "venom-screen-record-frame-001.png") "removed generated individual PNG frames; active spritesheet is kept"
-
-# Old preview/sample exports. Shop/profile animations use spritesheets through CosmeticFx.js, not these preview files.
-Remove-Candidate "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-preview.gif" @("demon-thorn-greenkey-fixed-preview.gif") "removed unused generated preview gif"
-Remove-Candidate "client/src/assets/avatarFrames/grove-butterfly-greenkey-preview.gif" @("grove-butterfly-greenkey-preview.gif") "removed unused generated preview gif"
-Remove-Candidate "client/src/assets/avatarFrames/storm-hoodie-greenkey-preview.gif" @("storm-hoodie-greenkey-preview.gif") "removed unused generated preview gif"
-Remove-Candidate "client/src/assets/avatarFrames/venom-screen-record-preview.gif" @("venom-screen-record-preview.gif") "removed unused generated preview gif"
-Remove-Candidate "client/src/assets/avatarFrames/demon-thorn-greenkey-fixed-sample.png" @("demon-thorn-greenkey-fixed-sample.png") "removed unused generated sample image"
-Remove-Candidate "client/src/assets/avatarFrames/grove-butterfly-greenkey-sample.png" @("grove-butterfly-greenkey-sample.png") "removed unused generated sample image"
-Remove-Candidate "client/src/assets/avatarFrames/storm-hoodie-greenkey-sample.png" @("storm-hoodie-greenkey-sample.png") "removed unused generated sample image"
-
-# Leftover generated transparent frame folders / duplicate layout exports.
-Remove-Candidate "client/src/assets/cosmetics/lotus-avatar-frame/transparent_frames" @("lotus-avatar-frame/transparent_frames", "transparent_frames/lotus_frame_", "lotus_frame_001.png") "removed lotus individual PNG frame exports; active 7x7 spritesheet is kept"
-Remove-Candidate "client/src/assets/cosmetics/ice-monarch-frame/transparent_frames" @("ice-monarch-frame/transparent_frames", "transparent_frames/ice_monarch_frame_", "ice_monarch_frame_001.png") "removed old generated Ice Monarch individual transparent frames; active 72f spritesheet is kept"
-Remove-Candidate "client/src/assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_horizontal.png" @("lotus_avatar_frame_spritesheet_49f_horizontal.png") "removed duplicate horizontal lotus spritesheet; active 7x7 spritesheet is kept"
-
-$lines = New-Object System.Collections.Generic.List[string]
-$lines.Add("Confession Wall cleanup pass 3 report") | Out-Null
-$lines.Add("Generated at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')") | Out-Null
-$lines.Add("") | Out-Null
-$lines.Add("Removed:") | Out-Null
-if ($Removed.Count -eq 0) { $lines.Add("- None") | Out-Null } else { $Removed | ForEach-Object { $lines.Add("- $_") | Out-Null } }
-$lines.Add("") | Out-Null
-$lines.Add("Skipped because references were found:") | Out-Null
-if ($Skipped.Count -eq 0) { $lines.Add("- None") | Out-Null } else { $Skipped | ForEach-Object { $lines.Add("- $_") | Out-Null } }
-$lines.Add("") | Out-Null
-$lines.Add("Already missing:") | Out-Null
-if ($Missing.Count -eq 0) { $lines.Add("- None") | Out-Null } else { $Missing | ForEach-Object { $lines.Add("- $_") | Out-Null } }
-
-$lines | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-
-Write-Host "Cleanup pass 3 complete. Report written to cleanup-pass3-report.txt" -ForegroundColor Green
-Write-Host "Removed: $($Removed.Count) | Skipped: $($Skipped.Count) | Already missing: $($Missing.Count)"
-if ($Skipped.Count -gt 0) {
-  Write-Host "Some items were skipped because the script found references. Check cleanup-pass3-report.txt." -ForegroundColor Yellow
-}
+Write-ReportLine ""
+Write-ReportLine "Done. Now run: cd client; npm start"
