@@ -521,11 +521,21 @@ export default function TrendingPage() {
                     <TrendingRankBadge rank={rank} />
                   </div>
 
+                  <span
+                    className="trending-node-connector trending-node-connector--rank-main"
+                    aria-hidden="true"
+                  />
+
                   <TrendingPostPreview
                     post={post}
                     realm={realm}
                     stats={stats}
                     onOpen={() => navigate(`/confession/${post._id}?realm=${realm}`)}
+                  />
+
+                  <span
+                    className="trending-node-connector trending-node-connector--main-side"
+                    aria-hidden="true"
                   />
 
                   <aside className="trending-clean-side" aria-label="Trending post summary">

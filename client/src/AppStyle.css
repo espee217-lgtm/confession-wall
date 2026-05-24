@@ -7495,3 +7495,459 @@ button.confession-image-scroller__item {
     font-size: 13px;
   }
 }
+
+/* === Trending ultra-transparent outer-shell polish ===
+   Keep the middle confession/theme container intact, but remove the heavy
+   green blur from the surrounding leaderboard shell, rank panel, and author panel. */
+.trending-clean-card {
+  background: rgba(0, 0, 0, 0.045) !important;
+  border-color: rgba(210, 255, 154, 0.14) !important;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 220, 0.035),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.trending-clean-card::before {
+  opacity: 0.16 !important;
+  background:
+    linear-gradient(90deg, rgba(255, 232, 132, 0.018), transparent 22%, transparent 78%, rgba(255, 232, 132, 0.014)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.006), rgba(255, 255, 255, 0.006) 1px, transparent 1px, transparent 4px) !important;
+}
+
+.trending-clean-card::after {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.trending-clean-rank-column,
+.trending-clean-side {
+  background: rgba(0, 0, 0, 0.075) !important;
+  border-color: rgba(215, 250, 155, 0.13) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 220, 0.012),
+    inset 0 1px 0 rgba(255, 255, 220, 0.028),
+    0 12px 24px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.trending-clean-rank-column {
+  background: rgba(0, 0, 0, 0.055) !important;
+}
+
+.trending-clean-side {
+  background: rgba(0, 0, 0, 0.065) !important;
+}
+
+.trending-clean-rank-column::before,
+.trending-clean-side::before {
+  border-color: rgba(255, 240, 166, 0.026) !important;
+  box-shadow: none !important;
+}
+
+.trending-clean-side::after {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+.trending-clean-card:hover,
+.trending-clean-card:focus-within {
+  background: rgba(0, 0, 0, 0.065) !important;
+  border-color: rgba(226, 252, 156, 0.20) !important;
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.20),
+    0 0 18px rgba(143, 238, 83, 0.045),
+    inset 0 1px 0 rgba(255, 255, 220, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20) !important;
+}
+
+
+/* === Trending animated border glow polish ===
+   Adds premium, lightweight border shimmer to the Trending leaderboard boxes.
+   This does not change layout, text placement, image previews, or theme stages. */
+@keyframes trendingBorderTraceGlow {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.38;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.78;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.38;
+  }
+}
+
+@keyframes trendingBorderBreathGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(154, 255, 90, 0.12)) drop-shadow(0 0 11px rgba(255, 231, 132, 0.055));
+  }
+  50% {
+    filter: drop-shadow(0 0 9px rgba(169, 255, 94, 0.28)) drop-shadow(0 0 20px rgba(255, 236, 142, 0.12));
+  }
+}
+
+.trending-clean-card,
+.trending-clean-rank-column,
+.trending-clean-main,
+.trending-clean-side {
+  position: relative !important;
+}
+
+.trending-clean-card::after,
+.trending-clean-rank-column::after,
+.trending-clean-side::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: -1px !important;
+  padding: 1px !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  z-index: 8 !important;
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      rgba(143, 255, 92, 0.10) 16%,
+      rgba(255, 239, 154, 0.46) 33%,
+      rgba(180, 255, 105, 0.18) 47%,
+      transparent 62%,
+      rgba(255, 236, 145, 0.24) 78%,
+      transparent 100%
+    ) !important;
+  background-size: 260% 260% !important;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0) !important;
+  -webkit-mask-composite: xor !important;
+  mask-composite: exclude !important;
+  animation:
+    trendingBorderTraceGlow 7.2s ease-in-out infinite,
+    trendingBorderBreathGlow 4.8s ease-in-out infinite !important;
+}
+
+.trending-clean-rank-column::after,
+.trending-clean-side::after {
+  inset: 0 !important;
+  opacity: 0.52;
+}
+
+/* Keep the middle theme container readable, but give its existing inner line a soft pulse. */
+.trending-clean-main::before {
+  border-color: rgba(210, 255, 143, 0.20) !important;
+  box-shadow:
+    inset 0 0 18px rgba(150, 255, 95, 0.070),
+    0 0 12px rgba(156, 255, 96, 0.080) !important;
+  animation: trendingBorderBreathGlow 5.6s ease-in-out infinite !important;
+}
+
+.trending-clean-main {
+  box-shadow:
+    0 0 0 1px rgba(171, 255, 103, 0.13),
+    0 0 17px rgba(149, 255, 94, 0.045),
+    inset 0 1px 0 rgba(255, 255, 220, 0.035),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20) !important;
+}
+
+.trending-clean-card:hover::after,
+.trending-clean-card:focus-within::after {
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      rgba(149, 255, 91, 0.16) 15%,
+      rgba(255, 244, 166, 0.66) 34%,
+      rgba(185, 255, 104, 0.26) 48%,
+      transparent 62%,
+      rgba(255, 238, 145, 0.34) 78%,
+      transparent 100%
+    ) !important;
+  animation-duration: 4.8s, 3.8s !important;
+}
+
+.trending-clean-card:hover .trending-clean-rank-column::after,
+.trending-clean-card:hover .trending-clean-side::after,
+.trending-clean-card:focus-within .trending-clean-rank-column::after,
+.trending-clean-card:focus-within .trending-clean-side::after {
+  opacity: 0.86 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trending-clean-card::after,
+  .trending-clean-rank-column::after,
+  .trending-clean-side::after,
+  .trending-clean-main::before {
+    animation: none !important;
+  }
+}
+
+/* === Trending connected node layout ===
+   Turns each ranked item into three independent floating nodes joined by
+   golden strings. The outer row remains only as the grid/hover wrapper. */
+.trending-clean-card {
+  display: grid !important;
+  grid-template-columns: 132px 34px minmax(0, 1fr) 34px 190px !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+  min-height: 172px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+}
+
+.trending-clean-card::before,
+.trending-clean-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.trending-clean-rank-column {
+  grid-column: 1;
+}
+
+.trending-clean-main {
+  grid-column: 3;
+}
+
+.trending-clean-side {
+  grid-column: 5;
+}
+
+.trending-clean-rank-column,
+.trending-clean-side {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(157, 255, 92, 0.070), transparent 48%),
+    linear-gradient(180deg, rgba(2, 18, 7, 0.38), rgba(0, 7, 3, 0.18)) !important;
+  border: 1px solid rgba(206, 252, 139, 0.18) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 239, 159, 0.025),
+    0 16px 32px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 220, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.trending-clean-main {
+  box-shadow:
+    0 0 0 1px rgba(171, 255, 103, 0.16),
+    0 0 24px rgba(141, 255, 92, 0.055),
+    0 18px 36px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 220, 0.045),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22) !important;
+}
+
+.trending-node-connector {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.trending-node-connector::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255, 232, 137, 0.62) 22%, rgba(173, 255, 108, 0.58) 50%, rgba(255, 232, 137, 0.62) 78%, transparent 100%);
+  box-shadow:
+    0 0 10px rgba(255, 230, 127, 0.26),
+    0 0 18px rgba(144, 255, 91, 0.14);
+  opacity: 0.72;
+}
+
+.trending-node-connector::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff7bc 0%, #d4ff7e 34%, rgba(132, 214, 61, 0.26) 72%, transparent 100%);
+  border: 1px solid rgba(255, 239, 160, 0.52);
+  box-shadow:
+    0 0 10px rgba(255, 238, 144, 0.52),
+    0 0 18px rgba(148, 255, 83, 0.34);
+  opacity: 0.92;
+}
+
+.trending-clean-card:hover .trending-node-connector::before,
+.trending-clean-card:focus-within .trending-node-connector::before {
+  opacity: 1;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255, 240, 154, 0.86) 22%, rgba(183, 255, 104, 0.78) 50%, rgba(255, 240, 154, 0.86) 78%, transparent 100%);
+  box-shadow:
+    0 0 14px rgba(255, 237, 139, 0.36),
+    0 0 25px rgba(146, 255, 82, 0.22);
+}
+
+.trending-clean-card:hover .trending-node-connector::after,
+.trending-clean-card:focus-within .trending-node-connector::after {
+  transform: scale(1.16);
+  box-shadow:
+    0 0 14px rgba(255, 244, 166, 0.72),
+    0 0 28px rgba(154, 255, 85, 0.46);
+}
+
+.trending-clean-card:hover .trending-clean-rank-column,
+.trending-clean-card:hover .trending-clean-main,
+.trending-clean-card:hover .trending-clean-side,
+.trending-clean-card:focus-within .trending-clean-rank-column,
+.trending-clean-card:focus-within .trending-clean-main,
+.trending-clean-card:focus-within .trending-clean-side {
+  border-color: rgba(235, 247, 155, 0.30) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 239, 159, 0.045),
+    0 18px 40px rgba(0, 0, 0, 0.28),
+    0 0 24px rgba(148, 255, 86, 0.10),
+    inset 0 1px 0 rgba(255, 255, 220, 0.060),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.26) !important;
+}
+
+/* Keep animated borders only on the separate nodes, not on the invisible wrapper. */
+.trending-clean-rank-column::after,
+.trending-clean-side::after {
+  opacity: 0.45 !important;
+}
+
+.trending-clean-card:hover .trending-clean-rank-column::after,
+.trending-clean-card:hover .trending-clean-side::after,
+.trending-clean-card:focus-within .trending-clean-rank-column::after,
+.trending-clean-card:focus-within .trending-clean-side::after {
+  opacity: 0.78 !important;
+}
+
+@media (max-width: 980px) {
+  .trending-clean-card {
+    grid-template-columns: 118px 24px minmax(0, 1fr) !important;
+    grid-template-areas:
+      "rank linkA main"
+      "side linkB main" !important;
+    gap: 12px 0 !important;
+    min-height: auto !important;
+  }
+
+  .trending-clean-rank-column { grid-area: rank; }
+  .trending-clean-main { grid-area: main; }
+  .trending-clean-side { grid-area: side; }
+  .trending-node-connector--rank-main { grid-area: linkA; }
+  .trending-node-connector--main-side { grid-area: linkB; }
+
+  .trending-node-connector {
+    height: auto;
+    align-self: stretch;
+  }
+
+  .trending-node-connector::before {
+    left: 50%;
+    right: auto;
+    top: -6px;
+    bottom: -6px;
+    width: 2px;
+    height: auto;
+    transform: translateX(-50%);
+    background:
+      linear-gradient(180deg, transparent 0%, rgba(255, 232, 137, 0.62) 22%, rgba(173, 255, 108, 0.58) 50%, rgba(255, 232, 137, 0.62) 78%, transparent 100%);
+  }
+}
+
+@media (max-width: 720px) {
+  .trending-clean-card {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "rank"
+      "linkA"
+      "main"
+      "linkB"
+      "side" !important;
+    gap: 10px !important;
+  }
+
+  .trending-clean-rank-column,
+  .trending-clean-side {
+    min-height: 116px;
+  }
+
+  .trending-node-connector {
+    min-height: 26px;
+  }
+
+  .trending-node-connector::before {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trending-node-connector::before,
+  .trending-node-connector::after {
+    transition: none !important;
+  }
+}
+
+/* === Trending connected nodes: wider golden bridges ===
+   Increases the breathing room between the rank, confession, and spirit nodes
+   without changing text, pagination, theme stage, or card content. */
+.trending-clean-card {
+  grid-template-columns: 132px 74px minmax(0, 1fr) 74px 190px !important;
+}
+
+.trending-node-connector {
+  height: 42px !important;
+}
+
+.trending-node-connector::before {
+  left: -4px !important;
+  right: -4px !important;
+  height: 2px !important;
+  opacity: 0.82 !important;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 232, 137, 0.72) 18%,
+      rgba(181, 255, 112, 0.68) 50%,
+      rgba(255, 232, 137, 0.72) 82%,
+      transparent 100%
+    ) !important;
+  box-shadow:
+    0 0 12px rgba(255, 230, 127, 0.30),
+    0 0 22px rgba(144, 255, 91, 0.16) !important;
+}
+
+.trending-node-connector::after {
+  width: 9px !important;
+  height: 9px !important;
+}
+
+@media (max-width: 1180px) {
+  .trending-clean-card {
+    grid-template-columns: 126px 54px minmax(0, 1fr) 54px 178px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .trending-clean-card {
+    grid-template-columns: 118px 30px minmax(0, 1fr) !important;
+  }
+}
