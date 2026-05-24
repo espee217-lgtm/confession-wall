@@ -6530,7 +6530,7 @@ button.confession-image-scroller__item {
 }
 
 .trending-skin-bg {
-  opacity: 0.18 !important;
+  opacity: 0.30 !important;
 }
 
 .trending-clean-side {
@@ -6671,5 +6671,579 @@ button.confession-image-scroller__item {
   .trending-clean-side,
   .trending-clean-rank-column {
     border-radius: 20px !important;
+  }
+}
+
+/* ===== Trending real post-theme stage integration =====
+   Bridges the clean leaderboard layout with the actual shop/PostCard theme FX.
+   The stage is background-only, clipped inside the middle column, and never
+   participates in layout sizing. */
+.trending-clean-main {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+.trending-clean-main.trending-clean-main--with-theme {
+  background:
+    radial-gradient(circle at 84% 48%, rgba(170, 230, 108, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(10, 42, 15, 0.50), rgba(1, 12, 5, 0.46) 48%, rgba(0, 7, 3, 0.58)) !important;
+}
+
+.trending-theme-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: inherit !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  opacity: var(--trending-theme-opacity, 0.54) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+  contain: paint !important;
+  mix-blend-mode: normal !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.trending-theme-stage::before,
+.trending-theme-stage::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+}
+
+.trending-theme-stage::before {
+  z-index: 0 !important;
+  background: var(--trending-stage-static-art, transparent) !important;
+  opacity: var(--trending-stage-static-opacity, 1) !important;
+  mix-blend-mode: screen !important;
+}
+
+.trending-theme-stage::after {
+  z-index: 10 !important;
+  background:
+    linear-gradient(90deg, rgba(3, 18, 7, 0.86) 0%, rgba(3, 18, 7, 0.62) 38%, rgba(3, 18, 7, 0.30) 72%, rgba(3, 18, 7, 0.58) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), transparent 35%, rgba(0, 0, 0, 0.20)) !important;
+  opacity: var(--trending-stage-mask-opacity, 0.74) !important;
+}
+
+.trending-theme-stage .cw-cosmetic-fx-layer {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  opacity: var(--trending-stage-fx-opacity, 1) !important;
+}
+
+.trending-clean-copy {
+  position: relative !important;
+  z-index: 4 !important;
+}
+
+.trending-clean-main::before,
+.trending-clean-main::after {
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+
+/* Static theme families that do not have PostThemeFxLayers still get a compact
+   stage made from gradients/patterns tuned for the leaderboard middle box. */
+.trending-theme-stage--moonlit-grove {
+  --trending-theme-opacity: 0.58;
+  --trending-stage-static-art:
+    radial-gradient(circle at 84% 25%, rgba(225, 237, 255, 0.52) 0 4.5%, transparent 5.5%),
+    radial-gradient(circle at 85% 27%, rgba(107, 153, 255, 0.22), transparent 19%),
+    radial-gradient(ellipse at 80% 78%, rgba(80, 218, 176, 0.13), transparent 34%),
+    linear-gradient(120deg, transparent 0 52%, rgba(145, 190, 255, 0.14) 53% 54%, transparent 56% 100%);
+}
+
+.trending-theme-stage--golden-leaves {
+  --trending-theme-opacity: 0.62;
+  --trending-stage-static-art:
+    radial-gradient(ellipse at 84% 36%, rgba(255, 226, 95, 0.34), transparent 24%),
+    repeating-linear-gradient(135deg, transparent 0 22px, rgba(255, 235, 130, 0.16) 23px 24px, transparent 25px 48px),
+    radial-gradient(circle at 70% 74%, rgba(164, 230, 76, 0.16), transparent 28%);
+}
+
+.trending-theme-stage--scorched-ember {
+  --trending-theme-opacity: 0.62;
+  --trending-stage-static-art:
+    radial-gradient(circle at 86% 72%, rgba(255, 90, 48, 0.34), transparent 24%),
+    radial-gradient(circle at 70% 36%, rgba(255, 172, 72, 0.16), transparent 22%),
+    linear-gradient(122deg, transparent 0 51%, rgba(255, 88, 54, 0.18) 52% 54%, transparent 56% 100%);
+}
+
+/* Theme-specific stage tuning for real FX layers. */
+.trending-theme-stage--dewdrop-card {
+  --trending-theme-opacity: 0.54;
+  --trending-stage-fx-opacity: 0.95;
+  --trending-stage-static-art:
+    radial-gradient(ellipse at 82% 54%, rgba(122, 246, 180, 0.18), transparent 32%),
+    radial-gradient(circle at 92% 25%, rgba(213, 255, 225, 0.15), transparent 12%);
+}
+
+.trending-theme-stage--dewdrop-card .cw-fx-dewdrop {
+  top: auto !important;
+  bottom: 16% !important;
+  width: 7px !important;
+  height: 14px !important;
+  opacity: 0.84 !important;
+}
+
+.trending-theme-stage--scorched-parchment {
+  --trending-theme-opacity: 0.54;
+  --trending-stage-fx-opacity: 0.96;
+  --trending-stage-static-art:
+    radial-gradient(circle at 88% 70%, rgba(255, 89, 48, 0.22), transparent 24%),
+    linear-gradient(120deg, transparent 0 56%, rgba(255, 120, 70, 0.13) 57% 58%, transparent 60% 100%);
+}
+
+.trending-theme-stage--scorched-parchment .cw-fx-ember {
+  opacity: 0.84 !important;
+  bottom: 12% !important;
+}
+
+.trending-theme-stage--starbound-card {
+  --trending-theme-opacity: 0.56;
+  --trending-stage-fx-opacity: 0.9;
+  --trending-stage-static-art:
+    radial-gradient(ellipse at 82% 48%, rgba(120, 92, 255, 0.20), transparent 34%),
+    radial-gradient(ellipse at 64% 76%, rgba(92, 210, 255, 0.13), transparent 24%);
+}
+
+.trending-theme-stage--starbound-card .cw-fx-star {
+  opacity: 0.84 !important;
+  filter: drop-shadow(0 0 5px rgba(180, 190, 255, 0.55)) !important;
+}
+
+.trending-theme-stage--moonlit-vengeance {
+  --trending-theme-opacity: 0.56;
+  --trending-stage-fx-opacity: 1;
+  --trending-stage-static-art:
+    radial-gradient(ellipse at 82% 60%, rgba(128, 92, 225, 0.16), transparent 36%),
+    linear-gradient(115deg, transparent 0 58%, rgba(230, 238, 255, 0.10) 59% 60%, transparent 62% 100%);
+}
+
+.trending-theme-stage--moonlit-vengeance .cw-fx-crescent-moon {
+  right: 13% !important;
+  top: 20% !important;
+  width: 58px !important;
+  height: 58px !important;
+  opacity: 0.68 !important;
+}
+
+.trending-theme-stage--moonlit-vengeance .cw-fx-moon-fog {
+  right: 0 !important;
+  width: 220px !important;
+  opacity: 0.54 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel {
+  --trending-theme-opacity: 0.62;
+  --trending-stage-fx-opacity: 1;
+  --trending-stage-static-art:
+    radial-gradient(circle at 82% 65%, rgba(132, 178, 255, 0.22) 0 5%, transparent 7%),
+    radial-gradient(circle at 64% 70%, rgba(132, 178, 255, 0.12) 0 4%, transparent 6%),
+    linear-gradient(172deg, transparent 0 56%, rgba(218, 230, 255, 0.13) 57% 58%, transparent 60% 100%),
+    linear-gradient(8deg, transparent 0 62%, rgba(75, 128, 230, 0.13) 63% 65%, transparent 67% 100%);
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-carbon-sheen {
+  opacity: 0.84 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-hypercar {
+  right: 8px !important;
+  top: 54% !important;
+  width: clamp(230px, 38%, 310px) !important;
+  opacity: 0.62 !important;
+  transform: translateY(-50%) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula {
+  left: 46% !important;
+  top: 55% !important;
+  width: clamp(150px, 28%, 220px) !important;
+  opacity: 0.54 !important;
+  transform: translateY(-50%) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-wheel-glow {
+  right: -10px !important;
+  top: 55% !important;
+  width: 260px !important;
+  height: 110px !important;
+  opacity: 0.54 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula-glow {
+  left: 46% !important;
+  top: 55% !important;
+  width: 170px !important;
+  height: 76px !important;
+  opacity: 0.54 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-motion-streak {
+  opacity: 0.54 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-drift-cloud {
+  opacity: 0.30 !important;
+}
+
+.trending-theme-stage--cinder-throne {
+  --trending-theme-opacity: 0.56;
+  --trending-stage-fx-opacity: 1;
+  --trending-stage-static-art:
+    radial-gradient(circle at 86% 72%, rgba(255, 74, 44, 0.28), transparent 24%),
+    radial-gradient(circle at 72% 34%, rgba(255, 170, 72, 0.12), transparent 20%);
+}
+
+.trending-theme-stage--cinder-throne .cw-fx-cinder-smoke {
+  opacity: 0.36 !important;
+  filter: blur(15px) !important;
+}
+
+.trending-theme-stage--cinder-throne .cw-fx-cinder-glow {
+  opacity: 0.62 !important;
+  right: 5% !important;
+}
+
+/* Pause real theme and avatar animations on the Trending list until the user
+   interacts with a card. This keeps the page light with 10 ranked items. */
+.trending-clean-card:not(:hover):not(:focus-within) .trending-theme-stage,
+.trending-clean-card:not(:hover):not(:focus-within) .trending-theme-stage *,
+.trending-clean-card:not(:hover):not(:focus-within) .trending-clean-author-badge,
+.trending-clean-card:not(:hover):not(:focus-within) .trending-clean-author-badge * {
+  animation-play-state: paused !important;
+}
+
+.trending-clean-card:hover .trending-theme-stage,
+.trending-clean-card:hover .trending-theme-stage *,
+.trending-clean-card:focus-within .trending-theme-stage,
+.trending-clean-card:focus-within .trending-theme-stage *,
+.trending-clean-card:hover .trending-clean-author-badge,
+.trending-clean-card:hover .trending-clean-author-badge *,
+.trending-clean-card:focus-within .trending-clean-author-badge,
+.trending-clean-card:focus-within .trending-clean-author-badge * {
+  animation-play-state: running !important;
+}
+
+@media (max-width: 860px) {
+  .trending-theme-stage {
+    --trending-theme-opacity: 0.34;
+    --trending-stage-mask-opacity: 0.82;
+  }
+
+  .trending-theme-stage--spinning-apex-wheel .cw-fx-apex-hypercar,
+  .trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula {
+    opacity: 0.30 !important;
+  }
+}
+
+/* === Trending theme stage cleanup: stronger skin visibility, no forgotten racing streak lines ===
+   Keeps the leaderboard layout intact while removing the faint diagonal/streak line overlay
+   from the Spinning Apex theme and making all theme stages more readable. */
+.trending-clean-main.trending-clean-main--with-theme {
+  background:
+    radial-gradient(circle at 84% 48%, rgba(170, 230, 108, 0.10), transparent 34%),
+    linear-gradient(135deg, rgba(10, 42, 15, 0.44), rgba(1, 12, 5, 0.40) 48%, rgba(0, 7, 3, 0.50)) !important;
+}
+
+.trending-theme-stage {
+  opacity: var(--trending-theme-opacity, 0.66) !important;
+}
+
+.trending-theme-stage::after {
+  background:
+    linear-gradient(90deg, rgba(3, 18, 7, 0.80) 0%, rgba(3, 18, 7, 0.54) 36%, rgba(3, 18, 7, 0.20) 72%, rgba(3, 18, 7, 0.46) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.04), transparent 35%, rgba(0, 0, 0, 0.14)) !important;
+  opacity: var(--trending-stage-mask-opacity, 0.60) !important;
+}
+
+/* Boost supported theme families without changing the card size or text placement. */
+.trending-theme-stage--moonlit-grove,
+.trending-theme-stage--golden-leaves,
+.trending-theme-stage--scorched-ember,
+.trending-theme-stage--dewdrop-card,
+.trending-theme-stage--scorched-parchment,
+.trending-theme-stage--starbound-card,
+.trending-theme-stage--moonlit-vengeance,
+.trending-theme-stage--cinder-throne {
+  --trending-theme-opacity: 0.72;
+  --trending-stage-fx-opacity: 1;
+  --trending-stage-mask-opacity: 0.58;
+}
+
+/* Spinning Apex: remove old streak-line artifacts and show the cars more clearly. */
+.trending-theme-stage--spinning-apex-wheel {
+  --trending-theme-opacity: 0.78;
+  --trending-stage-fx-opacity: 1;
+  --trending-stage-mask-opacity: 0.54;
+  --trending-stage-static-art:
+    radial-gradient(circle at 82% 65%, rgba(132, 178, 255, 0.30) 0 5%, transparent 7%),
+    radial-gradient(circle at 64% 70%, rgba(132, 178, 255, 0.18) 0 4%, transparent 6%),
+    radial-gradient(ellipse at 78% 60%, rgba(105, 150, 255, 0.12), transparent 36%) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-motion-streak,
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-racing-stripe {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-hypercar {
+  opacity: 0.78 !important;
+  filter: drop-shadow(0 0 10px rgba(120, 165, 255, 0.28)) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula {
+  opacity: 0.68 !important;
+  filter: drop-shadow(0 0 8px rgba(120, 165, 255, 0.20)) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-wheel-glow,
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula-glow {
+  opacity: 0.64 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-drift-cloud {
+  opacity: 0.22 !important;
+}
+
+@media (max-width: 860px) {
+  .trending-theme-stage {
+    --trending-theme-opacity: 0.48;
+    --trending-stage-mask-opacity: 0.72;
+  }
+
+  .trending-theme-stage--spinning-apex-wheel {
+    --trending-theme-opacity: 0.56;
+    --trending-stage-mask-opacity: 0.68;
+  }
+}
+
+/* === Trending hero crest redesign + stronger theme-stage visibility ===
+   Keeps the leaderboard rows/layout intact. This only changes the top Trending
+   intro block so it feels less like a wide horizontal slab, and makes the
+   post-theme stage inside ranked cards more visible. */
+.trending-page-shell .trending-leaderboard-hero {
+  width: min(760px, calc(100vw - 34px)) !important;
+  max-width: min(760px, calc(100vw - 34px)) !important;
+  margin: 8px auto 30px !important;
+  padding: 30px 28px 32px !important;
+  text-align: center !important;
+  border-radius: 38px !important;
+  border: 1px solid rgba(197, 255, 146, 0.24) !important;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(190, 255, 112, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(65, 166, 73, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(8, 31, 12, 0.76), rgba(2, 12, 5, 0.88)) !important;
+  box-shadow:
+    0 28px 72px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(218, 255, 154, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -28px 60px rgba(0, 0, 0, 0.20) !important;
+  overflow: hidden !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 14px !important;
+  border-radius: 30px !important;
+  border: 1px solid rgba(188, 255, 134, 0.10) !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(205, 255, 150, 0.08), transparent),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 6px) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero::after {
+  content: "✦" !important;
+  position: absolute !important;
+  left: 50% !important;
+  right: auto !important;
+  top: 13px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 0 !important;
+  transform: translateX(-50%) !important;
+  background: none !important;
+  color: rgba(206, 255, 150, 0.86) !important;
+  font-size: 15px !important;
+  letter-spacing: 0 !important;
+  text-shadow: 0 0 18px rgba(176, 255, 120, 0.44) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-back-btn {
+  display: inline-flex !important;
+  justify-content: center !important;
+  margin: 0 auto 18px !important;
+  color: rgba(198, 255, 145, 0.94) !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-kicker {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  margin: 0 auto 13px !important;
+  color: rgba(203, 255, 156, 0.78) !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-kicker::before,
+.trending-page-shell .trending-leaderboard-hero .search-kicker::after {
+  content: "";
+  width: 52px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(208, 255, 150, 0.48), transparent);
+}
+
+.trending-page-shell .trending-leaderboard-hero h1 {
+  max-width: 680px !important;
+  margin: 0 auto !important;
+  font-size: clamp(34px, 5.8vw, 64px) !important;
+  line-height: 0.96 !important;
+  letter-spacing: 0.045em !important;
+  text-shadow:
+    0 0 24px rgba(190, 255, 120, 0.18),
+    0 3px 0 rgba(0, 0, 0, 0.26) !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero p {
+  max-width: 620px !important;
+  margin: 16px auto 22px !important;
+  color: rgba(244, 255, 226, 0.78) !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .trending-period-row,
+.trending-page-shell .trending-leaderboard-hero .trending-mood-row {
+  justify-content: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .trending-period-row {
+  max-width: none !important;
+  margin-top: 0 !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .trending-mood-row {
+  margin-top: 13px !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-filter-row button,
+.trending-page-shell .trending-leaderboard-hero .trending-mood-row button {
+  border-color: rgba(210, 255, 156, 0.20) !important;
+  background: rgba(4, 18, 7, 0.70) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 18px rgba(0, 0, 0, 0.16) !important;
+}
+
+.trending-page-shell .trending-leaderboard-hero .search-filter-row button.active {
+  background: linear-gradient(135deg, #defd8f, #8de85a) !important;
+  color: #0e210d !important;
+  box-shadow:
+    0 0 22px rgba(156, 255, 95, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
+}
+
+/* Stronger, but still readable, post-theme stage inside Trending rows. */
+.trending-clean-main.trending-clean-main--with-theme {
+  background:
+    radial-gradient(circle at 82% 48%, rgba(170, 230, 108, 0.12), transparent 35%),
+    linear-gradient(135deg, rgba(10, 42, 15, 0.38), rgba(1, 12, 5, 0.34) 48%, rgba(0, 7, 3, 0.44)) !important;
+}
+
+.trending-theme-stage {
+  opacity: var(--trending-theme-opacity, 0.78) !important;
+}
+
+.trending-theme-stage::after {
+  background:
+    linear-gradient(90deg, rgba(3, 18, 7, 0.74) 0%, rgba(3, 18, 7, 0.46) 34%, rgba(3, 18, 7, 0.12) 72%, rgba(3, 18, 7, 0.34) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent 35%, rgba(0, 0, 0, 0.10)) !important;
+  opacity: var(--trending-stage-mask-opacity, 0.48) !important;
+}
+
+.trending-theme-stage--moonlit-grove,
+.trending-theme-stage--golden-leaves,
+.trending-theme-stage--scorched-ember,
+.trending-theme-stage--dewdrop-card,
+.trending-theme-stage--scorched-parchment,
+.trending-theme-stage--starbound-card,
+.trending-theme-stage--moonlit-vengeance,
+.trending-theme-stage--cinder-throne {
+  --trending-theme-opacity: 0.84;
+  --trending-stage-mask-opacity: 0.46;
+}
+
+.trending-theme-stage--spinning-apex-wheel {
+  --trending-theme-opacity: 0.92;
+  --trending-stage-mask-opacity: 0.42;
+  --trending-stage-static-art:
+    radial-gradient(circle at 82% 65%, rgba(132, 178, 255, 0.36) 0 5%, transparent 7%),
+    radial-gradient(circle at 64% 70%, rgba(132, 178, 255, 0.24) 0 4%, transparent 6%),
+    radial-gradient(ellipse at 78% 60%, rgba(105, 150, 255, 0.18), transparent 36%) !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-hypercar {
+  opacity: 0.92 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula {
+  opacity: 0.80 !important;
+}
+
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-wheel-glow,
+.trending-theme-stage--spinning-apex-wheel .cw-fx-apex-formula-glow {
+  opacity: 0.76 !important;
+}
+
+@media (max-width: 760px) {
+  .trending-page-shell .trending-leaderboard-hero {
+    width: min(94vw, 560px) !important;
+    padding: 26px 18px 28px !important;
+    border-radius: 30px !important;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero .search-kicker::before,
+  .trending-page-shell .trending-leaderboard-hero .search-kicker::after {
+    width: 26px;
+  }
+
+  .trending-theme-stage {
+    --trending-theme-opacity: 0.58;
+    --trending-stage-mask-opacity: 0.64;
   }
 }

@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate, useParams } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
+import { PostThemeFxLayers } from "../components/CosmeticFx";
+import {
+  getCosmeticAnimationClass,
+  getPostThemeStyle,
+} from "../utils/cosmetics";
 import {
   CONFESSION_MOODS,
   getConfessionThemeId,
@@ -139,19 +144,27 @@ const normalizeThemeClass = (themeId) =>
     .replace(/[^a-z0-9-]/gi, "-")
     .toLowerCase();
 
-function TrendingPostSkinLayer({ post }) {
-  const themeId = getTrendingPostThemeId(post);
-
+function TrendingThemeStage({ themeId, realm }) {
   if (!themeId) return null;
+
+  const themeClass = getCosmeticAnimationClass(themeId);
+  const themeStyle = getPostThemeStyle(themeId, realm);
 
   return (
     <span
-      className={["trending-skin-bg", `trending-skin-bg--${normalizeThemeClass(themeId)}`]
+      className={[
+        "trending-theme-stage",
+        themeClass,
+        `trending-theme-stage--${normalizeThemeClass(themeId)}`,
+      ]
         .filter(Boolean)
         .join(" ")}
+      style={themeStyle}
       data-theme={themeId}
       aria-hidden="true"
-    />
+    >
+      <PostThemeFxLayers themeId={themeId} />
+    </span>
   );
 }
 
@@ -171,7 +184,7 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
         .join(" ")}
       onClick={onOpen}
     >
-      <TrendingPostSkinLayer post={post} />
+      <TrendingThemeStage themeId={themeId} realm={realm} />
       <div className="trending-clean-copy">
         <div className="trending-clean-topline">
           <span className="trending-clean-author">@{username}</span>
