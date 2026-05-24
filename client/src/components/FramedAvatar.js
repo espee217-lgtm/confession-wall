@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { CosmeticFxLayers } from "./CosmeticFx";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
 
@@ -112,6 +112,7 @@ export default function FramedAvatar({
   placeholder,
   context = "auto",
   className = "",
+  animationMode = "always",
 }) {
   const normalized = normalizeFrameId(frameId);
   const isLightningFrameEffect =
@@ -146,6 +147,7 @@ export default function FramedAvatar({
     [
       `cw-framed-avatar--${resolvedContext}`,
       className,
+      animationMode === "hover" ? "cw-avatar-animation-hover" : "",
       frameAnimClass,
       effectAnimClass,
     ]
@@ -159,7 +161,7 @@ export default function FramedAvatar({
       }
     : getFrameStyle(normalized);
 
-  const fallback = placeholder || username?.[0]?.toUpperCase?.() || "🌿";
+  const fallback = placeholder || username?.[0]?.toUpperCase?.() || "ðŸŒ¿";
 
   const frameFx =
     normalized === "frame-thornfire" ? (

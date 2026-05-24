@@ -1,4 +1,4 @@
-/* ── Shared keyframes ───────────────────────────────────────── */
+﻿/* â”€â”€ Shared keyframes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 @keyframes cw-pink-pulse {
   0%, 100% { box-shadow: 0 0 12px rgba(255, 160, 200, 0.35), 0 0 28px rgba(255, 120, 180, 0.2); }
@@ -168,7 +168,7 @@
   50% { opacity: 0.95; transform: scale(1.16); }
 }
 
-/* ── Stage (shop + equipped containers) ─────────────────────── */
+/* â”€â”€ Stage (shop + equipped containers) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-stage {
   position: relative;
@@ -204,7 +204,7 @@
   pointer-events: none;
 }
 
-/* ── BADGE: Sprout Soul ───────────────────────────────── */
+/* â”€â”€ BADGE: Sprout Soul â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-sprout-soul .cw-cosmetic-icon,
 .cw-animated-badge.cw-cosmetic-badge-sprout-soul .cw-cosmetic-icon,
@@ -295,7 +295,7 @@
   animation-delay: -1.2s;
 }
 
-/* ── BADGE: Moon Whisper ──────────────────────────────── */
+/* â”€â”€ BADGE: Moon Whisper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-moon-whisper .cw-cosmetic-icon,
 .cw-animated-badge.cw-cosmetic-badge-moon-whisper .cw-cosmetic-icon,
@@ -376,7 +376,7 @@
   animation: cw-moon-mist-float 4.2s ease-in-out infinite;
 }
 
-/* ── BADGE: Forest Crown ──────────────────────────────── */
+/* â”€â”€ BADGE: Forest Crown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-forest-crown .cw-cosmetic-icon,
 .cw-animated-badge.cw-cosmetic-badge-forest-crown .cw-cosmetic-icon,
@@ -482,7 +482,7 @@
   }
 }
 
-/* ── BADGE: Petal Storm ─────────────────────────────────────── */
+/* â”€â”€ BADGE: Petal Storm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-petal-storm .cw-cosmetic-icon,
 .cw-animated-badge.cw-cosmetic-badge-petal-storm .cw-cosmetic-icon,
@@ -510,7 +510,7 @@
 .cw-cosmetic-badge-petal-storm .cw-fx-petal:nth-child(3) { animation-delay: -2.5s; }
 .cw-cosmetic-badge-petal-storm .cw-fx-petal:nth-child(4) { animation-delay: -3.75s; }
 
-/* ── BADGE: Ember Core ──────────────────────────────────────── */
+/* â”€â”€ BADGE: Ember Core â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-ember-core .cw-cosmetic-icon,
 .shop-preview-badge.cw-cosmetic-badge-ember-core > .cw-cosmetic-stage > .cw-cosmetic-icon {
@@ -546,7 +546,7 @@
   animation: cw-ember-rise 2.2s ease-out infinite;
 }
 
-/* ── BADGE: Void Sigil ──────────────────────────────────────── */
+/* â”€â”€ BADGE: Void Sigil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-badge-void-sigil .cw-cosmetic-icon,
 .cw-animated-badge.cw-cosmetic-badge-void-sigil .cw-cosmetic-icon,
@@ -563,7 +563,7 @@
   animation: cw-moon-shimmer 2.8s ease-in-out infinite;
 }
 
-/* ── FRAME: Moonveil ────────────────────────────────────────── */
+/* â”€â”€ FRAME: Moonveil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-frame-moonveil {
   position: relative;
@@ -597,7 +597,7 @@
   pointer-events: none;
 }
 
-/* ── FRAME: Thornfire ─────────────────────────────────────────── */
+/* â”€â”€ FRAME: Thornfire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-frame-thornfire {
   position: relative;
@@ -653,7 +653,7 @@
   animation: cw-moon-shimmer 2s ease-in-out infinite;
 }
 
-/* ── FRAME: Celestial ───────────────────────────────────────── */
+/* â”€â”€ FRAME: Celestial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-frame-celestial {
   position: relative;
@@ -690,7 +690,7 @@
   animation: cw-star-orbit 7s linear infinite;
 }
 
-/* ── TITLE: Whisper of the Grove ────────────────────────────── */
+/* â”€â”€ TITLE: Whisper of the Grove â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-title-whisper-grove {
   background: linear-gradient(
@@ -710,14 +710,14 @@
   border-color: rgba(140, 220, 160, 0.35) !important;
 }
 
-/* ── TITLE: Ashen Voice ─────────────────────────────────────── */
+/* â”€â”€ TITLE: Ashen Voice â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-title-ashen-voice {
   position: relative;
   animation: cw-title-glitch 4.5s steps(1) infinite;
 }
 
-/* ── TITLE: Eternal Bloom ───────────────────────────────────── */
+/* â”€â”€ TITLE: Eternal Bloom â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-title-eternal-bloom {
   background: linear-gradient(
@@ -737,7 +737,7 @@
   border-color: rgba(200, 180, 100, 0.35) !important;
 }
 
-/* ── POST: Dewdrop Card ─────────────────────────────────────── */
+/* â”€â”€ POST: Dewdrop Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-post-dewdrop::after {
   content: "";
@@ -758,7 +758,7 @@
   z-index: 1;
 }
 
-/* ── POST: Scorched Parchment ───────────────────────────────── */
+/* â”€â”€ POST: Scorched Parchment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-post-scorched-parchment .cw-fx-ember {
   position: absolute;
@@ -770,7 +770,7 @@
   animation: cw-ember-rise 2.8s ease-out infinite;
 }
 
-/* ── POST: Starbound Card ───────────────────────────────────── */
+/* â”€â”€ POST: Starbound Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-post-starbound {
   animation: cw-indigo-edge-pulse 3.5s ease-in-out infinite;
@@ -831,7 +831,7 @@
   vertical-align: middle;
 }
 
-/* Nav profile — animated frames reuse frame cosmetics on wrap */
+/* Nav profile â€” animated frames reuse frame cosmetics on wrap */
 .nav-profile-wrap.cw-cosmetic-frame-moonveil,
 .nav-profile-wrap.cw-cosmetic-frame-thornfire,
 .nav-profile-wrap.cw-cosmetic-frame-celestial {
@@ -870,7 +870,7 @@
   animation: cw-moon-border-spin 8s linear infinite;
 }
 
-/* ── Animated badge sizes (equipped) ────────────────────────── */
+/* â”€â”€ Animated badge sizes (equipped) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-animated-badge {
   display: inline-flex;
@@ -926,7 +926,7 @@
   border: 1px solid rgba(180, 255, 150, 0.24);
 }
 
-/* ── POST THEMES: rich backgrounds (shop + equipped) ───────── */
+/* â”€â”€ POST THEMES: rich backgrounds (shop + equipped) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .cw-cosmetic-post-dewdrop,
 .shop-preview-post.cw-cosmetic-post-dewdrop {
@@ -1063,7 +1063,7 @@
   z-index: 2;
 }
 
-/* Equipped post cards — keep theme content above FX */
+/* Equipped post cards â€” keep theme content above FX */
 .cw-cosmetic-post-dewdrop > *:not(.cw-cosmetic-fx-layer),
 .cw-cosmetic-post-scorched-parchment > *:not(.cw-cosmetic-fx-layer),
 .cw-cosmetic-post-starbound > *:not(.cw-cosmetic-fx-layer) {
@@ -3721,4 +3721,42 @@
   .shop-preview-post.cw-cosmetic-post-spinning-apex-wheel .cw-fx-apex-racing-stripe {
     animation: none !important;
   }
+}
+/* Pass 7.1: feed avatar/frame cosmetics animate only on interaction.
+   Shop, settings, profile, and navbar previews are not affected unless they opt into
+   .cw-avatar-animation-hover. */
+.cw-feed-post-card .cw-avatar-animation-hover,
+.cw-feed-post-card .cw-avatar-animation-hover::before,
+.cw-feed-post-card .cw-avatar-animation-hover::after,
+.cw-feed-post-card .cw-avatar-animation-hover *,
+.cw-feed-post-card .cw-avatar-animation-hover *::before,
+.cw-feed-post-card .cw-avatar-animation-hover *::after {
+  animation-play-state: paused !important;
+}
+
+.cw-feed-post-card:hover .cw-avatar-animation-hover,
+.cw-feed-post-card:hover .cw-avatar-animation-hover::before,
+.cw-feed-post-card:hover .cw-avatar-animation-hover::after,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *::before,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *::after,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover::before,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover::after,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *::before,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *::after,
+.cw-avatar-animation-hover:hover,
+.cw-avatar-animation-hover:hover::before,
+.cw-avatar-animation-hover:hover::after,
+.cw-avatar-animation-hover:hover *,
+.cw-avatar-animation-hover:hover *::before,
+.cw-avatar-animation-hover:hover *::after,
+.cw-avatar-animation-hover:active,
+.cw-avatar-animation-hover:active::before,
+.cw-avatar-animation-hover:active::after,
+.cw-avatar-animation-hover:active *,
+.cw-avatar-animation-hover:active *::before,
+.cw-avatar-animation-hover:active *::after {
+  animation-play-state: running !important;
 }

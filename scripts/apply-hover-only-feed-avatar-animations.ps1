@@ -1,158 +1,154 @@
 $ErrorActionPreference = "Stop"
 
-$root = (Get-Location).Path
-$reportPath = Join-Path $root "hover-avatar-animations-pass7-1-report.txt"
-$changes = New-Object System.Collections.Generic.List[string]
+$Root = (Resolve-Path ".").Path
 
-function Read-Text($path) {
-  if (!(Test-Path $path)) { throw "Missing required file: $path" }
-  return Get-Content -Path $path -Raw
+function Join-ProjectPath([string]$RelativePath) {
+  return Join-Path $Root $RelativePath
 }
 
-function Write-IfChanged($path, $old, $new, $label) {
-  if ($old -ne $new) {
-    Set-Content -Path $path -Value $new -NoNewline
-    $script:changes.Add("UPDATED  $label") | Out-Null
+function Read-Text([string]$RelativePath) {
+  $Path = Join-ProjectPath $RelativePath
+  if (!(Test-Path $Path)) {
+    throw "Missing required file: $RelativePath"
+  }
+  return Get-Content -Path $Path -Raw
+}
+
+function Write-Text([string]$RelativePath, [string]$Content) {
+  $Path = Join-ProjectPath $RelativePath
+  Set-Content -Path $Path -Value $Content -NoNewline -Encoding UTF8
+}
+
+function Replace-Once([string]$Text, [string]$Old, [string]$New, [string]$Label) {
+  $Index = $Text.IndexOf($Old)
+  if ($Index -lt 0) {
+    throw "Could not find expected text while patching: $Label"
+  }
+  return $Text.Substring(0, $Index) + $New + $Text.Substring($Index + $Old.Length)
+}
+
+Write-Host "Applying hover-only feed avatar animation patch..."
+
+# 1) FramedAvatar: add animationMode prop and hover class support.
+$FramedPath = "client/src/components/FramedAvatar.js"
+$Framed = Read-Text $FramedPath
+
+if ($Framed -notmatch 'animationMode\s*=') {
+  $Old = "  className = `"`",`n})"
+  $New = "  className = `"`",`n  animationMode = `"always`",`n})"
+  if ($Framed.Contains($Old)) {
+    $Framed = $Framed.Replace($Old, $New)
   } else {
-    $script:changes.Add("UNCHANGED $label") | Out-Null
+    $Old = "  className = `"`",`r`n})"
+    $New = "  className = `"`",`r`n  animationMode = `"always`",`r`n})"
+    if ($Framed.Contains($Old)) {
+      $Framed = $Framed.Replace($Old, $New)
+    } else {
+      throw "Could not add animationMode prop in $FramedPath"
+    }
   }
 }
 
-$framedAvatarPath = Join-Path $root "client/src/components/FramedAvatar.js"
-$postCardPath = Join-Path $root "client/src/components/PostCard.js"
-$cosmeticCssPath = Join-Path $root "client/src/styles/cosmetic-animations.css"
-
-Write-Host "Applying Pass 7.1 hover-only feed avatar/frame animations..."
-
-# 1) FramedAvatar: add animationMode prop and class hook.
-$framedOld = Read-Text $framedAvatarPath
-$framedNew = $framedOld
-
-if ($framedNew -notmatch 'animationMode\s*=') {
-  $framedNew = $framedNew -replace '(className\s*=\s*"",\r?\n)', "`$1  animationMode = \"always\",`r`n"
+if ($Framed -notmatch 'cw-avatar-animation-hover') {
+  $Old = "      className,`n      frameAnimClass,"
+  $New = "      className,`n      animationMode === `"hover`" ? `"cw-avatar-animation-hover`" : `"`",`n      frameAnimClass,"
+  if ($Framed.Contains($Old)) {
+    $Framed = $Framed.Replace($Old, $New)
+  } else {
+    $Old = "      className,`r`n      frameAnimClass,"
+    $New = "      className,`r`n      animationMode === `"hover`" ? `"cw-avatar-animation-hover`" : `"`",`r`n      frameAnimClass,"
+    if ($Framed.Contains($Old)) {
+      $Framed = $Framed.Replace($Old, $New)
+    } else {
+      throw "Could not add hover animation class in $FramedPath"
+    }
+  }
 }
 
-if ($framedNew -notmatch 'cw-avatar-animation-hover') {
-  $framedNew = $framedNew -replace '(`cw-framed-avatar--\$\{resolvedContext\}`,\r?\n)', "`$1      animationMode === \"hover\" ? \"cw-avatar-animation-hover\" : \"\",`r`n"
+Write-Text $FramedPath $Framed
+Write-Host "Updated $FramedPath"
+
+# 2) PostCard: mark feed cards and make their avatar animation hover-only.
+$PostCardPath = "client/src/components/PostCard.js"
+$PostCard = Read-Text $PostCardPath
+
+if ($PostCard -notmatch 'cw-feed-post-card') {
+  $PostCard = $PostCard.Replace('className={postThemeClass || undefined}', 'className={["cw-feed-post-card", postThemeClass].filter(Boolean).join(" ")}')
+  if ($PostCard -notmatch 'cw-feed-post-card') {
+    throw "Could not add cw-feed-post-card class in $PostCardPath"
+  }
 }
 
-Write-IfChanged $framedAvatarPath $framedOld $framedNew "client/src/components/FramedAvatar.js"
-
-# 2) PostCard: mark feed cards as hover hosts and make feed avatars hover-animated.
-$postOld = Read-Text $postCardPath
-$postNew = $postOld
-
-if ($postNew -notmatch 'cw-feed-hover-avatar-host') {
-  $postNew = $postNew -replace 'className=\{postThemeClass \|\| undefined\}', 'className={["cw-post-card", "cw-feed-hover-avatar-host", postThemeClass].filter(Boolean).join(" ")}'
+if ($PostCard -notmatch 'animationMode="hover"') {
+  $Old = '          placeholder={username?.[0]?.toUpperCase() || "?"}' + "`n"
+  $New = '          placeholder={username?.[0]?.toUpperCase() || "?"}' + "`n" + '          animationMode="hover"' + "`n"
+  if ($PostCard.Contains($Old)) {
+    $PostCard = $PostCard.Replace($Old, $New)
+  } else {
+    $Old = '          placeholder={username?.[0]?.toUpperCase() || "?"}' + "`r`n"
+    $New = '          placeholder={username?.[0]?.toUpperCase() || "?"}' + "`r`n" + '          animationMode="hover"' + "`r`n"
+    if ($PostCard.Contains($Old)) {
+      $PostCard = $PostCard.Replace($Old, $New)
+    } else {
+      throw "Could not add animationMode=hover to FramedAvatar in $PostCardPath"
+    }
+  }
 }
 
-if ($postNew -notmatch 'animationMode="hover"') {
-  # Current PostCard avatar has a placeholder line. Add the prop right after it.
-  $postNew = $postNew -replace '(placeholder=\{username\?\.\[0\]\?\.toUpperCase\(\) \|\| "\?"\}\r?\n)', "`$1          animationMode=\"hover\"`r`n"
-}
+Write-Text $PostCardPath $PostCard
+Write-Host "Updated $PostCardPath"
 
-Write-IfChanged $postCardPath $postOld $postNew "client/src/components/PostCard.js"
+# 3) CSS: pause only feed avatar cosmetics by default, resume on hover/focus/active.
+$CssPath = "client/src/styles/cosmetic-animations.css"
+$Css = Read-Text $CssPath
 
-# 3) CSS: pause feed avatar/frame animations by default; run while hovering/focusing the feed card or avatar.
-$cssOld = Read-Text $cosmeticCssPath
-$cssNew = $cssOld
+$CssBlock = @'
 
-$cssBlock = @'
-
-/* ── Performance: feed avatar/frame animations run only on hover ──────────────
-   Used by PostCard via FramedAvatar animationMode="hover".
-   Shop/settings/profile previews are untouched because they do not use this class. */
-.cw-framed-avatar.cw-avatar-animation-hover,
-.cw-framed-avatar.cw-avatar-animation-hover * ,
-.cw-framed-avatar.cw-avatar-animation-hover::before,
-.cw-framed-avatar.cw-avatar-animation-hover::after {
+/* Pass 7.1: feed avatar/frame cosmetics animate only on interaction.
+   Shop, settings, profile, and navbar previews are not affected unless they opt into
+   .cw-avatar-animation-hover. */
+.cw-feed-post-card .cw-avatar-animation-hover,
+.cw-feed-post-card .cw-avatar-animation-hover::before,
+.cw-feed-post-card .cw-avatar-animation-hover::after,
+.cw-feed-post-card .cw-avatar-animation-hover *,
+.cw-feed-post-card .cw-avatar-animation-hover *::before,
+.cw-feed-post-card .cw-avatar-animation-hover *::after {
   animation-play-state: paused !important;
 }
 
-.cw-framed-avatar.cw-avatar-animation-hover .cw-cosmetic-fx-layer,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-cosmetic-fx-layer *,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-visor-lift-sprite-shell,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-visor-lift-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-venom-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-storm-hoodie-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .stormHoodieGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-grove-butterfly-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .groveButterflyGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-demon-thorn-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .demonThornGreenKeyFixedAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-lotus-aura-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-ice-monarch-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-fx-vine-svg path,
-.cw-framed-avatar.cw-avatar-animation-hover .cw-fx-orbit-star {
-  animation-play-state: paused !important;
-  will-change: auto;
-}
-
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover * ,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover::before,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover::after,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover * ,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover::before,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover::after,
-.cw-framed-avatar.cw-avatar-animation-hover:hover,
-.cw-framed-avatar.cw-avatar-animation-hover:hover * ,
-.cw-framed-avatar.cw-avatar-animation-hover:hover::before,
-.cw-framed-avatar.cw-avatar-animation-hover:hover::after,
-.cw-framed-avatar.cw-avatar-animation-hover:active,
-.cw-framed-avatar.cw-avatar-animation-hover:active * ,
-.cw-framed-avatar.cw-avatar-animation-hover:active::before,
-.cw-framed-avatar.cw-avatar-animation-hover:active::after {
+.cw-feed-post-card:hover .cw-avatar-animation-hover,
+.cw-feed-post-card:hover .cw-avatar-animation-hover::before,
+.cw-feed-post-card:hover .cw-avatar-animation-hover::after,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *::before,
+.cw-feed-post-card:hover .cw-avatar-animation-hover *::after,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover::before,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover::after,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *::before,
+.cw-feed-post-card:focus-within .cw-avatar-animation-hover *::after,
+.cw-avatar-animation-hover:hover,
+.cw-avatar-animation-hover:hover::before,
+.cw-avatar-animation-hover:hover::after,
+.cw-avatar-animation-hover:hover *,
+.cw-avatar-animation-hover:hover *::before,
+.cw-avatar-animation-hover:hover *::after,
+.cw-avatar-animation-hover:active,
+.cw-avatar-animation-hover:active::before,
+.cw-avatar-animation-hover:active::after,
+.cw-avatar-animation-hover:active *,
+.cw-avatar-animation-hover:active *::before,
+.cw-avatar-animation-hover:active *::after {
   animation-play-state: running !important;
-}
-
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-venom-frame-sprite,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-storm-hoodie-frame-sprite,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .stormHoodieGreenKeyAvatarFrame,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-grove-butterfly-frame-sprite,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .groveButterflyGreenKeyAvatarFrame,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-demon-thorn-frame-sprite,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .demonThornGreenKeyFixedAvatarFrame,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-lotus-aura-frame-sprite,
-.cw-feed-hover-avatar-host:hover .cw-framed-avatar.cw-avatar-animation-hover .cw-ice-monarch-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-venom-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-storm-hoodie-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .stormHoodieGreenKeyAvatarFrame,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-grove-butterfly-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .groveButterflyGreenKeyAvatarFrame,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-demon-thorn-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .demonThornGreenKeyFixedAvatarFrame,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-lotus-aura-frame-sprite,
-.cw-feed-hover-avatar-host:focus-within .cw-framed-avatar.cw-avatar-animation-hover .cw-ice-monarch-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-venom-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-storm-hoodie-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .stormHoodieGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-grove-butterfly-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .groveButterflyGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-demon-thorn-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .demonThornGreenKeyFixedAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-lotus-aura-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:hover .cw-ice-monarch-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-venom-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-storm-hoodie-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .stormHoodieGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-grove-butterfly-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .groveButterflyGreenKeyAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-demon-thorn-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .demonThornGreenKeyFixedAvatarFrame,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-lotus-aura-frame-sprite,
-.cw-framed-avatar.cw-avatar-animation-hover:active .cw-ice-monarch-frame-sprite {
-  will-change: background-position;
 }
 '@
 
-if ($cssNew -notmatch 'feed avatar/frame animations run only on hover') {
-  $cssNew = $cssNew.TrimEnd() + $cssBlock + "`r`n"
+if ($Css -notmatch 'Pass 7\.1: feed avatar/frame cosmetics animate only on interaction') {
+  $Css = $Css.TrimEnd() + $CssBlock + "`n"
 }
 
-Write-IfChanged $cosmeticCssPath $cssOld $cssNew "client/src/styles/cosmetic-animations.css"
+Write-Text $CssPath $Css
+Write-Host "Updated $CssPath"
 
-$changes | Set-Content -Path $reportPath
-Write-Host "Pass 7.1 finished. Report saved to: $reportPath"
-$changes | ForEach-Object { Write-Host $_ }
+Write-Host "Hover-only feed avatar animation patch applied successfully."

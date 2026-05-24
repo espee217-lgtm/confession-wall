@@ -1,4 +1,4 @@
-import DisplayTitlePill from "./DisplayTitlePill";
+﻿import DisplayTitlePill from "./DisplayTitlePill";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "./FramedAvatar";
@@ -220,7 +220,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     <div
       id={`post-${localPost._id}`}
       onClick={onOpen}
-      className={postThemeClass || undefined}
+      className={["cw-feed-post-card", postThemeClass].filter(Boolean).join(" ")}
       style={{
         background: isScorched
           ? "rgba(20,8,4,0.82)"
@@ -270,6 +270,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
           effectId={equipped.visualEffect}
           size={42}
           placeholder={username?.[0]?.toUpperCase() || "?"}
+          animationMode="hover"
         />
 
         <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -300,7 +301,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             fontStyle: "italic",
           }}
         >
-          {isScorched ? "🔥 scorched" : isGrove ? "🌿 thriving" : "⚖️ balanced"}
+          {isScorched ? "ðŸ”¥ scorched" : isGrove ? "ðŸŒ¿ thriving" : "âš–ï¸ balanced"}
         </span>
       </div>
 
@@ -528,11 +529,11 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         }}
       >
         <span style={{ fontSize: "11px", color: "#3b8a5a" }}>
-          🌱 {localPost.wateredBy?.length || 0}
+          ðŸŒ± {localPost.wateredBy?.length || 0}
         </span>
 
         <span style={{ fontSize: "11px", color: "#D85A30" }}>
-          🔥 {localPost.burnedBy?.length || 0}
+          ðŸ”¥ {localPost.burnedBy?.length || 0}
         </span>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
@@ -554,7 +555,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
               fontFamily: "Georgia, serif",
             }}
           >
-            {isSaved ? "🍂 saved" : "🍂 press leaf"}
+            {isSaved ? "ðŸ‚ saved" : "ðŸ‚ press leaf"}
           </button>
 
           <button
