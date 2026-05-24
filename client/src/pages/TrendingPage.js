@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
 import {
   CONFESSION_MOODS,
+  getConfessionThemeId,
   getDisplayCosmetics,
 } from "../utils/engagement";
 
@@ -127,40 +128,78 @@ const getComfortChipLabel = (card) => {
   return card.label || card.text || card.message || card.title || card.name || card.type || "comfort";
 };
 
+const getTrendingPostThemeId = (post) => {
+  const equipped = getDisplayCosmetics(post?.userId);
+  return getConfessionThemeId(post, equipped, post?.userId);
+};
+
+const normalizeThemeClass = (themeId) =>
+  String(themeId || "")
+    .replace(/^post-theme-/, "")
+    .replace(/[^a-z0-9-]/gi, "-")
+    .toLowerCase();
+
+function TrendingPostSkinLayer({ post }) {
+  const themeId = getTrendingPostThemeId(post);
+
+  if (!themeId) return null;
+
+  return (
+    <span
+      className={["trending-skin-bg", `trending-skin-bg--${normalizeThemeClass(themeId)}`]
+        .filter(Boolean)
+        .join(" ")}
+      data-theme={themeId}
+      aria-hidden="true"
+    />
+  );
+}
+
 function TrendingPostPreview({ post, realm, stats, onOpen }) {
   const username = getPostAuthorUsername(post);
   const moodLabel = getPostMoodLabel(post, realm);
   const message = getPostMessage(post);
   const comfortCards = Array.isArray(post?.comfortCards) ? post.comfortCards.slice(0, 4) : [];
 
+  const themeId = getTrendingPostThemeId(post);
+
   return (
-    <button type="button" className="trending-clean-main" onClick={onOpen}>
-      <div className="trending-clean-topline">
-        <span className="trending-clean-author">@{username}</span>
-        <span className={`trending-clean-mood trending-clean-mood--${realm}`}>
-          {moodLabel}
-        </span>
-        <span className="trending-clean-realm">{realm}</span>
-      </div>
-
-      <p className="trending-clean-message">{message}</p>
-
-      {comfortCards.length > 0 && (
-        <div className="trending-clean-comforts" aria-label="Comfort cards">
-          {comfortCards.map((card, index) => (
-            <span key={`${getComfortChipLabel(card)}-${index}`}>
-              {getComfortChipLabel(card)}
-              {Number(card?.count) > 0 ? <em>{card.count}</em> : null}
-            </span>
-          ))}
+    <button
+      type="button"
+      className={["trending-clean-main", themeId ? "trending-clean-main--with-theme" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={onOpen}
+    >
+      <TrendingPostSkinLayer post={post} />
+      <div className="trending-clean-copy">
+        <div className="trending-clean-topline">
+          <span className="trending-clean-author">@{username}</span>
+          <span className={`trending-clean-mood trending-clean-mood--${realm}`}>
+            {moodLabel}
+          </span>
+          <span className="trending-clean-realm">{realm}</span>
         </div>
-      )}
 
-      <div className="trending-clean-footer">
-        <span>🌱 {stats.water} water</span>
-        <span>🔥 {stats.burn} burn</span>
-        <span>💬 {stats.echoes} echoes</span>
-        <span>{formatTrendingDate(post?.createdAt)}</span>
+        <p className="trending-clean-message">{message}</p>
+
+        {comfortCards.length > 0 && (
+          <div className="trending-clean-comforts" aria-label="Comfort cards">
+            {comfortCards.map((card, index) => (
+              <span key={`${getComfortChipLabel(card)}-${index}`}>
+                {getComfortChipLabel(card)}
+                {Number(card?.count) > 0 ? <em>{card.count}</em> : null}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="trending-clean-footer">
+          <span>🌱 {stats.water} water</span>
+          <span>🔥 {stats.burn} burn</span>
+          <span>💬 {stats.echoes} echoes</span>
+          <span>{formatTrendingDate(post?.createdAt)}</span>
+        </div>
       </div>
     </button>
   );
