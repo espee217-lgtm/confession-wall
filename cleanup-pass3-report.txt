@@ -1,6 +1,0 @@
-Confession Wall cleanup pass 3 report
-Generated at: 2026-05-24 17:52:37
-Project root: C:\Users\espee\OneDrive\Desktop\confession-wall
-
-Scanned text files: 80
-
