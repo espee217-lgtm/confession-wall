@@ -526,7 +526,7 @@ a.chip {
   }
 
   body.mobile-home-page .nav-shop-btn {
-    display: none !important;
+    display: inline-flex !important;
   }
 
   body.mobile-home-page .navbar img[alt="profile"] {
