@@ -124,6 +124,7 @@ export default function ForestEventBanner({ compact = false, statusData = null }
             src="/assets/fig.png"
             alt=""
             aria-hidden="true"
+            decoding="async"
           />
         </span>
 

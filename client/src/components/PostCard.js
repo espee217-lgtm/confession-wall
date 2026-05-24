@@ -36,6 +36,7 @@ function PostCardImagePreview({ images, blurred }) {
         src={images[0]}
         alt="confession attachment preview"
         loading="lazy"
+        decoding="async"
         className={blurred ? "is-blurred" : ""}
       />
       {extraCount > 0 && <span className="post-card-image-preview__count">+{extraCount}</span>}

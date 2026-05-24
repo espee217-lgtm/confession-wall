@@ -386,6 +386,8 @@ export default function UserProfile() {
                             <img
                               src={src}
                               alt={`confession attachment ${index + 1}`}
+                              loading="lazy"
+                              decoding="async"
                               style={{
                                 ...postImageStyle,
                                 marginBottom: 0,

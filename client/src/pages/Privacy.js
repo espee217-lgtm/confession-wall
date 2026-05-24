@@ -78,6 +78,7 @@ export default function Privacy() {
     <img
       src="/krishna.webp"
       alt=""
+      decoding="async"
       style={{
         position: "fixed",
         left: 0,
@@ -98,6 +99,7 @@ export default function Privacy() {
     <img
       src="/Demon.webp"
       alt=""
+      decoding="async"
       style={{
         position: "fixed",
         right: 0,

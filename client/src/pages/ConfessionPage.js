@@ -1761,6 +1761,8 @@ const activeCommentPinPosition = isPhoneLayout
                       <img
                         src={src}
                         alt={`confession attachment ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
                         style={{
                           filter: hideSensitiveContent ? "blur(12px)" : "none",
                           transition: "filter 0.18s ease",
@@ -2149,6 +2151,8 @@ const activeCommentPinPosition = isPhoneLayout
                       <img
                         src={c.image}
                         alt="comment"
+                        loading="lazy"
+                        decoding="async"
                         onClick={() => openImageLightbox(c.image)}
                         style={{
                           maxWidth: "100%",
@@ -2388,6 +2392,8 @@ const activeCommentPinPosition = isPhoneLayout
                           <img
                             src={c.image}
                             alt="comment"
+                            loading="lazy"
+                            decoding="async"
                             onClick={(event) => {
                               event.stopPropagation();
                               openImageLightbox(c.image);
@@ -2536,6 +2542,7 @@ const activeCommentPinPosition = isPhoneLayout
                 <img
                   src={commentPreview}
                   alt="preview"
+                  decoding="async"
                   style={{
                     maxHeight: isPhoneLayout ? "84px" : "100px",
                     borderRadius: "10px",
@@ -2922,6 +2929,7 @@ onMouseLeave={(e) => {
             <img
               src={lightboxImage}
               alt="Expanded"
+              decoding="async"
               style={{
                 maxWidth: "92vw",
                 maxHeight: "90vh",

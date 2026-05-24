@@ -211,6 +211,8 @@ export default function FramedAvatar({
         <img
           src={src}
           alt={username}
+          loading="lazy"
+          decoding="async"
           style={{
             position: "relative",
             zIndex: 2,

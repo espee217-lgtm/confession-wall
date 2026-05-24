@@ -1323,6 +1323,8 @@ export default function Settings() {
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Instagram_icon.png/600px-Instagram_icon.png"
                 alt="Instagram"
+                loading="lazy"
+                decoding="async"
                 style={{ width: "28px", height: "28px", borderRadius: "8px" }}
               />
 

@@ -307,7 +307,7 @@ function RegisterForm({ scrollToPanel }) {
         <form onSubmit={handleSendOtp} className="auth-form-stack">
           <div className="auth-avatar-upload">
             <div className="auth-avatar-preview">
-              {preview ? <img src={preview} alt="profile preview" /> : <span>🌱</span>}
+              {preview ? <img src={preview} alt="profile preview" decoding="async" /> : <span>🌱</span>}
             </div>
             <label>
               Upload Photo

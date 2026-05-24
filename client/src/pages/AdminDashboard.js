@@ -1160,6 +1160,8 @@ export default function AdminDashboard() {
                         src={user.profilePicture}
                         alt=""
                         className="adminDash-avatar"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="adminDash-avatar adminDash-avatarFallback">

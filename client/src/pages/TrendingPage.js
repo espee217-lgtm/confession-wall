@@ -176,7 +176,7 @@ function TrendingImagePreview({ images }) {
 
   return (
     <span className="trending-image-preview" aria-label={`${images.length} attached image${images.length === 1 ? "" : "s"}`}>
-      <img src={images[0]} alt="confession attachment preview" loading="lazy" />
+      <img src={images[0]} alt="confession attachment preview" loading="lazy" decoding="async" />
       {extraCount > 0 && <span className="trending-image-preview__count">+{extraCount}</span>}
     </span>
   );
@@ -250,6 +250,8 @@ function TrendingRankBadge({ rank }) {
         alt=""
         className="trending-rank-wreath-img"
         aria-hidden="true"
+        loading="lazy"
+        decoding="async"
       />
       <span>{displayRank}</span>
       <em>{rankLabel}</em>

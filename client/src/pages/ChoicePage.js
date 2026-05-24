@@ -133,6 +133,7 @@ const ChoicePage = () => {
         className="stone-img main-stone"
         src="/reena-choice/MainSiteStone.webp"
         alt="Main Site"
+        decoding="async"
         role="button"
         tabIndex={0}
         onClick={handleMainSiteEnter}
@@ -147,6 +148,7 @@ const ChoicePage = () => {
         className="stone-img special-stone"
         src="/reena-choice/SpecialSectionStone.webp"
         alt="Special Section for Reenaa"
+        decoding="async"
         role="button"
         tabIndex={0}
         onClick={handleSpecialSectionEnter}

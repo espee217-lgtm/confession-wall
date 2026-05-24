@@ -1266,6 +1266,7 @@ function MobileHomePage({
           src="/assets/mobile/mobile-hero-banner.png"
           alt="Confession Wall"
           className="mobile-home-hero-img"
+          decoding="async"
         />
       </section>
 
@@ -1388,7 +1389,7 @@ function MobileHomePage({
                 <div className="mobile-compose-preview-strip">
                   {selectedImagePreviews.map((src, index) => (
                     <div className="mobile-compose-preview-item" key={`${src}-${index}`}>
-                      <img src={src} alt={`Selected confession attachment ${index + 1}`} />
+                      <img src={src} alt={`Selected confession attachment ${index + 1}`} decoding="async" />
                       <button
                         type="button"
                         aria-label={`Remove attached image ${index + 1}`}
@@ -1530,6 +1531,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
           ref={leftImgRef}
           src="/krishna.webp"
           alt="Enter Grove"
+          decoding="async"
           onMouseEnter={() => setLeftHover(true)}
           onMouseLeave={() => setLeftHover(false)}
           style={{
@@ -1568,6 +1570,7 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
           ref={rightImgRef}
           src="/Demon.webp"
           alt="Enter Scorched Lands"
+          decoding="async"
           onMouseEnter={() => setRightHover(true)}
           onMouseLeave={() => setRightHover(false)}
           style={{
@@ -2285,6 +2288,7 @@ useEffect(() => {
                       <img
   src={src}
   alt={`Selected confession attachment ${index + 1}`}
+  decoding="async"
 />
                       <button
                         type="button"
@@ -2340,6 +2344,7 @@ useEffect(() => {
                       <img
   src={src}
   alt={`Selected confession attachment ${index + 1}`}
+  decoding="async"
 />
                       <button
                         type="button"

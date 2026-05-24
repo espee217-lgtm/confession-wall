@@ -541,6 +541,7 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
           src={`${ASSET_BASE}${flower.asset}`}
           alt=""
           draggable="false"
+          decoding="async"
         />
         {BOUQUET_DEBUG && renderDebugTag(flower.layoutKey)}
         {isActive && (
@@ -655,6 +656,7 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
               src={`${ASSET_BASE}bouquet-stems-cropped.webp`}
               alt=""
               draggable="false"
+              decoding="async"
             />
             {BOUQUET_DEBUG && renderDebugTag("stems")}
           </div>
@@ -685,6 +687,7 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
               src={`${ASSET_BASE}bouquet-hand-cropped.webp`}
               alt=""
               draggable="false"
+              decoding="async"
             />
             {BOUQUET_DEBUG && renderDebugTag("hand")}
           </button>
