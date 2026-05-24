@@ -255,7 +255,9 @@ export default function ReenaPage() {
 
         <div className="beauty-card-frame">
           <img
-            src="/reena/GRC.png"
+            src="/reena/GRC.webp"
+            loading="lazy"
+            decoding="async"
             alt="Reena Golden Ratio Beauty Card"
             draggable="false"
           />

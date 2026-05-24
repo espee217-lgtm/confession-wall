@@ -131,7 +131,7 @@ const ChoicePage = () => {
 
       <img
         className="stone-img main-stone"
-        src="/reena-choice/MainSiteStone.png"
+        src="/reena-choice/MainSiteStone.webp"
         alt="Main Site"
         role="button"
         tabIndex={0}
@@ -140,11 +140,12 @@ const ChoicePage = () => {
           if (event.key === "Enter") handleMainSiteEnter();
         }}
         draggable="false"
+        decoding="async"
       />
 
       <img
         className="stone-img special-stone"
-        src="/reena-choice/SpecialSectionStone.png"
+        src="/reena-choice/SpecialSectionStone.webp"
         alt="Special Section for Reenaa"
         role="button"
         tabIndex={0}
@@ -153,6 +154,7 @@ const ChoicePage = () => {
           if (event.key === "Enter") handleSpecialSectionEnter();
         }}
         draggable="false"
+        decoding="async"
       />
     </div>
   );

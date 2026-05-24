@@ -4,7 +4,7 @@
   background:
     radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
     linear-gradient(rgba(1, 10, 4, 0.58), rgba(1, 10, 4, 0.72)),
-    url("../../public/reena-choice/forest-bg.png") center / cover fixed;
+    url("../../public/reena-choice/forest-bg.webp") center / cover scroll;
   overflow-x: hidden;
 }
 
@@ -405,4 +405,16 @@ button.kundali-zoom-overlay:active {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+}
+
+@media (max-width: 720px) {
+  .kundali-page {
+    background-image:
+      radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
+      linear-gradient(rgba(1, 10, 4, 0.58), rgba(1, 10, 4, 0.72)),
+      url("../../public/reena-choice/forest-bg-mobile.webp");
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+  }
 }

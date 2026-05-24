@@ -12,9 +12,10 @@
   position: fixed;
   inset: 0;
   z-index: 0;
+  will-change: auto;
   background:
     linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.72)),
-    url("../../public/reena-choice/forest-bg.png");
+    url("../../public/reena-choice/forest-bg.webp");
   background-size: cover;
   background-position: center;
   filter: brightness(0.72) saturate(1.12);
@@ -926,4 +927,14 @@
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.42),
     0 0 38px rgba(255, 222, 140, 0.18);
+}
+
+@media (max-width: 720px) {
+  .reena-bg {
+    background-image:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.72)),
+      url("../../public/reena-choice/forest-bg-mobile.webp");
+    background-size: cover;
+    background-position: center;
+  }
 }

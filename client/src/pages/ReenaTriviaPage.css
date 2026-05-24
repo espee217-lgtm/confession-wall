@@ -4,7 +4,7 @@
   background:
     radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
     linear-gradient(rgba(1, 10, 4, 0.62), rgba(1, 10, 4, 0.78)),
-    url("../../public/reena-choice/forest-bg.png") center / cover fixed;
+    url("../../public/reena-choice/forest-bg.webp") center / cover scroll;
   overflow-x: hidden;
 }
 
@@ -453,4 +453,16 @@
 .apology-link-btn {
   background:
     linear-gradient(135deg, rgba(88, 48, 78, 0.94), rgba(44, 94, 40, 0.92)) !important;
+}
+
+@media (max-width: 720px) {
+  .trivia-page {
+    background-image:
+      radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
+      linear-gradient(rgba(1, 10, 4, 0.62), rgba(1, 10, 4, 0.78)),
+      url("../../public/reena-choice/forest-bg-mobile.webp");
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+  }
 }

@@ -4,7 +4,7 @@
   background:
     radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
     linear-gradient(rgba(1, 10, 4, 0.62), rgba(1, 10, 4, 0.78)),
-    url("../../public/reena-choice/forest-bg.png") center / cover fixed;
+    url("../../public/reena-choice/forest-bg.webp") center / cover scroll;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,5 +118,17 @@
 
   .apology-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .apology-page {
+    background-image:
+      radial-gradient(circle at top, rgba(255, 222, 140, 0.1), transparent 34%),
+      linear-gradient(rgba(1, 10, 4, 0.62), rgba(1, 10, 4, 0.78)),
+      url("../../public/reena-choice/forest-bg-mobile.webp");
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
   }
 }

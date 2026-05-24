@@ -7,50 +7,50 @@ const infographicSlides = [
     number: "01",
     title: "Kundali × Market Alignment",
     subtitle: "Where her stars meet patient wealth-building.",
-    image: "/reena-kundali/infographics1.png",
+    image: "/reena-kundali/infographics1.webp",
   },
   {
     number: "02",
     title: "Planet → Sector Map",
     subtitle: "Each planet carries a different market energy.",
-    image: "/reena-kundali/infographics2.png",
+    image: "/reena-kundali/infographics2.webp",
   },
   {
   number: "03",
   title: "Strongest Sector Alignment",
   subtitle:
     "So, from my calculations of your kundali and the market, the best sectors for you to study carefully would be Infrastructure & Capital Goods, Defence, Railways, Pharma & Healthcare, and Engineering / Industrial Themes.",
-  image: "/reena-kundali/infographics3.png",
+  image: "/reena-kundali/infographics3.webp",
 },
   {
     number: "04",
     title: "Public Systems & Long-Term Growth",
     subtitle: "Shani, Surya and kuja are the defining positve planets of your chart, hence why these sectors will do good for you",
-    image: "/reena-kundali/infographics4.png",
+    image: "/reena-kundali/infographics4.webp",
   },
   {
     number: "05",
     title: "Healing Sectors",
     subtitle: "Pharma, Healthcare, Biotech and patient growth would come the 2nd most alligned sectors for you, reenaa.",
-    image: "/reena-kundali/infographics5.png",
+    image: "/reena-kundali/infographics5.webp",
   },
   {
     number: "06",
     title: "Technology Watchlist",
     subtitle: "Skill is strong. Timing should be selective, i would say do not invest here",
-    image: "/reena-kundali/infographics6.png",
+    image: "/reena-kundali/infographics6.webp",
   },
   {
     number: "07",
     title: "Power Sectors",
     subtitle: "Energy, metals and mining, strong but volatile. be caustios in these sectors",
-    image: "/reena-kundali/infographics7.png",
+    image: "/reena-kundali/infographics7.webp",
   },
   {
     number: "08",
     title: "Market Timing Message",
     subtitle: "Your stars do not ask you to chase. They ask you to build. Here are your fabvoured and unfavourable sectors",
-    image: "/reena-kundali/infographics8.png",
+    image: "/reena-kundali/infographics8.webp",
   },
 ];
 
@@ -103,7 +103,7 @@ export default function ReenaKundaliPage() {
     setZoomedImage(zoomedImage === slide.image ? null : slide.image)
   }
 >
-  <img src={slide.image} alt={slide.title} />
+  <img src={slide.image} alt={slide.title} loading="lazy" decoding="async" />
 </button>
 
           <div className="kundali-scroll-hint small">
@@ -131,7 +131,7 @@ export default function ReenaKundaliPage() {
     className="kundali-zoom-overlay"
     onClick={() => setZoomedImage(null)}
   >
-    <img src={zoomedImage} alt="Zoomed infographic" />
+    <img src={zoomedImage} alt="Zoomed infographic" decoding="async" />
   </button>
 )}
     </main>
