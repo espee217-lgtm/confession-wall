@@ -1232,7 +1232,10 @@ a.chip {
   background:
     radial-gradient(circle at 50% 0%, rgba(188, 255, 126, 0.12), transparent 34vh),
     linear-gradient(rgba(1, 8, 3, 0.36), rgba(1, 8, 3, 0.76)),
-    url("./assets/forest-page-bg.png") center / cover fixed no-repeat;
+    image-set(
+      url("./assets/forest-page-bg.webp") type("image/webp"),
+      url("./assets/forest-page-bg.png") type("image/png")
+    ) center / cover no-repeat scroll;
   position: relative;
   overflow-x: hidden;
 }
@@ -1240,7 +1243,7 @@ a.chip {
 .search-page-shell::before,
 .activity-page-shell::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   background:
@@ -1652,7 +1655,10 @@ a.chip {
     padding: 16px 14px 96px;
     background:
       linear-gradient(rgba(1, 8, 3, 0.34), rgba(1, 8, 3, 0.74)),
-      url("./assets/forest-page-bg.png") center / cover fixed no-repeat;
+      image-set(
+        url("./assets/forest-page-bg-mobile.webp") type("image/webp"),
+        url("./assets/forest-page-bg.png") type("image/png")
+      ) center / cover no-repeat scroll;
   }
 
   .search-hero-card,
@@ -1705,7 +1711,10 @@ a.chip {
   body.mobile-home-page .navbar {
     background:
       linear-gradient(rgba(0, 16, 5, 0.16), rgba(0, 16, 5, 0.34)),
-      url("./assets/mobile-navbar-bg.png") center / cover no-repeat !important;
+      image-set(
+        url("./assets/mobile-navbar-bg-mobile.webp") type("image/webp"),
+        url("./assets/mobile-navbar-bg.png") type("image/png")
+      ) center / cover no-repeat !important;
     border-bottom: none !important;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28) !important;
   }
@@ -1724,7 +1733,10 @@ a.chip {
   .navbar {
     background:
       linear-gradient(rgba(0, 16, 5, 0.16), rgba(0, 16, 5, 0.34)),
-      url("./assets/mobile-navbar-bg.png") center / cover no-repeat !important;
+      image-set(
+        url("./assets/mobile-navbar-bg-mobile.webp") type("image/webp"),
+        url("./assets/mobile-navbar-bg.png") type("image/png")
+      ) center / cover no-repeat !important;
     border-bottom: none !important;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28) !important;
   }
@@ -2374,7 +2386,10 @@ a.chip {
     overflow: visible !important;
     background:
       linear-gradient(180deg, rgba(0, 18, 6, 0.40), rgba(0, 9, 4, 0.68)),
-      url("./assets/mobile-navbar-bg.png") center / cover no-repeat !important;
+      image-set(
+        url("./assets/mobile-navbar-bg-mobile.webp") type("image/webp"),
+        url("./assets/mobile-navbar-bg.png") type("image/png")
+      ) center / cover no-repeat !important;
     border-bottom: 1px solid rgba(158, 255, 169, 0.18) !important;
   }
 
