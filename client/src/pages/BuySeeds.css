@@ -308,6 +308,33 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.buy-seeds-legal-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 18px auto 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(170, 255, 190, 0.16);
+  background: rgba(3, 18, 9, 0.48);
+  box-shadow: 0 0 20px rgba(90, 255, 140, 0.08);
+}
+
+.buy-seeds-legal-links a {
+  color: rgba(215, 255, 210, 0.82);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.buy-seeds-legal-links a:hover {
+  color: #f4ffe7;
+  text-decoration: underline;
+}
+
 @media (max-width: 980px) {
   .buy-seeds-hero,
   .buy-seeds-grid {
@@ -369,5 +396,11 @@
 
   .buy-seeds-grid {
     grid-template-columns: 1fr;
+  }
+
+  .buy-seeds-legal-links {
+    align-items: stretch;
+    flex-direction: column;
+    text-align: center;
   }
 }

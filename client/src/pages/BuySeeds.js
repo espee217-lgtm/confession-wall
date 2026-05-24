@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useAuth } from "../context/AuthContext";
 import "./BuySeeds.css";
@@ -612,6 +612,13 @@ function BuySeeds() {
             })}
           </div>
         )}
+      </section>
+
+      <section className="buy-seeds-legal-links" aria-label="Payment and support links">
+        <Link to="/refund-cancellation">Refund & Cancellation Policy</Link>
+        <Link to="/terms">Terms</Link>
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/contact-support">Contact Support</Link>
       </section>
 
       <MobileBottomNav />

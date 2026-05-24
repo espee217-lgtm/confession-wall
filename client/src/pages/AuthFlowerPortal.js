@@ -153,6 +153,7 @@ function LoginForm({ scrollToPanel }) {
         <button type="button" onClick={() => scrollToPanel("register")}>New here? Bloom account</button>
         <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
         <Link to="/trending" style={browseCtaStyle}>Browse confessions without logging in</Link>
+        <Link to="/shop" style={browseCtaStyle}>Preview Shop</Link>
       </div>
     </div>
   );
@@ -374,6 +375,7 @@ function RegisterForm({ scrollToPanel }) {
         <button type="button" onClick={() => scrollToPanel("login")}>Already rooted? Login</button>
         <button type="button" onClick={() => scrollToPanel("admin")} className="auth-admin-ghost">Keeper gate</button>
         <Link to="/trending" style={browseCtaStyle}>Browse confessions without logging in</Link>
+        <Link to="/shop" style={browseCtaStyle}>Preview Shop</Link>
       </div>
     </div>
   );
