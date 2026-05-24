@@ -418,3 +418,21 @@ button.kundali-zoom-overlay:active {
     background-attachment: scroll;
   }
 }
+
+/* === Pass 6.3: Kundali mobile scroll performance safeguards === */
+@media (max-width: 720px) {
+  .kundali-hero,
+  .kundali-ending,
+  .kundali-slide,
+  .kundali-image-frame {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .kundali-hero,
+  .kundali-ending,
+  .kundali-slide,
+  .kundali-image-frame {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28) !important;
+  }
+}

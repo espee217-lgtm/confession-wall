@@ -132,3 +132,12 @@
     background-attachment: scroll;
   }
 }
+
+/* === Pass 6.3: Apology mobile scroll performance safeguards === */
+@media (max-width: 720px) {
+  .apology-card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.30) !important;
+  }
+}

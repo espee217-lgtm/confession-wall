@@ -938,3 +938,23 @@
     background-position: center;
   }
 }
+
+/* === Pass 6.3: Reena mobile scroll performance safeguards === */
+@media (max-width: 720px) {
+  .reena-overlay {
+    background: rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .beauty-panel,
+  .beauty-reveal,
+  .beauty-card-frame {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .beauty-panel,
+  .beauty-reveal,
+  .beauty-card-frame {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28) !important;
+  }
+}

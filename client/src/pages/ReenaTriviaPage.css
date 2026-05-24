@@ -466,3 +466,21 @@
     background-attachment: scroll;
   }
 }
+
+/* === Pass 6.3: Trivia mobile scroll performance safeguards === */
+@media (max-width: 720px) {
+  .trivia-hero,
+  .trivia-question-card,
+  .trivia-result-card,
+  .gift-box-section {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .trivia-hero,
+  .trivia-question-card,
+  .trivia-result-card,
+  .gift-box-section {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28) !important;
+  }
+}

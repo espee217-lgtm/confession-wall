@@ -1370,3 +1370,38 @@
     font-size: 12px;
   }
 }
+
+/* === Pass 6.3: shop mobile scroll performance safeguards === */
+@media (max-width: 720px) {
+  .shop-page,
+  .shop-main,
+  .shop-grid,
+  .shop-equipped-grid {
+    isolation: isolate;
+  }
+
+  .shop-hero,
+  .shop-wallet-card,
+  .shop-item-card,
+  .shop-equipped-card,
+  .shop-section-card,
+  .shop-preview-modal {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .shop-hero,
+  .shop-wallet-card,
+  .shop-item-card,
+  .shop-equipped-card,
+  .shop-section-card {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .shop-item-card::before,
+  .shop-earn-item::before,
+  .shop-earn-item::after {
+    animation: none !important;
+    opacity: 0.08 !important;
+  }
+}

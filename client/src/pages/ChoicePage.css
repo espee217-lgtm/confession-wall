@@ -325,3 +325,20 @@
     opacity: 0.95;
   }
 }
+
+/* === Pass 6.3: choice page mobile performance safeguards === */
+@media (max-width: 720px) {
+  .private-badge {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .firefly-layer,
+  .fairy-fly {
+    opacity: 0.55;
+  }
+
+  .stone-img {
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.34)) !important;
+  }
+}

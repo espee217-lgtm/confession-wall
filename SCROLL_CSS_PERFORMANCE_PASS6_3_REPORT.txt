@@ -1,0 +1,15 @@
+Pass 6.3 report
+
+Added mobile-only performance safeguards:
+- Disabled backdrop-filter on selected scroll-heavy cards/panels under 720px.
+- Reduced overly heavy mobile shadows to cheaper shadows while preserving depth.
+- Simplified search/activity decorative overlays on mobile.
+- Hid navbar fireflies on mobile to reduce persistent animation work.
+- Disabled hover transform effects on touch devices.
+- Reduced some decorative animation opacity/cost on Reena choice page.
+
+No JavaScript changed.
+No backend changed.
+No assets changed.
+No shop/payment/auth logic changed.
+No global page layout changed intentionally.

@@ -7966,3 +7966,60 @@ button.confession-image-scroller__item {
     grid-template-columns: 118px 30px minmax(0, 1fr) !important;
   }
 }
+
+/* === Pass 6.3: mobile scroll performance safeguards ===
+   Keeps the layout/theme intact while reducing expensive repaint work on small screens. */
+@media (max-width: 720px) {
+  .search-page-shell::before,
+  .activity-page-shell::before {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 24%, transparent 76%, rgba(0, 0, 0, 0.18)) !important;
+  }
+
+  .search-hero-card,
+  .activity-hero-card,
+  .search-state-card,
+  .activity-state-card,
+  .activity-item,
+  .trending-clean-card,
+  .trending-clean-rank-column,
+  .trending-clean-side {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .search-hero-card,
+  .activity-hero-card,
+  .search-state-card,
+  .activity-state-card,
+  .activity-item {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .trending-clean-card,
+  .trending-clean-rank-column,
+  .trending-clean-side {
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .nav-firefly {
+    display: none !important;
+  }
+}
+
+@media (max-width: 720px) and (hover: none) {
+  button:hover,
+  .attach-btn:hover,
+  .back-btn:hover,
+  .confession-card:hover,
+  .desktop-search-box:hover {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
