@@ -21,6 +21,36 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const PAGE_LIMIT = 10;
+
+const TRENDING_ASSETS = {
+  header: "/assets/trending/trending_header_strip.webp",
+  podium: "/assets/trending/podium_base.webp",
+  rank1: "/assets/trending/rank_1_crown.webp",
+  rank2: "/assets/trending/rank_2_silver.webp",
+  rank3: "/assets/trending/rank_3_bronze.webp",
+  skinGrove: "/assets/trending/trending_skin_grove.webp",
+  skinMoon: "/assets/trending/trending_skin_moon.webp",
+  skinScorched: "/assets/trending/trending_skin_scorched.webp",
+  divider: "/assets/trending/leaf_divider.webp",
+};
+
+const getMobileSkinAsset = (post, realm, rank) => {
+  const themeId = String(getTrendingPostThemeId(post) || "").toLowerCase();
+  if (realm === "scorched" || themeId.includes("scorch") || themeId.includes("cinder") || themeId.includes("ember")) {
+    return TRENDING_ASSETS.skinScorched;
+  }
+  if (themeId.includes("moon") || themeId.includes("star") || rank === 2) {
+    return TRENDING_ASSETS.skinMoon;
+  }
+  return TRENDING_ASSETS.skinGrove;
+};
+
+const getRankBadgeAsset = (rank) => {
+  if (rank === 1) return TRENDING_ASSETS.rank1;
+  if (rank === 2) return TRENDING_ASSETS.rank2;
+  if (rank === 3) return TRENDING_ASSETS.rank3;
+  return null;
+};
 const PERIODS = [
   { key: "day", label: "Today" },
   { key: "week", label: "This Week" },
@@ -245,14 +275,25 @@ function TrendingRankBadge({ rank }) {
 
   return (
     <div className={`trending-rank-badge trending-rank-badge--${tier}`} aria-label={`Rank ${rank}`}>
-      <img
-        src="/assets/wreath.png"
-        alt=""
-        className="trending-rank-wreath-img"
-        aria-hidden="true"
-        loading="lazy"
-        decoding="async"
-      />
+      {getRankBadgeAsset(rank) ? (
+        <img
+          src={getRankBadgeAsset(rank)}
+          alt=""
+          className="trending-rank-wreath-img trending-rank-wreath-img--asset"
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <img
+          src="/assets/wreath.png"
+          alt=""
+          className="trending-rank-wreath-img"
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+        />
+      )}
       <span>{displayRank}</span>
       <em>{rankLabel}</em>
     </div>
@@ -284,6 +325,76 @@ function TrendingAuthorBadge({ post, rank }) {
       <strong>@{username}</strong>
       <small>{rank === 1 ? "Crowned Echo" : "Trending Spirit"}</small>
     </div>
+  );
+}
+
+function MobilePodiumSlot({ post, rank, page, onOpen }) {
+  if (!post) return <div className={`trending-mobile-podium-slot trending-mobile-podium-slot--${rank} is-empty`} />;
+
+  const realm = getRealm(post);
+  const username = getPostAuthorUsername(post);
+  const stats = getPostStats(post);
+  const equipped = getDisplayCosmetics(post?.userId);
+  const frameId = equipped.frame || post?.userId?.equippedFrame || post?.userId?.frame || "";
+  const globalRank = (page - 1) * PAGE_LIMIT + rank;
+
+  return (
+    <button
+      type="button"
+      className={`trending-mobile-podium-slot trending-mobile-podium-slot--${rank} trending-mobile-podium-slot--${getRankTier(rank)}`}
+      onClick={onOpen}
+      aria-label={`Open rank ${globalRank} confession by ${username}`}
+    >
+      <span className="trending-mobile-podium-badge" aria-hidden="true">
+        <img src={getRankBadgeAsset(rank)} alt="" loading="lazy" decoding="async" />
+        <strong>{String(globalRank).padStart(2, "0")}</strong>
+      </span>
+      <FramedAvatar
+        src={post?.userId?.profilePicture}
+        username={username}
+        frameId={frameId}
+        effectId={equipped.visualEffect}
+        size={rank === 1 ? 58 : 48}
+        context="post"
+        placeholder={username?.[0]?.toUpperCase() || "?"}
+      />
+      <span className="trending-mobile-podium-name">@{username}</span>
+      <span className="trending-mobile-podium-score">
+        🌱 {stats.water} · 💬 {stats.echoes}
+      </span>
+    </button>
+  );
+}
+
+function MobileTrendingPodium({ posts, page, navigate }) {
+  const topThree = posts.slice(0, 3);
+  if (!topThree.length) return null;
+
+  const openPost = (post) => {
+    const realm = getRealm(post);
+    navigate(`/confession/${post._id}?realm=${realm}`);
+  };
+
+  return (
+    <section className="trending-mobile-podium" aria-label="Top three trending confessions">
+      <div className="trending-mobile-podium-head">
+        <span>Top 3 whispers</span>
+        <strong>{page === 1 ? "Crowned by the grove" : `Page ${page} leaders`}</strong>
+      </div>
+      <div className="trending-mobile-podium-stage">
+        <img
+          src={TRENDING_ASSETS.podium}
+          alt=""
+          className="trending-mobile-podium-base"
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
+        <MobilePodiumSlot post={topThree[1]} rank={2} page={page} onOpen={() => topThree[1] && openPost(topThree[1])} />
+        <MobilePodiumSlot post={topThree[0]} rank={1} page={page} onOpen={() => topThree[0] && openPost(topThree[0])} />
+        <MobilePodiumSlot post={topThree[2]} rank={3} page={page} onOpen={() => topThree[2] && openPost(topThree[2])} />
+      </div>
+    </section>
   );
 }
 
@@ -441,7 +552,7 @@ export default function TrendingPage() {
         back
       </button>
 
-      <section className="search-hero-card trending-hero-card trending-leaderboard-hero">
+      <section className="search-hero-card trending-hero-card trending-leaderboard-hero" style={{ "--trending-header-art": `url(${TRENDING_ASSETS.header})` }}>
         <p className="search-kicker">{"\u2726"} public discovery</p>
         <h1>{mood ? `${mood} Confessions` : "Trending Confessions"}</h1>
         <p>
@@ -492,6 +603,10 @@ export default function TrendingPage() {
         </div>
       </section>
 
+      {!error && posts.length > 0 && (
+        <MobileTrendingPodium posts={posts} page={page} navigate={navigate} />
+      )}
+
       {error && <div className="search-state-card error">{error}</div>}
 
       {!error && !loading && posts.length === 0 && (
@@ -515,9 +630,11 @@ export default function TrendingPage() {
                     "trending-clean-card",
                     `trending-clean-card--${getRankTier(rank)}`,
                     `trending-clean-card--${realm}`,
+                    rank <= 3 ? "trending-clean-card--mobile-podium-source" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
+                style={{ "--trending-mobile-card-skin": `url(${getMobileSkinAsset(post, realm, rank)})` }}
                 >
                   <div className="trending-clean-rank-column">
                     <TrendingRankBadge rank={rank} />
