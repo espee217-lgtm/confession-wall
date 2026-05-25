@@ -79,6 +79,12 @@ body.cw-guidebook-open {
 .cw-guidebook-close {
   width: 44px;
   height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-right: 12px;
+  padding: 0;
   border-radius: 999px;
   border: 1px solid rgba(230, 255, 180, 0.22);
   color: rgba(246, 255, 226, 0.84);
