@@ -185,21 +185,58 @@ export const GUIDEBOOK_SECTIONS = [
   {
     id: "seeds",
     label: "Seeds & Shop",
-    eyebrow: "Earn and unlock",
-    title: "Seeds power cosmetics and profile style",
+    eyebrow: "Earn, spend, and unlock",
+    title: "How Seeds and the Shop work",
     summary:
-      "Seeds are the site currency. Earn them through activity and quests, or buy packs later if you want faster cosmetic unlocks.",
-    images: [
-      img("shop_button_With_Seed_counter.webp", "Shop button and Seed counter in the top navbar."),
-      img("shop_desktop.webp", "Shop page with featured cosmetic drops, frames, badges, titles, and post themes."),
-      img("buy_seeds_desktop.webp", "Buy Seeds page with paid Seed packs and regional pricing."),
-      img("daily_quest_desktop.webp", "Daily Quest panel with streak and Seed rewards."),
-    ],
+      "Seeds are the wall currency. Earn them through activity and quests, spend them on cosmetics, or buy Seed packs when you want faster unlocks.",
     points: [
-      "The Shop button opens cosmetic previews and Seed purchases.",
       "The Seed counter shows your current balance.",
-      "Spend Seeds on profile frames, badges, display titles, post themes, and effects.",
       "Daily Quests are the free way to earn Seeds without paying real money.",
+      "The Shop uses Seeds for profile frames, badges, display titles, post themes, and effects.",
+      "Guests can preview the Shop, but login is required to buy, equip, or purchase Seeds.",
+    ],
+    steps: [
+      {
+        badge: "Balance",
+        title: "Find your Shop button and Seed counter",
+        text:
+          "The shop bag opens the cosmetic store. The plant counter beside it shows how many Seeds you currently have available to spend.",
+        images: [
+          img("shop_button_With_Seed_counter.webp", "Shop button and Seed counter in the top navbar."),
+        ],
+      },
+      {
+        badge: "Shop",
+        title: "Spend Seeds on cosmetics",
+        text:
+          "Open the Shop to preview and unlock cosmetic drops. Frames, badges, titles, post themes, and visual effects are bought with Seeds, then equipped to style your profile and posts.",
+        images: [
+          img("shop_desktop.webp", "Shop page with featured cosmetic drops, profile frames, badges, titles, and post themes."),
+        ],
+        notes: [
+          "Profile Frames decorate your avatar.",
+          "Badges and titles show near your name.",
+          "Post themes change how your confessions appear.",
+        ],
+      },
+      {
+        badge: "Free Seeds",
+        title: "Earn Seeds from Daily Quests",
+        text:
+          "Daily Quests reward normal activity like visiting, posting, and commenting. This is the free path for building your Seed balance over time.",
+        images: [
+          img("daily_quest_desktop.webp", "Daily Quest panel with current streak, best streak, task progress, and Seed rewards."),
+        ],
+      },
+      {
+        badge: "Top-up",
+        title: "Buy Seeds only when you want faster unlocks",
+        text:
+          "The Buy Seeds page is for paid Seed packs. Prices can be shown by region, and packs help unlock cosmetics faster. Purchases require login and payment confirmation.",
+        images: [
+          img("buy_seeds_desktop.webp", "Buy Seeds page with regional pricing and paid Seed packs."),
+        ],
+      },
     ],
   },
   {
