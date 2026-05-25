@@ -1717,6 +1717,56 @@ const SCORCHED_COMMENT_PATTERNS = [
   ({ detail }) => `I disagree with the harshest part, but I do understand why ${detail} would make somebody snap.`,
 ];
 
+
+const UNIQUE_COMMENT_TEXTURES = [
+  "That little part changes how I read the whole thing.",
+  "I would not reduce this to one simple lesson.",
+  "There is more going on here than the first read suggests.",
+  "The messy middle of this is the believable part.",
+  "I can see why people would react differently to this.",
+  "That detail makes the feeling less random.",
+  "I do not think this needs to be wrapped up neatly.",
+  "The way you described it makes the mood pretty clear.",
+  "This is one of those posts where the small part is not small.",
+  "I would probably still be thinking about it too.",
+  "The uncomfortable part is exactly why it sounds real.",
+  "I am not sure there is a clean side to stand on here.",
+  "This reads like someone trying to be honest, not dramatic.",
+  "I can imagine the comments splitting on this one.",
+  "That one moment says a lot without explaining everything.",
+  "I would be careful with the conclusion, but the feeling makes sense.",
+  "The post feels more complicated than a yes-or-no reaction.",
+  "I get why this stayed in your head after the moment passed.",
+  "That is the kind of thing people dismiss until it happens to them.",
+  "The ordinary setting somehow makes it hit harder.",
+  "I do not fully agree with every part, but I get the wound behind it.",
+  "This sounds less like a performance and more like a spillover.",
+  "The part you almost glossed over is the part I noticed most.",
+  "It is weird how specific memories become bigger than the event.",
+  "I think the comment section could help, as long as it does not turn into a trial.",
+  "There is a difference between being sensitive and noticing something real.",
+  "I would not be surprised if you feel differently about this tomorrow.",
+  "The way this lands depends a lot on what happened before it.",
+  "No perfect advice from me, just saying the conflict makes sense.",
+  "This is one of those situations where two things can be true at once.",
+];
+
+function addCommentTexture(text, mood, category, postIndex, commentIndex, context) {
+  const anchors = [
+    `The part about ${context.detail} is what makes this feel specific.`,
+    `The way ${context.event} sits in the story matters here.`,
+    `I keep thinking about the moment where ${context.turn}.`,
+    `The ending, especially ${context.takeaway}, changes the tone for me.`,
+    `The ${mood.toLowerCase()} mood actually fits this better than a clean explanation would.`,
+    category === "scorched"
+      ? "This is exactly the kind of post where disagreement is part of the point."
+      : "I like that this does not pretend to have a perfect ending.",
+  ];
+  const texture = UNIQUE_COMMENT_TEXTURES[(postIndex * 17 + commentIndex * 11 + mood.length) % UNIQUE_COMMENT_TEXTURES.length];
+  const anchor = anchors[(postIndex + commentIndex * 2) % anchors.length];
+  return `${text} ${anchor} ${texture}`;
+}
+
 function topicContext(topic) {
   const [event, detail, turn, takeaway] = topic;
   return { event, detail, turn, takeaway };
@@ -1729,13 +1779,13 @@ function makeComment(mood, category, postIndex, commentIndex, topic) {
   if (scorchedMode) {
     const patternIndex = (postIndex * 5 + commentIndex * 3) % SCORCHED_COMMENT_PATTERNS.length;
     if (commentIndex === 0 || commentIndex === 2 || commentIndex === 4 || commentIndex === 6) {
-      return SCORCHED_COMMENT_PATTERNS[patternIndex](context);
+      return addCommentTexture(SCORCHED_COMMENT_PATTERNS[patternIndex](context), mood, category, postIndex, commentIndex, context);
     }
     if (commentIndex === 1) {
-      return ORGANIC_COMMENT_PATTERNS.relatable[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.relatable.length](context);
+      return addCommentTexture(ORGANIC_COMMENT_PATTERNS.relatable[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.relatable.length](context), mood, category, postIndex, commentIndex, context);
     }
     if (commentIndex === 3) {
-      return ORGANIC_COMMENT_PATTERNS.gentlePush[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.gentlePush.length](context);
+      return addCommentTexture(ORGANIC_COMMENT_PATTERNS.gentlePush[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.gentlePush.length](context), mood, category, postIndex, commentIndex, context);
     }
   }
 
@@ -1772,7 +1822,7 @@ function makeComment(mood, category, postIndex, commentIndex, topic) {
   if ((postIndex + commentIndex) % 4 === 0) {
     text += ` ${naturalTags[(postIndex + commentIndex) % naturalTags.length]}`;
   }
-  return text;
+  return addCommentTexture(text, mood, category, postIndex, commentIndex, context);
 }
 
 function buildPostReactions(category, author, users) {
