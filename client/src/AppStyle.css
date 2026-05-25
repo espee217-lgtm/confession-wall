@@ -8662,3 +8662,22 @@ button.confession-image-scroller__item {
     padding: 18px 0 4px !important;
   }
 }
+
+
+/* === Notification popout toggle/layering fix === */
+@media (min-width: 721px) {
+  .cw-notification-bell-wrap {
+    z-index: 2147481000 !important;
+  }
+
+  .cw-notification-dropdown {
+    top: 64px !important;
+    z-index: 2147482000 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .cw-notification-dropdown {
+    z-index: 2147482000 !important;
+  }
+}

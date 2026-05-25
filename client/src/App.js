@@ -369,6 +369,10 @@ function NotificationBell() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (event.target?.closest?.(".mobile-bottom-notification-btn")) {
+        return;
+      }
+
       if (bellRef.current && !bellRef.current.contains(event.target)) {
         setOpen(false);
       }
@@ -388,10 +392,20 @@ function NotificationBell() {
   };
 
   useEffect(() => {
-    const handleMobileNotificationOpen = async () => {
+    const handleMobileNotificationOpen = () => {
       if (!user || !token) return;
-      setOpen(true);
-      await fetchNotifications();
+
+      setOpen((wasOpen) => {
+        const nextOpen = !wasOpen;
+
+        if (nextOpen) {
+          window.setTimeout(() => {
+            fetchNotifications();
+          }, 0);
+        }
+
+        return nextOpen;
+      });
     };
 
     window.addEventListener("cw:open-notifications", handleMobileNotificationOpen);
