@@ -2,16 +2,17 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DailyQuestDropdown from "./DailyQuestDropdown";
+import FramedAvatar from "./FramedAvatar";
+import { AnimatedBadge } from "./CosmeticFx";
+import { getDisplayCosmetics } from "../utils/engagement";
 
 const TRENDING_ICON = "\uD83D\uDCC8";
 const GROVE_ICON = "\uD83C\uDF3F";
 const BUDDING_ICON = "\uD83C\uDF31";
 const SCORCHED_ICON = "\uD83D\uDD25";
-const SHOP_ICON = "\uD83D\uDED2";
 const GUIDEBOOK_ICON = "📜";
 const CONFESS_ICON = "\uD83C\uDF3F";
 const ACTIVITY_ICON = "\uD83D\uDD14";
-const PROFILE_ICON = "\uD83D\uDC64";
 
 export default function MobileBottomNav({ onConfess }) {
   const navigate = useNavigate();
@@ -38,6 +39,16 @@ export default function MobileBottomNav({ onConfess }) {
       })
     );
   };
+
+  const openNotifications = () => {
+    window.dispatchEvent(
+      new CustomEvent("cw:open-notifications", {
+        detail: { source: "mobile-bottom-nav" },
+      })
+    );
+  };
+
+  const displayCosmetics = getDisplayCosmetics(user);
 
   if (!user) {
     return (
@@ -120,8 +131,10 @@ export default function MobileBottomNav({ onConfess }) {
 
       <button
         type="button"
-        onClick={() => navigate("/activity")}
-        className={isActive("/activity") ? "active" : ""}
+        onClick={openNotifications}
+        className="mobile-bottom-notification-btn"
+        title="Open notifications"
+        aria-label="Open notifications"
       >
         {ACTIVITY_ICON}
         <span>Activity</span>
@@ -132,11 +145,31 @@ export default function MobileBottomNav({ onConfess }) {
         onClick={() => navigate("/settings")}
         className={
           isActive("/settings") || location.pathname.startsWith("/profile/")
-            ? "active"
-            : ""
+            ? "active mobile-bottom-profile-btn"
+            : "mobile-bottom-profile-btn"
         }
+        title="Open profile"
+        aria-label="Open profile"
       >
-        {PROFILE_ICON}
+        <span className="mobile-bottom-profile-avatar-wrap" aria-hidden="true">
+          <FramedAvatar
+            src={user.profilePicture}
+            username={user.username}
+            frameId={displayCosmetics?.frame}
+            effectId={displayCosmetics?.visualEffect}
+            size={30}
+            context="nav"
+            placeholder={user.username?.[0]?.toUpperCase?.() || "U"}
+            animationMode="hover"
+          />
+          {displayCosmetics?.badge && (
+            <AnimatedBadge
+              badgeId={displayCosmetics.badge}
+              size="sm"
+              className="mobile-bottom-profile-badge"
+            />
+          )}
+        </span>
         <span>Profile</span>
       </button>
     </nav>

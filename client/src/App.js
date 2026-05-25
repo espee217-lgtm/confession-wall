@@ -387,6 +387,19 @@ function NotificationBell() {
     }
   };
 
+  useEffect(() => {
+    const handleMobileNotificationOpen = async () => {
+      if (!user || !token) return;
+      setOpen(true);
+      await fetchNotifications();
+    };
+
+    window.addEventListener("cw:open-notifications", handleMobileNotificationOpen);
+    return () =>
+      window.removeEventListener("cw:open-notifications", handleMobileNotificationOpen);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id, token]);
+
   const markOneAsRead = async (notification) => {
     if (!notification?.read) {
       try {
@@ -515,10 +528,12 @@ function NotificationBell() {
   return (
     <div
       ref={bellRef}
+      className="cw-notification-bell-wrap"
       style={{ position: "relative", justifySelf: "end", zIndex: 4600 }}
     >
       <button
         type="button"
+        className="cw-notification-bell-btn"
         onClick={openDropdown}
         title="Notifications"
         style={{
@@ -569,6 +584,7 @@ function NotificationBell() {
 
       {open && (
         <div
+          className="cw-notification-dropdown"
           style={{
             position: "absolute",
             top: "52px",

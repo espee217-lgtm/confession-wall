@@ -8207,3 +8207,458 @@ button.confession-image-scroller__item {
     white-space: nowrap;
   }
 }
+
+/* === Mobile polish patch: isolated phone behavior/layout only === */
+@media (max-width: 720px) {
+  /* Keep desktop navbar intact, but stop the mobile top bar from wasting space on the profile frame. */
+  .navbar .nav-profile-wrap {
+    display: none !important;
+  }
+
+  .navbar .nav-actions {
+    gap: 8px !important;
+  }
+
+  /* The bottom Activity bell opens the same notification inbox panel as desktop. */
+  .cw-notification-bell-wrap {
+    position: static !important;
+  }
+
+  .cw-notification-dropdown {
+    position: fixed !important;
+    left: 14px !important;
+    right: 14px !important;
+    top: 74px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: min(520px, calc(100dvh - 156px)) !important;
+    border-radius: 24px !important;
+    padding: 12px !important;
+    z-index: 9000 !important;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(172, 255, 120, 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(8, 31, 12, 0.985), rgba(2, 12, 5, 0.985)) !important;
+    border: 1px solid rgba(196, 255, 148, 0.28) !important;
+    box-shadow:
+      0 24px 70px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(18px) saturate(1.04) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.04) !important;
+  }
+
+  /* Five mobile actions, with the Confess button kept as the center bloom. */
+  .mobile-home-bottom-nav.mobile-home-bottom-nav--auth {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    padding: 8px 8px !important;
+  }
+
+  .mobile-home-bottom-nav button,
+  .mobile-bottom-quest-slot {
+    min-width: 0 !important;
+  }
+
+  .mobile-home-bottom-nav button span,
+  .mobile-bottom-quest-label {
+    white-space: nowrap !important;
+  }
+
+  .mobile-bottom-profile-btn {
+    position: relative !important;
+  }
+
+  .mobile-bottom-profile-avatar-wrap {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1px;
+  }
+
+  .mobile-bottom-profile-avatar-wrap .cw-framed-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    box-shadow: 0 0 12px rgba(147, 255, 110, 0.18) !important;
+  }
+
+  .mobile-bottom-profile-badge {
+    position: absolute !important;
+    right: -8px !important;
+    bottom: -4px !important;
+    transform: scale(0.68) !important;
+    transform-origin: center !important;
+    z-index: 3 !important;
+    pointer-events: none !important;
+  }
+
+  /* Home: mobile should stop after the realm/navigation area, not show a squeezed feed. */
+  .mobile-home-feed-head,
+  .mobile-home-feed,
+  .mobile-home-load-more {
+    display: none !important;
+  }
+
+  .mobile-home-realms {
+    gap: 11px !important;
+    margin-top: 14px !important;
+  }
+
+  .mobile-home-realm {
+    position: relative !important;
+    min-height: 70px !important;
+    padding: 14px 18px !important;
+    overflow: hidden !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(209, 255, 154, 0.22) !important;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(209, 255, 154, 0.16), transparent 34%),
+      linear-gradient(135deg, rgba(8, 35, 13, 0.74), rgba(2, 13, 6, 0.88)) !important;
+    box-shadow:
+      0 16px 40px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.34) !important;
+    color: #f4ffdc !important;
+  }
+
+  .mobile-home-realm::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 220, 0.07), transparent 32%, transparent 70%, rgba(255, 232, 132, 0.05)),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.018) 1px, transparent 1px, transparent 6px);
+    opacity: 0.9;
+  }
+
+  .mobile-home-realm strong,
+  .mobile-home-realm span {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.68);
+  }
+
+  .mobile-home-realm strong {
+    color: #f7ffd9 !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .mobile-home-realm span {
+    color: rgba(235, 255, 208, 0.72) !important;
+  }
+
+  .mobile-home-budding {
+    background:
+      radial-gradient(circle at 18% 10%, rgba(188, 255, 122, 0.18), transparent 34%),
+      linear-gradient(135deg, rgba(12, 47, 16, 0.78), rgba(5, 20, 8, 0.9)) !important;
+  }
+
+  .mobile-home-trending {
+    background:
+      radial-gradient(circle at 18% 10%, rgba(255, 226, 118, 0.16), transparent 34%),
+      linear-gradient(135deg, rgba(13, 39, 22, 0.82), rgba(5, 17, 10, 0.92)) !important;
+  }
+
+  .mobile-home-scorched {
+    border-color: rgba(255, 143, 104, 0.24) !important;
+    background:
+      radial-gradient(circle at 18% 10%, rgba(255, 103, 72, 0.18), transparent 34%),
+      linear-gradient(135deg, rgba(45, 12, 8, 0.78), rgba(6, 13, 6, 0.94)) !important;
+  }
+
+  /* Confession detail: phone-only comfort cards become a horizontal swipe deck. */
+  .comfort-card-action-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 9px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 2px 2px 10px !important;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .comfort-card-action-grid::-webkit-scrollbar,
+  .comfort-received-mobile__grid::-webkit-scrollbar,
+  .trending-clean-comforts::-webkit-scrollbar {
+    display: none;
+  }
+
+  .comfort-card-action-btn {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    min-height: 38px !important;
+    padding: 9px 15px !important;
+    scroll-snap-align: start;
+    border-radius: 999px !important;
+  }
+
+  .comfort-received-mobile {
+    margin-bottom: 10px !important;
+    padding: 10px 10px 9px !important;
+    border-radius: 18px !important;
+    background:
+      radial-gradient(circle at 8% 0%, rgba(202, 255, 137, 0.10), transparent 34%),
+      rgba(5, 22, 8, 0.52) !important;
+  }
+
+  .comfort-received-mobile__grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding-bottom: 3px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .comfort-side-note--mobile {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    max-width: 220px !important;
+  }
+
+  /* Trending: separate mobile leaderboard design, same data/mechanics. */
+  .trending-page-shell {
+    padding-bottom: 104px !important;
+    overflow-x: hidden !important;
+  }
+
+  .trending-floating-back-btn {
+    top: 76px !important;
+    left: 16px !important;
+    z-index: 30 !important;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 8px auto 18px !important;
+    padding: 24px 16px 20px !important;
+    border-radius: 28px !important;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero h1 {
+    font-size: clamp(30px, 10vw, 42px) !important;
+    line-height: 1.02 !important;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero p {
+    margin: 12px auto 16px !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero .trending-period-row,
+  .trending-page-shell .trending-leaderboard-hero .trending-mood-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding-bottom: 4px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .trending-page-shell .trending-leaderboard-hero .search-filter-row button,
+  .trending-page-shell .trending-leaderboard-hero .trending-mood-row button {
+    flex: 0 0 auto !important;
+    min-height: 36px !important;
+    padding: 8px 13px !important;
+    white-space: nowrap !important;
+  }
+
+  .trending-results-head,
+  .trending-leaderboard-layout {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .trending-leaderboard-layout {
+    display: block !important;
+  }
+
+  .trending-ranked-list {
+    width: 100% !important;
+    gap: 15px !important;
+  }
+
+  .trending-clean-card {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    border-radius: 27px !important;
+    background:
+      radial-gradient(circle at 10% 0%, rgba(209, 255, 154, 0.13), transparent 34%),
+      radial-gradient(circle at 100% 30%, rgba(255, 232, 132, 0.10), transparent 38%),
+      linear-gradient(145deg, rgba(8, 35, 13, 0.82), rgba(2, 12, 5, 0.94)) !important;
+  }
+
+  .trending-clean-card::after,
+  .trending-node-connector {
+    display: none !important;
+  }
+
+  .trending-clean-card--gold {
+    box-shadow:
+      0 20px 52px rgba(0, 0, 0, 0.42),
+      0 0 24px rgba(255, 219, 93, 0.10),
+      inset 0 1px 0 rgba(255, 255, 220, 0.12) !important;
+  }
+
+  .trending-clean-card--silver {
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.40),
+      0 0 20px rgba(214, 255, 225, 0.08),
+      inset 0 1px 0 rgba(255, 255, 220, 0.10) !important;
+  }
+
+  .trending-clean-card--bronze {
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.40),
+      0 0 20px rgba(255, 155, 80, 0.08),
+      inset 0 1px 0 rgba(255, 255, 220, 0.10) !important;
+  }
+
+  .trending-clean-rank-column {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: auto !important;
+    min-height: 0 !important;
+    padding: 0 0 10px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .trending-rank-badge {
+    width: auto !important;
+    height: 34px !important;
+    min-width: 92px !important;
+    padding: 0 13px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    border: 1px solid rgba(226, 202, 114, 0.32) !important;
+    border-radius: 999px !important;
+    background:
+      linear-gradient(135deg, rgba(255, 226, 130, 0.14), rgba(89, 179, 66, 0.10)),
+      rgba(2, 14, 6, 0.72) !important;
+    filter: none !important;
+  }
+
+  .trending-rank-badge::before,
+  .trending-rank-wreath-img {
+    display: none !important;
+  }
+
+  .trending-rank-badge span {
+    font-size: 16px !important;
+    line-height: 1 !important;
+  }
+
+  .trending-rank-badge em {
+    position: static !important;
+    transform: none !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+  }
+
+  .trending-clean-main {
+    width: 100% !important;
+    min-height: 156px !important;
+    padding: 16px !important;
+    border-radius: 23px !important;
+    border-color: rgba(226, 202, 114, 0.24) !important;
+    background:
+      radial-gradient(circle at 88% 42%, rgba(167, 238, 101, 0.14), transparent 35%),
+      linear-gradient(135deg, rgba(7, 28, 12, 0.72), rgba(1, 10, 4, 0.82)) !important;
+  }
+
+  .trending-clean-topline {
+    gap: 7px !important;
+  }
+
+  .trending-clean-author {
+    max-width: 132px !important;
+  }
+
+  .trending-clean-message {
+    -webkit-line-clamp: 4 !important;
+    font-size: clamp(18px, 6.2vw, 24px) !important;
+    line-height: 1.23 !important;
+  }
+
+  .trending-clean-comforts {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 7px !important;
+    padding-bottom: 2px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .trending-clean-comforts span {
+    flex: 0 0 auto !important;
+    max-width: 190px !important;
+  }
+
+  .trending-clean-footer {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin-top: 2px !important;
+  }
+
+  .trending-clean-footer span {
+    min-width: 0 !important;
+    padding: 6px 8px !important;
+    border-radius: 999px !important;
+    background: rgba(4, 26, 9, 0.52) !important;
+    border: 1px solid rgba(171, 241, 126, 0.13) !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .trending-clean-side,
+  .trending-insights-panel {
+    display: none !important;
+  }
+
+  .trending-clean-main--with-image .trending-clean-copy {
+    padding-right: 0 !important;
+  }
+
+  .trending-image-preview {
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 120px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .trending-theme-stage {
+    --trending-theme-opacity: 0.54;
+    --trending-stage-mask-opacity: 0.70;
+  }
+
+  .trending-pagination {
+    padding: 18px 0 4px !important;
+  }
+}
