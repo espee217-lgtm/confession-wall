@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { CosmeticFxLayers } from "./CosmeticFx";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
 
@@ -161,7 +161,7 @@ export default function FramedAvatar({
       }
     : getFrameStyle(normalized);
 
-  const fallback = placeholder || username?.[0]?.toUpperCase?.() || "ðŸŒ¿";
+  const fallback = placeholder || username?.[0]?.toUpperCase?.() || "🌿";
 
   const frameFx =
     normalized === "frame-thornfire" ? (

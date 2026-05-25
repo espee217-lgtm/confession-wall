@@ -1,4 +1,4 @@
-﻿import DisplayTitlePill from "./DisplayTitlePill";
+import DisplayTitlePill from "./DisplayTitlePill";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "./FramedAvatar";
@@ -71,6 +71,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const postThemeId = getConfessionThemeId(localPost, equipped, localPost.userId);
   const postThemeStyle = getPostThemeStyle(postThemeId, realm);
   const postThemeClass = getCosmeticAnimationClass(postThemeId);
+  const hasCustomPostTheme = Boolean(postThemeId);
   const moodStyle = getMoodChipStyle(localPost.mood);
   const comfortCards = getComfortCardSummary(localPost.comfortCards);
   const savedConfessionIds = useMemo(() => getSavedConfessionIdSet(user), [user]);
@@ -81,6 +82,22 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const hideSensitiveContent =
     shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
   const confessionImages = getConfessionImages(localPost);
+
+  const readableTextColor =
+    isScorched || isBudding || hasCustomPostTheme
+      ? "rgba(234, 255, 238, 0.94)"
+      : "#2c3e28";
+  const readableMutedColor =
+    isScorched || isBudding || hasCustomPostTheme
+      ? "rgba(190, 245, 210, 0.76)"
+      : "rgba(44, 62, 40, 0.82)";
+  const chipTextColor =
+    isScorched || isBudding || hasCustomPostTheme
+      ? "rgba(226, 255, 235, 0.92)"
+      : "#32573f";
+  const softTextShadow = hasCustomPostTheme
+    ? "0 1px 3px rgba(0, 0, 0, 0.72)"
+    : "none";
 
   const reportPost = async (e) => {
     e.stopPropagation();
@@ -296,12 +313,19 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         <span
           style={{
             fontSize: "10px",
-            color: isScorched ? "#D85A30" : isGrove ? "#3b8a5a" : "#7fd8b0",
+            color: hasCustomPostTheme
+              ? "rgba(180, 255, 205, 0.86)"
+              : isScorched
+              ? "#D85A30"
+              : isGrove
+              ? "#3b8a5a"
+              : "#7fd8b0",
             marginLeft: "auto",
             fontStyle: "italic",
+            textShadow: softTextShadow,
           }}
         >
-          {isScorched ? "ðŸ”¥ scorched" : isGrove ? "ðŸŒ¿ thriving" : "âš–ï¸ balanced"}
+          {isScorched ? "🔥 scorched" : isGrove ? "🌿 thriving" : "⚖️ balanced"}
         </span>
       </div>
 
@@ -324,8 +348,9 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
               border: "1px solid rgba(255,255,255,0.2)",
               background: "rgba(255,255,255,0.08)",
               fontSize: "10px",
-              color: isScorched ? "#ffd2c4" : isGrove ? "#345740" : "#d9ffea",
+              color: chipTextColor,
               letterSpacing: "0.03em",
+              textShadow: softTextShadow,
             }}
           >
             Content warning{contentWarning.category ? `: ${contentWarning.category}` : ""}
@@ -336,12 +361,9 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
               style={{
                 margin: 0,
                 fontSize: "11px",
-                color: isScorched
-                  ? "rgba(255,220,200,0.78)"
-                  : isGrove
-                  ? "rgba(44,62,40,0.8)"
-                  : "rgba(220,255,240,0.78)",
+                color: readableMutedColor,
                 lineHeight: 1.5,
+                textShadow: softTextShadow,
               }}
             >
               {contentWarning.note}
@@ -354,12 +376,9 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         <p
           style={{
             fontSize: "14px",
-            color: isScorched
-              ? "rgba(255,220,200,0.88)"
-              : isGrove
-              ? "#2c3e28"
-              : "rgba(220,255,240,0.9)",
+            color: readableTextColor,
             lineHeight: 1.65,
+            textShadow: softTextShadow,
             margin: 0,
             display: "-webkit-box",
             WebkitLineClamp: isScorched ? 3 : "unset",
@@ -437,7 +456,8 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             style={{
               margin: "0 0 10px",
               fontSize: "13px",
-              color: isScorched ? "#ffe4db" : isGrove ? "#29402d" : "#e8fff1",
+              color: readableTextColor,
+              textShadow: softTextShadow,
             }}
           >
             {localPost.poll.question}
@@ -501,10 +521,17 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
                 gap: "6px",
                 padding: "5px 9px",
                 borderRadius: "999px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(200,255,220,0.14)",
-                color: isScorched ? "#ffd2c5" : isGrove ? "#32573f" : "#dfffe7",
+                background: hasCustomPostTheme
+                  ? "rgba(7, 24, 16, 0.56)"
+                  : "rgba(255,255,255,0.08)",
+                border: hasCustomPostTheme
+                  ? "1px solid rgba(190,255,210,0.32)"
+                  : "1px solid rgba(200,255,220,0.22)",
+                color: chipTextColor,
                 fontSize: "10px",
+                fontWeight: 700,
+                letterSpacing: "0.01em",
+                textShadow: softTextShadow,
               }}
             >
               <span>{card.text}</span>
@@ -528,12 +555,12 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             : "1px solid rgba(120,255,180,0.12)",
         }}
       >
-        <span style={{ fontSize: "11px", color: "#3b8a5a" }}>
-          ðŸŒ± {localPost.wateredBy?.length || 0}
+        <span style={{ fontSize: "11px", color: hasCustomPostTheme ? "#a9ffc8" : "#3b8a5a", fontWeight: 700, textShadow: softTextShadow }}>
+          🌱 {localPost.wateredBy?.length || 0}
         </span>
 
-        <span style={{ fontSize: "11px", color: "#D85A30" }}>
-          ðŸ”¥ {localPost.burnedBy?.length || 0}
+        <span style={{ fontSize: "11px", color: hasCustomPostTheme ? "#ffb39b" : "#D85A30", fontWeight: 700, textShadow: softTextShadow }}>
+          🔥 {localPost.burnedBy?.length || 0}
         </span>
 
         <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
@@ -547,15 +574,23 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
               border: `1px solid ${
                 isSaved ? "rgba(240, 210, 135, 0.4)" : "rgba(220, 192, 120, 0.22)"
               }`,
-              color: isSaved ? "#ffe6a7" : "#e7d59a",
+              color: hasCustomPostTheme
+                ? isSaved
+                  ? "#fff0b8"
+                  : "#f7e4a5"
+                : isSaved
+                ? "#ffe6a7"
+                : "#e7d59a",
               borderRadius: "12px",
+              fontWeight: 700,
+              textShadow: softTextShadow,
               padding: "5px 11px",
               fontSize: "11px",
               cursor: "pointer",
               fontFamily: "Georgia, serif",
             }}
           >
-            {isSaved ? "ðŸ‚ saved" : "ðŸ‚ press leaf"}
+            {isSaved ? "🍂 saved" : "🍂 press leaf"}
           </button>
 
           <button
