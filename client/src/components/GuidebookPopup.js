@@ -86,16 +86,48 @@ export default function GuidebookPopup({ open, onClose }) {
               </ul>
             </div>
 
-            <div className="cw-guidebook-media-grid">
-              {activeSection.images.map((image, index) => (
-                <figure
-                  className={`cw-guidebook-shot${index === 0 ? " cw-guidebook-shot--primary" : ""}`}
-                  key={image.src}
-                >
-                  <img src={image.src} alt={image.alt} loading="lazy" decoding="async" />
-                </figure>
-              ))}
-            </div>
+            {activeSection.steps ? (
+              <div className="cw-guidebook-step-list">
+                {activeSection.steps.map((step) => (
+                  <section className="cw-guidebook-step" key={`${activeSection.id}-${step.badge}-${step.title}`}>
+                    <div className="cw-guidebook-step-copy">
+                      <span className="cw-guidebook-step-badge">{step.badge}</span>
+                      <h4>{step.title}</h4>
+                      <p>{step.text}</p>
+
+                      {step.notes?.length ? (
+                        <ul className="cw-guidebook-step-notes">
+                          {step.notes.map((note) => (
+                            <li key={note}>{note}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+
+                    {step.images?.length ? (
+                      <div className={`cw-guidebook-step-media cw-guidebook-step-media--${step.images.length}`}>
+                        {step.images.map((image) => (
+                          <figure className="cw-guidebook-shot cw-guidebook-shot--step" key={image.src}>
+                            <img src={image.src} alt={image.alt} loading="lazy" decoding="async" />
+                          </figure>
+                        ))}
+                      </div>
+                    ) : null}
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="cw-guidebook-media-grid">
+                {activeSection.images.map((image, index) => (
+                  <figure
+                    className={`cw-guidebook-shot${index === 0 ? " cw-guidebook-shot--primary" : ""}`}
+                    key={image.src}
+                  >
+                    <img src={image.src} alt={image.alt} loading="lazy" decoding="async" />
+                  </figure>
+                ))}
+              </div>
+            )}
           </article>
         </div>
 

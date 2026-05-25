@@ -289,3 +289,107 @@ body.cw-guidebook-open {
     display: none;
   }
 }
+
+.cw-guidebook-step-list {
+  display: grid;
+  gap: 16px;
+}
+
+.cw-guidebook-step {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.92fr) minmax(0, 1.08fr);
+  gap: 16px;
+  align-items: stretch;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(190, 255, 120, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 220, 0.05), rgba(0, 0, 0, 0.18)),
+    rgba(2, 18, 7, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 220, 0.03);
+}
+
+.cw-guidebook-step-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.cw-guidebook-step-badge {
+  width: fit-content;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(199, 255, 132, 0.24);
+  color: rgba(213, 255, 156, 0.86);
+  background: rgba(0, 0, 0, 0.22);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cw-guidebook-step h4 {
+  margin: 0 0 8px;
+  font-family: "Cinzel", Georgia, serif;
+  color: #f5ffd7;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+}
+
+.cw-guidebook-step p {
+  margin: 0;
+  color: rgba(246, 255, 226, 0.78);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.cw-guidebook-step-notes {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cw-guidebook-step-notes li {
+  position: relative;
+  padding-left: 20px;
+  color: rgba(246, 255, 226, 0.7);
+  font-size: 13px;
+  line-height: 1.38;
+}
+
+.cw-guidebook-step-notes li::before {
+  content: "•";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: rgba(194, 255, 120, 0.82);
+}
+
+.cw-guidebook-step-media {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cw-guidebook-step-media--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cw-guidebook-shot--step {
+  min-height: 150px;
+}
+
+.cw-guidebook-shot--step img {
+  max-height: 260px;
+}
+
+@media (max-width: 1040px) {
+  .cw-guidebook-step {
+    grid-template-columns: 1fr;
+  }
+}

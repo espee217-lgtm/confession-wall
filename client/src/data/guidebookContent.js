@@ -26,18 +26,47 @@ export const GUIDEBOOK_SECTIONS = [
     id: "confess",
     label: "Confess",
     eyebrow: "Plant a secret",
-    title: "Post an anonymous confession",
+    title: "Planting a confession",
     summary:
-      "Tap Confess when something is heavy on your heart. Write your confession, choose a mood, add optional extras, then bloom it onto the wall.",
-    images: [
-      img("Confession2.webp", "Desktop Confess button from the navigation area."),
-      img("Confession1.webp", "Desktop scene Confess entry point on the home forest."),
-      img("Confession3.webp", "Plant a confession popup with mood chips, content warning, card theme, image upload, poll, and bloom button."),
-    ],
-    points: [
-      "Mood chips help people understand the feeling behind your post.",
-      "Images, polls, content warnings, and card themes are optional.",
-      "Use content warnings for sensitive topics so readers can choose carefully.",
+      "A confession is your anonymous post on the wall. Use it to vent, confess, ask, joke, or say what you cannot say elsewhere.",
+    steps: [
+      {
+        badge: "Step 1",
+        title: "Find the Confess button",
+        text:
+          "Open the confession form from the top Confess button or from the flower-hand entry point on the Home scene.",
+        images: [
+          img("Confession2.webp", "Desktop Confess button from the navigation area."),
+          img("Confession1.webp", "Flower-hand Confess entry point on the Home scene."),
+        ],
+      },
+      {
+        badge: "Step 2",
+        title: "Write what you need to say",
+        text:
+          "The large box is where your confession goes. Keep it simple, make it detailed, or let it be messy and honest.",
+        images: [
+          img("Confession3.webp", "Plant a confession popup with the main writing box and posting controls."),
+        ],
+      },
+      {
+        badge: "Step 3",
+        title: "Shape the post before it blooms",
+        text:
+          "Mood, image, content warning, card theme, and anonymous poll are optional tools. Use only what helps the confession make sense.",
+        notes: [
+          "Mood shows the feeling behind the confession.",
+          "Content warnings help sensitive readers choose carefully.",
+          "Card themes change the visual style of your confession.",
+          "Polls let people answer anonymously.",
+        ],
+      },
+      {
+        badge: "Step 4",
+        title: "Bloom it onto the wall",
+        text:
+          "Press Bloom to post anonymously. Other users can water it, burn it, comfort it, comment, report it, or save it as a Pressed Leaf.",
+      },
     ],
   },
   {
