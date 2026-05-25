@@ -1,5 +1,5 @@
 /*
-  Confession Wall starter content v3
+  Confession Wall starter content v4
   ------------------------------------------------------------
   Wipes/reseeds confession content while keeping user accounts and avatar assets.
 
@@ -11,7 +11,7 @@
   - --wipe-content deletes confessions/posts and optional post-linked reports/notifications.
   - It does NOT delete users, seed avatars, admins, cosmetics, or accounts.
   - Seed users are fictional anonymous characters marked isSeedUser=true.
-  - All starter posts/comments are original fictional content, validated for exact uniqueness.
+  - All starter posts/comments are original fictional content with stricter uniqueness and more varied organic comment voices.
 */
 
 const path = require("path");
@@ -37,7 +37,7 @@ const SHOULD_SEED = args.has("--seed") || args.has("--reset");
 const FORCE = args.has("--force");
 const REFRESH_AVATARS = args.has("--refresh-avatars");
 const RESET_SEED_USERS = args.has("--reset-seed-users");
-const SEED_BATCH = "starter-community-v3-unique-content-200";
+const SEED_BATCH = "starter-community-v4-organic-no-duplicate-200";
 
 const MOODS = ["Hopeful", "Heavy", "Angry", "Lonely", "Love", "Regret", "Funny", "Grateful", "Lost", "Healing"];
 const POSTS_PER_MOOD = 20;
@@ -1501,94 +1501,278 @@ function randomCosmeticLoadout(index) {
   };
 }
 
+
 function moodIntro(mood, number) {
   const intros = {
-    Hopeful: ["I did not fix my life today, but something shifted.", "This is a small confession, but it felt bigger while living it.", "I almost did not count this as progress, then I realized I always move the goalpost."],
-    Heavy: ["I have been carrying this quietly because saying it out loud makes it real.", "Today felt normal from outside, which is the part that scares me.", "I kept functioning, but inside it felt like I was walking through water."],
-    Angry: ["I know anger is not always pretty, but I need to put this somewhere.", "I am tired of making my hurt sound polite so other people feel comfortable.", "Maybe this is not my calmest version, but it is the honest one."],
-    Lonely: ["I do not think people understand how quiet loneliness can be.", "This is not about having zero people around. It is worse than that.", "I miss being known in small, useless ways."],
-    Love: ["I hate how soft I get when I care about someone.", "I am writing this anonymously because even admitting it to myself feels too exposed.", "Love is embarrassing when it catches you before you are ready."],
-    Regret: ["I keep replaying this like there is still a version where I choose better.", "I know I cannot edit the past, but my brain keeps opening the file.", "This regret is not dramatic to anyone else, but it keeps finding me."],
-    Funny: ["This is not tragic, just humiliating enough to confess anonymously.", "I need to admit this somewhere because my ego is still recovering.", "Today I was defeated by a very ordinary situation."],
-    Grateful: ["Something small happened and I have been weirdly emotional about it.", "I forget that kindness can arrive without fireworks.", "This is just gratitude, but it caught me off guard."],
-    Lost: ["I feel like everyone got a manual and mine was printed in fog.", "I am not in crisis exactly. I just do not know where I am going.", "The confusing part is that nothing is obviously wrong and I still feel misplaced."],
-    Healing: ["I noticed a tiny sign that I am not where I used to be.", "Healing is not cinematic today. It is awkward and quiet.", "I did something different from my old pattern, and I want to remember it."],
+    Hopeful: [
+      "Not a huge life update. Just one of those small things that quietly mattered.",
+      "I almost ignored this because it sounds too ordinary to be a confession.",
+      "Today did not turn magical, but it stopped feeling completely stuck for a minute.",
+      "I caught myself expecting the worst and then something normal happened instead.",
+      "This is tiny, but I am writing it down before my brain convinces me it counts for nothing.",
+    ],
+    Heavy: [
+      "I have been acting fine so convincingly that even I forget it is an act sometimes.",
+      "Nothing dramatic happened today. That is the weird part. I still felt crushed.",
+      "I do not want pity. I just want to stop carrying this like it is not heavy.",
+      "I kept doing normal-person tasks while feeling like my chest had bad weather in it.",
+      "This is one of those feelings that looks boring from outside and impossible from inside.",
+    ],
+    Angry: [
+      "I know this is not my most generous version, but I am tired of editing my anger.",
+      "Maybe I am being unfair. I am still angry enough to say it anyway.",
+      "I keep making my disappointment sound polite and I am sick of that job.",
+      "This is scorched because I do not have a calm little bow to put on it.",
+      "I am not proud of how bitter this sounds. I am just done pretending it is fine.",
+    ],
+    Lonely: [
+      "The worst loneliness is the kind where your phone has notifications and none of them feel like you.",
+      "I have people around. That almost makes it harder to explain.",
+      "This is not a dramatic lonely movie scene. It is quieter and more annoying than that.",
+      "I miss being someone's automatic choice for stupid little updates.",
+      "Some days I do not want a solution. I just want someone to notice the silence changed shape.",
+    ],
+    Love: [
+      "I hate how embarrassing it is to care this much.",
+      "I am posting this anonymously because saying it with my actual face would ruin me.",
+      "Love makes me act like a normal notification is a court judgment.",
+      "I thought I was being chill. Apparently I was just being quiet and dramatic internally.",
+      "This is not a confession I can send to them, so I am leaving it here instead.",
+    ],
+    Regret: [
+      "My brain keeps replaying one moment like it is trying to find a hidden exit.",
+      "I know the past is over. Very cool fact. My stomach has not accepted it.",
+      "This regret is not cinematic. It is just annoying and persistent.",
+      "I keep thinking about the version of me who could have chosen softer words.",
+      "I want to be forgiven, but I also know forgiveness is not a vending machine.",
+    ],
+    Funny: [
+      "This is low stakes, but my dignity still wants witness protection.",
+      "No tragedy here. Just me losing a fight against a completely normal situation.",
+      "I need to confess this before my brain turns it into a ten-part documentary.",
+      "The universe handed me a tiny embarrassment and I performed like it was opening night.",
+      "I am laughing now, which is different from being okay with what happened.",
+    ],
+    Grateful: [
+      "Someone did a small kind thing and it has been sitting in my chest all day.",
+      "I forget how much a tiny decent moment can rearrange a bad mood.",
+      "This is not a grand thank-you speech. I just do not want the kindness to disappear unnoticed.",
+      "A normal person was kind for ten seconds and apparently that was enough to undo me.",
+      "I keep replaying this because it reminded me people can still be gentle for no reward.",
+    ],
+    Lost: [
+      "I do not feel broken exactly. I feel misplaced.",
+      "Everyone seems to be moving in straight lines and I am circling the same room with snacks.",
+      "I am not having a crisis. I am having a long confused loading screen.",
+      "The future feels like a form I forgot to fill correctly.",
+      "Nothing is on fire, which somehow makes it harder to explain why I feel stuck.",
+    ],
+    Healing: [
+      "I noticed a small old pattern and did not obey it immediately. That felt new.",
+      "Healing today looked suspiciously boring, but I think it still counted.",
+      "I am not transformed. I just caught myself being a little less cruel to myself.",
+      "Something that used to wreck me only bruised me today. I want to remember that.",
+      "I did not become peaceful. I just did not make the wound bigger.",
+    ],
   };
   return intros[mood][number % intros[mood].length];
+}
+
+function paragraphJoin(parts) {
+  return parts.filter(Boolean).join("\n\n");
 }
 
 function buildMessage(mood, index, topic) {
   const [event, detail, turn, takeaway] = topic;
   const intro = moodIntro(mood, index);
+  const lowercaseStart = index % 11 === 3;
+  const looseLine = index % 7 === 2;
+
   const shapes = [
-    `${intro}
-
-It started with ${event}. The detail I keep thinking about is ${detail}. It should have been ordinary, but ${turn} and suddenly the whole day had a different weight.
-
-I guess what I am trying to admit is this: ${takeaway}.`,
-    `${intro}
-
-There was this moment with ${detail} after I ${event}. I did not react dramatically. I just stood there with ${turn}, pretending it was just another minute.
-
-But it stayed with me because ${takeaway}. I needed to say it somewhere before I swallowed it again.`,
-    `${intro}
-
-I keep minimizing it because it sounds silly when summarized: ${event}. But the part nobody saw was ${turn}, and the tiny object my brain saved was ${detail}.
-
-Maybe I am overthinking. Maybe I am finally listening to myself. Either way, ${takeaway}.`,
-    `${intro}
-
-The scene was not special. Just ${detail}, then ${event}, then me acting like ${turn} did not hit me in the chest.
-
-I am not asking for advice. I just want this feeling outside me for a while: ${takeaway}.`,
+    () => paragraphJoin([
+      intro,
+      `It started with ${event}. I know that sounds like the smallest possible thing, but the part that stayed was ${detail}. My face probably looked normal. Inside, ${turn}.`,
+      `I keep trying to make this sound cleaner than it felt. The honest version is that ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `The whole scene was boring if you were not living inside my head: ${detail}, then ${event}, then me pretending ${turn} was not suddenly the loudest thing in the room.`,
+      `I am not looking for a perfect answer. I just needed to put this somewhere before I made it smaller again: ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `i did this thing where I acted casual about ${event} and then thought about it for way too long. The stupid little detail was ${detail}. That is what my brain chose to save, apparently.`,
+      `Maybe it is not deep. Maybe it is. Either way, ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `There was a moment with ${detail} where I almost laughed because it was so ordinary. Then ${turn}, and I realized ordinary things can still hit like a brick when you are already tired.`,
+      `The part I am confessing is not the event itself. It is that ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `If I tell this out loud, it sounds like nothing: ${event}. No music, no movie lighting, just ${detail} and me trying to keep my reaction in a normal human range.`,
+      `But I have been thinking about it because ${turn}. I guess ${takeaway}.`,
+      index % 2 === 0 ? "I hate how much work it takes to describe one feeling without sounding dramatic." : "Maybe someone else has had a tiny moment ruin or rescue an entire day too.",
+    ]),
+    () => paragraphJoin([
+      intro,
+      `I keep circling back to ${event}. Not because it was huge, but because of ${detail}. That detail made it feel personal in a way I was not prepared for.`,
+      `By the time ${turn}, I had already written three different versions of the story in my head. The simplest one is probably this: ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `Honestly, ${event} should have been a normal Tuesday-level thing. Instead, I carried ${detail} around in my head like evidence.`,
+      `The embarrassing truth is ${turn}. I do not even know what I want anyone to say. I just know ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `I did not cry or explode or make a scene. I just noticed ${detail} after ${event}, and then ${turn}. That was enough to make the rest of the day feel weirdly tilted.`,
+      `So here it is, without making it prettier: ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `The thing about ${event} is that nobody would know it mattered. It looked like any other tiny moment. But ${detail} stuck to me, and ${turn} made me realize I was not as over it as I pretended.`,
+      `I am leaving this here because ${takeaway}.`,
+    ]),
+    () => paragraphJoin([
+      intro,
+      `I keep wanting to delete this because it sounds too specific: ${detail}. But that is the exact reason it feels true. After ${event}, I had this ridiculous pause where ${turn}.`,
+      `No grand conclusion. Just ${takeaway}.`,
+    ]),
   ];
-  let body = shapes[index % shapes.length];
-  if (index % 5 === 0) {
-    body += `
 
-The annoying part is how much energy I spend trying to make my feelings sound reasonable before I let anyone see them. Even here, anonymous, I want to edit myself into someone calmer. The raw version is probably more useful.`;
-  } else if (index % 4 === 0) {
-    body += `
+  let body = shapes[index % shapes.length]();
+  if (looseLine) {
+    body += `\n\nAlso yes, I know I might be overthinking. That has never once stopped me from overthinking.`;
+  } else if (index % 9 === 4) {
+    body += `\n\nI am not proud of every thought I had in that moment. I am only trying to be honest about the fact that I had it.`;
+  } else if (index % 13 === 5) {
+    body += `\n\nMaybe tomorrow I will feel normal about it. Today I do not.`;
+  }
 
-I think I wanted someone to notice without forcing me to perform the whole explanation. I know people are not mind readers, but wanting to be noticed gently is such a human weakness.`;
+  if (lowercaseStart) {
+    body = body.charAt(0).toLowerCase() + body.slice(1);
   }
   return body;
 }
 
-function makeComment(mood, category, postIndex, commentIndex, topic) {
+const ORGANIC_COMMENT_PATTERNS = {
+  supportive: [
+    ({ detail, takeaway }) => `The ${detail} part made this feel painfully real. I do not think you are making it too big; ${takeaway} is a pretty human thing to admit.`,
+    ({ event }) => `I am glad you wrote this somewhere. People act like ${event} should be easy to shrug off, but sometimes it follows you home.`,
+    ({ turn }) => `The line about ${turn} landed quietly. No advice, just saying somebody actually read it and understood the shape of it.`,
+    ({ takeaway }) => `This does not read attention-seeking to me. It reads like someone finally naming the thing under the thing: ${takeaway}.`,
+  ],
+  relatable: [
+    ({ detail }) => `Different situation, same stupid emotional physics. One tiny detail like ${detail} can hold the whole day hostage.`,
+    ({ event, turn }) => `I have had my version of ${event}, and the worst part was also that weird moment where ${turn}. Very annoying brain behavior.`,
+    ({ detail }) => `Not me understanding the ${detail} bit immediately. That is exactly the kind of tiny thing I would pretend not to care about and then remember for weeks.`,
+    ({ event }) => `This is the kind of post where I start laughing because I relate, then stop because oh. Yeah. ${event} would have stayed with me too.`,
+  ],
+  practical: [
+    ({ turn }) => `If you do anything with this, maybe start with the moment where ${turn}. That sounds like the part asking for your attention first.`,
+    ({ event }) => `You do not have to solve the whole story tonight. Maybe just decide what you need after ${event}, even if it is only distance or sleep.`,
+    ({ detail, takeaway }) => `The ${detail} detail feels like a clue, not a verdict. Sit with it, but do not let ${takeaway} become the only possible explanation.`,
+    ({ turn }) => `Small practical thought: write down what happened before ${turn}. Sometimes the before-part shows what you actually needed.`,
+  ],
+  short: [
+    ({ turn }) => `yeah, ${turn} is the sort of thing that looks tiny until it is yours.`,
+    ({ detail }) => `The ${detail} detail is doing way too much emotional damage here and I mean that sincerely.`,
+    ({ takeaway }) => `I would not have said it that neatly, but ${takeaway} makes sense.`,
+    ({ event }) => `No because ${event} would have made me spiral too.`,
+  ],
+  humor: [
+    ({ detail }) => `${detail} becoming the emotional main character is painfully believable. Feelings have no respect for normal props.`,
+    ({ event }) => `The way ${event} turned into a whole internal courtroom is too real. Brains need fewer departments.`,
+    ({ turn }) => `I laughed at ${turn} and then immediately felt bad because yeah, that is actually rough.`,
+    ({ detail }) => `Somewhere ${detail} is just existing, completely unaware it became lore.`,
+  ],
+  miniStory: [
+    ({ event, detail }) => `I once had a totally different situation where ${detail} did the same thing to me after ${event}. Nobody understood why I got quiet, which somehow made it worse.`,
+    ({ turn }) => `This reminds me of when I kept saying I was fine and then one small thing made ${turn} happen in my head. Not the same story, but same weather.`,
+    ({ takeaway }) => `I had a phase where I would joke about everything and then privately realize ${takeaway}. Reading this poked that memory a little.`,
+    ({ detail }) => `My version had a different object, but the same feeling. It is wild how something like ${detail} can become a bookmark for a whole mood.`,
+  ],
+  gentlePush: [
+    ({ event, takeaway }) => `I get this, but I also wonder if ${event} is carrying more meaning than it can fairly hold. ${takeaway} may be true, just not the whole truth.`,
+    ({ turn }) => `I am with you emotionally, but the part where ${turn} might be worth questioning when you are calmer. Feelings can be real and still not be perfect maps.`,
+    ({ detail }) => `The ${detail} detail explains why it hurt, but it might not prove everything your brain is trying to prove from it.`,
+    ({ event }) => `Not dismissing you, but I would be careful about making ${event} the final evidence. Sometimes the story gets sharper when we are tired.`,
+  ],
+};
+
+const SCORCHED_COMMENT_PATTERNS = [
+  ({ event, detail }) => `I get why ${event} burned you, but the ${detail} part also makes me think you might be reading the worst possible version of them.`,
+  ({ turn }) => `I was with you until the bit where ${turn}. Hurt explains the reaction; it does not automatically make it fair.`,
+  ({ takeaway }) => `This sounds honest, but ${takeaway} also sounds like a conclusion written while angry. I would not sign it in permanent ink yet.`,
+  ({ event }) => `Not saying they were right, but ${event} does not give you a free pass to scorch everything around it.`,
+  ({ detail, turn }) => `The ${detail} detail makes the anger understandable. The ${turn} part is where I think the comment section is going to split.`,
+  ({ event }) => `Honestly, both sides might have handled ${event} badly. That does not erase your hurt, but it changes the shape of the blame.`,
+  ({ takeaway }) => `I believe the feeling. I am less sure about the verdict. ${takeaway} sounds more wounded than objective.`,
+  ({ turn }) => `There is a difference between setting a boundary and punishing someone. The ${turn} line is where that difference matters.`,
+  ({ detail }) => `The way you describe ${detail} is strong, but I still want to know what happened before this. Scorched posts always hide a prequel.`,
+  ({ event, takeaway }) => `You may be right to be done after ${event}. I just do not think ${takeaway} should become permission to be cruel back.`,
+  ({ turn }) => `ngl this reads like pain wearing armor. The ${turn} part is loud, but I am not sure it is the whole story.`,
+  ({ detail }) => `I disagree with the harshest part, but I do understand why ${detail} would make somebody snap.`,
+];
+
+function topicContext(topic) {
   const [event, detail, turn, takeaway] = topic;
-  const tone = COMMENT_TONES[(postIndex * 3 + commentIndex) % COMMENT_TONES.length];
+  return { event, detail, turn, takeaway };
+}
 
-  if (category === "scorched" && commentIndex % 3 === 1) {
-    const push = SCORCHED_PUSHBACKS[(postIndex + commentIndex) % SCORCHED_PUSHBACKS.length];
-    return `${push} The detail about ${detail} makes it feel less like random drama and more like something that has been building.`;
-  }
-  if (category === "scorched" && commentIndex % 5 === 3) {
-    return `I get the fire in this, but the part where ${turn} feels like the moment to pause. Sometimes anger tells the truth loudly and still misses a few rooms.`;
+function makeComment(mood, category, postIndex, commentIndex, topic) {
+  const context = topicContext(topic);
+  const scorchedMode = category === "scorched" || mood === "Angry";
+
+  if (scorchedMode) {
+    const patternIndex = (postIndex * 5 + commentIndex * 3) % SCORCHED_COMMENT_PATTERNS.length;
+    if (commentIndex === 0 || commentIndex === 2 || commentIndex === 4 || commentIndex === 6) {
+      return SCORCHED_COMMENT_PATTERNS[patternIndex](context);
+    }
+    if (commentIndex === 1) {
+      return ORGANIC_COMMENT_PATTERNS.relatable[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.relatable.length](context);
+    }
+    if (commentIndex === 3) {
+      return ORGANIC_COMMENT_PATTERNS.gentlePush[(postIndex + commentIndex) % ORGANIC_COMMENT_PATTERNS.gentlePush.length](context);
+    }
   }
 
-  const banks = {
-    relatable: `The ${detail} part is what made this feel real. Different situation, but I know that exact feeling of one tiny thing holding the whole day hostage.`,
-    supportive: `I do not think you are strange for reacting to ${event} like this. The sentence about "${takeaway}" actually makes a lot of sense.`,
-    "gentle-advice": `Maybe do not force a final answer tonight. If ${turn} is still echoing, just naming it clearly might be enough for now.`,
-    "short-reaction": `Damn, ${turn} is such a specific kind of hurt. This did not read fake or dramatic to me.`,
-    "tiny-story": `This reminded me of a day when I kept staring at something ordinary and realized I was not okay. Small witnesses like ${detail} can be weirdly powerful.`,
-    "soft-disagree": `I get why you are judging yourself here, but from outside this reads less like failure and more like someone trying to make sense of ${event}.`,
-    "warm-humor": `Not ${detail} becoming the emotional main character. Feelings really do choose the strangest props to attack us with.`,
-    "older-sibling": `For what it is worth, this sounds like awareness, not weakness. The ${event} part would have stayed with a lot of people.`,
-    "quiet-witness": `I read the whole thing. No big speech, just wanted you to know the part about ${turn} landed with someone.`,
+  const moodToneOrder = {
+    Hopeful: ["supportive", "relatable", "short", "practical", "humor", "miniStory", "supportive", "gentlePush", "short"],
+    Heavy: ["supportive", "quiet", "relatable", "practical", "miniStory", "short", "supportive", "gentlePush", "relatable"],
+    Lonely: ["relatable", "supportive", "miniStory", "short", "practical", "supportive", "humor", "relatable", "gentlePush"],
+    Love: ["relatable", "humor", "supportive", "gentlePush", "short", "miniStory", "supportive", "practical", "relatable"],
+    Regret: ["gentlePush", "supportive", "practical", "relatable", "short", "miniStory", "gentlePush", "supportive", "short"],
+    Funny: ["humor", "short", "relatable", "humor", "miniStory", "supportive", "short", "practical", "humor"],
+    Grateful: ["supportive", "relatable", "short", "miniStory", "supportive", "humor", "practical", "relatable", "short"],
+    Lost: ["relatable", "practical", "supportive", "short", "miniStory", "gentlePush", "relatable", "supportive", "humor"],
+    Healing: ["supportive", "short", "relatable", "practical", "miniStory", "supportive", "gentlePush", "humor", "relatable"],
   };
+  const order = moodToneOrder[mood] || ["supportive", "relatable", "short", "practical", "miniStory", "gentlePush", "humor"];
+  let tone = order[commentIndex % order.length];
+  if (tone === "quiet") tone = "supportive";
+  const bank = ORGANIC_COMMENT_PATTERNS[tone] || ORGANIC_COMMENT_PATTERNS.supportive;
+  const pattern = bank[(postIndex * 7 + commentIndex * 2 + mood.length) % bank.length];
+  let text = pattern(context);
 
-  const closers = [
-    "Hope the next hour is a little easier on you.",
-    "Leaving this here so it does not feel like you threw it into a void.",
-    "That kind of honesty is small but not easy.",
-    "This is exactly the sort of thing people hide and then feel alone with.",
-    "You made it sound human, not attention-seeking.",
-    "I hope you treat yourself with less sharpness after saying it.",
-    "Sometimes being understood for five seconds still helps.",
+  const naturalTags = [
+    "Not trying to sound wise, just reacting honestly.",
+    "That is the sort of thing people pretend does not count, but it does.",
+    "I would probably overthink this too, unfortunately.",
+    "The messy version of this is more believable than a perfect lesson.",
+    "This comment section might not fix it, but at least it is not only in your head now.",
+    "I hope you do not turn this into a reason to hate yourself.",
+    "Also, people underestimate how much one tiny moment can change the whole day.",
+    "Take the useful part of this reply and ignore the rest if it does not fit.",
+    "You sound human here, not broken.",
+    "I do not know you, but I can picture this too clearly.",
   ];
-  return `${banks[tone]} ${closers[(postIndex + commentIndex * 2) % closers.length]}`;
+  if ((postIndex + commentIndex) % 4 === 0) {
+    text += ` ${naturalTags[(postIndex + commentIndex) % naturalTags.length]}`;
+  }
+  return text;
 }
 
 function buildPostReactions(category, author, users) {
@@ -1650,20 +1834,44 @@ function buildComfortCards(users, author) {
   });
 }
 
+
 function validateUniqueContent(confessions) {
+  const seen = new Map();
   const seenPosts = new Map();
   const seenComments = new Map();
-  for (const confession of confessions) {
-    const postKey = normalizeText(confession.message);
-    if (seenPosts.has(postKey)) throw new Error(`Duplicate confession text found for mood ${confession.mood}`);
-    seenPosts.set(postKey, true);
-    for (const comment of confession.comments || []) {
-      const commentKey = normalizeText(comment.text);
-      if (seenComments.has(commentKey)) throw new Error(`Duplicate comment text found: ${comment.text}`);
-      seenComments.set(commentKey, true);
+
+  function remember(kind, rawText, label) {
+    const text = String(rawText || "");
+    const key = normalizeText(text);
+    if (!key) throw new Error(`Empty ${kind} found at ${label}`);
+    if (kind === "comment" && text.trim().length < 12) {
+      throw new Error(`Comment is too short at ${label}: ${text}`);
     }
+    if (seen.has(key)) {
+      throw new Error(`Duplicate text found between seed entries. First: ${seen.get(key)} | Again: ${label} | Text: ${text}`);
+    }
+    seen.set(key, label);
+    if (kind === "post") seenPosts.set(key, true);
+    if (kind === "comment") seenComments.set(key, true);
   }
-  return { postCount: seenPosts.size, commentCount: seenComments.size };
+
+  confessions.forEach((confession, postIndex) => {
+    remember("post", confession.message, `post ${postIndex + 1} mood=${confession.mood}`);
+    if (!Array.isArray(confession.comments) || confession.comments.length < 5) {
+      throw new Error(`Post ${postIndex + 1} has fewer than 5 comments.`);
+    }
+    const localComments = new Set();
+    confession.comments.forEach((comment, commentIndex) => {
+      const key = normalizeText(comment.text);
+      if (localComments.has(key)) {
+        throw new Error(`Duplicate comment inside one post at post ${postIndex + 1}: ${comment.text}`);
+      }
+      localComments.add(key);
+      remember("comment", comment.text, `post ${postIndex + 1} comment ${commentIndex + 1} mood=${confession.mood}`);
+    });
+  });
+
+  return { postCount: seenPosts.size, commentCount: seenComments.size, totalUniqueTexts: seen.size };
 }
 
 async function wipeContentOnly() {
@@ -1845,7 +2053,7 @@ async function main() {
     await Confession.insertMany(confessions, { ordered: false });
     const countsByMood = confessions.reduce((acc, confession) => { acc[confession.mood] = (acc[confession.mood] || 0) + 1; return acc; }, {});
     const countsByCategory = confessions.reduce((acc, confession) => { acc[confession.seedCategory] = (acc[confession.seedCategory] || 0) + 1; return acc; }, {});
-    console.log("Starter content v3 complete.");
+    console.log("Starter content v4 complete.");
     console.log(`Seed users kept/ensured: ${users.length}`);
     console.log(`Created starter confessions: ${confessions.length}`);
     console.log(`Unique confession texts: ${uniqueReport.postCount}`);
