@@ -79,11 +79,13 @@ export default function GuidebookPopup({ open, onClose }) {
               <h3>{activeSection.title}</h3>
               <p className="cw-guidebook-summary">{activeSection.summary}</p>
 
-              <ul className="cw-guidebook-points">
-                {activeSection.points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
+              {activeSection.points?.length ? (
+                <ul className="cw-guidebook-points">
+                  {activeSection.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
 
             {activeSection.steps ? (
@@ -118,7 +120,7 @@ export default function GuidebookPopup({ open, onClose }) {
               </div>
             ) : (
               <div className="cw-guidebook-media-grid">
-                {activeSection.images.map((image, index) => (
+                {(activeSection.images || []).map((image, index) => (
                   <figure
                     className={`cw-guidebook-shot${index === 0 ? " cw-guidebook-shot--primary" : ""}`}
                     key={image.src}
