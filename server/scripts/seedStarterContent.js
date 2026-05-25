@@ -1,26 +1,25 @@
 /*
-  Confession Wall starter community seeder
+  Confession Wall richer starter community seeder
   ------------------------------------------------------------
-  Creates fictional anonymous starter users, confessions, comments,
-  reactions, comfort cards, and equipped shop cosmetics.
+  Creates fictional anonymous starter users, original confessions,
+  unique comments, reactions, comfort cards, avatars, and cosmetics.
 
   Run from server folder:
     node scripts/seedStarterContent.js
 
-  Reset/reseed only starter data:
+  Replace current starter seed content only:
     node scripts/seedStarterContent.js --reset
 
   Preview counts without writing:
     node scripts/seedStarterContent.js --dry-run
 
-  Add/update avatars for existing seed users without reseeding:
+  Refresh avatars for existing seed users:
     node scripts/seedStarterContent.js --refresh-avatars
 
   Notes:
-  - This script creates fictional starter/community prompt content only.
-  - It marks all starter users/content internally with isSeedUser/isSeedContent.
-  - It does not touch real users or real posts unless you run --reset, which only
-    removes documents previously marked as starter seed data.
+  - All content is fictional/original starter content.
+  - All starter users/content are internally marked for safe cleanup.
+  - --reset deletes only documents marked isSeedUser/isSeedContent.
 */
 
 const path = require("path");
@@ -38,7 +37,7 @@ const SHOULD_RESET = args.has("--reset");
 const DRY_RUN = args.has("--dry-run");
 const FORCE = args.has("--force");
 const REFRESH_AVATARS = args.has("--refresh-avatars");
-const SEED_BATCH = "starter-community-v1";
+const SEED_BATCH = "starter-community-v2-organic-200";
 
 const MOODS = [
   "Hopeful",
@@ -53,7 +52,7 @@ const MOODS = [
   "Healing",
 ];
 
-
+const POSTS_PER_MOOD = 20;
 const SEED_AVATAR_PATHS = Array.from({ length: 90 }, (_, index) =>
   `/assets/seed-avatars/seed_avatar_${String(index + 1).padStart(2, "0")}.webp`
 );
@@ -200,45 +199,6 @@ const SEED_PERSONAS = [
   ["animemist", "expressive, dreamy, and anonymous"],
 ];
 
-const COMMENT_BANK = [
-  "This felt weirdly specific in the most human way.",
-  "I hope you give yourself a little credit for even saying it out loud.",
-  "The way you wrote this made me pause for a second.",
-  "Been there. Not exactly the same, but close enough that it stung.",
-  "Small steps still count, even when nobody claps for them.",
-  "You are not wrong for feeling tired by this.",
-  "That last line hit harder than expected.",
-  "I like how honest this is without trying to sound perfect.",
-  "Some days surviving quietly is the whole achievement.",
-  "I hope tomorrow is softer on you.",
-  "This sounds like something a lot of people feel but never type.",
-  "No advice, just leaving a little lantern here.",
-  "I needed to read this too, honestly.",
-  "There is a lot of self-awareness in this. That matters.",
-  "The messy middle is still part of healing.",
-  "I get why this would stay in your chest for a while.",
-  "You explained it in a way that felt really real.",
-  "The fact that you care this much says something good about you.",
-  "I hope you find one person who makes this easier to carry.",
-  "This is the kind of confession that makes the wall feel alive.",
-  "Not every feeling needs a solution immediately. Sometimes it just needs air.",
-  "That sounds exhausting. I am glad you let it out here.",
-  "The quiet parts of life can be the heaviest, no lie.",
-  "I respect how gentle you are being with a painful thing.",
-  "This made me want to check on my own people.",
-  "You are allowed to be proud of a tiny win.",
-  "I laughed a little and then got sad. Very unfair combination.",
-  "This is painfully relatable.",
-  "The honesty here is brave in a low-key way.",
-  "I hope you keep choosing yourself, even awkwardly.",
-  "Sometimes the best closure is no longer explaining yourself.",
-  "You are not dramatic. You are describing something that hurt.",
-  "Sending a quiet leaf of support.",
-  "This is exactly why anonymous spaces can help sometimes.",
-  "I do not know you, but I am rooting for you.",
-  "That tiny hope at the end mattered.",
-];
-
 const COMFORT_TEXTS = [
   "I hear you.",
   "You are not alone.",
@@ -248,189 +208,255 @@ const COMFORT_TEXTS = [
   "You did not deserve that.",
   "Small steps count.",
   "Your feelings make sense.",
+  "Leaving a small lantern here.",
+  "Breathe, then try again.",
 ];
 
-const CONFESSION_TEMPLATES = {
-  budding: {
-    Hopeful: [
-      "I am trying this new thing where I stop pretending that every small improvement has to become a whole transformation. Yesterday I drank water, replied to two messages, and washed the cup that had been sitting near my bed like a tiny monument to avoidance. It was not a movie moment. No music played. I still felt messy. But for the first time in a while, I did not hate myself for being behind. I just thought, okay, maybe this is how I come back: one quiet task at a time.",
-      "I keep thinking about how plants do not apologize for growing slowly. I know that sounds like something from a motivational poster, but today it actually helped me. I have been comparing my life to people who seem to be sprinting while I am still tying my shoes. But maybe I am not late. Maybe I am just growing in a season nobody else can see yet.",
-    ],
-    Heavy: [
-      "I have been carrying a strange tiredness that sleep does not fix. I still laugh at jokes, still answer when people call my name, still do the normal things. But somewhere underneath all of that, I feel like I am walking through wet soil. I do not need anyone to solve it tonight. I just wanted to put the truth somewhere outside my body for a minute.",
-      "Some days I feel like I am doing life in low battery mode. I can technically function, but every small thing asks for more energy than it should. I hate how invisible that is. People see you standing, so they assume you are fine. They do not see the part of you that is sitting down inside.",
-    ],
-    Angry: [
-      "I am not even angry in a loud way. I am angry in the quiet way where I remember every time I made room for someone who would not even move a chair for me. I keep telling myself to be mature, but sometimes maturity feels like swallowing the same bitter thing again and again while everyone praises you for not making a face.",
-      "I hate when people act confused by distance they created. They ignore you, dismiss you, make you feel small, and then one day they ask why the vibe changed. The vibe changed because I finally believed your actions over your apologies.",
-    ],
-    Lonely: [
-      "I miss having someone I could message for no reason. Not for advice, not for an emergency, not because something big happened. Just a person who would understand a random photo of the sky or a stupid thought at 1 a.m. I think that kind of casual closeness is what I miss the most.",
-      "The loneliest part is not having nobody. It is having people around but still editing every sentence before you speak. I want one place where I do not have to make my feelings presentable first.",
-    ],
-    Love: [
-      "I think I like someone, but I am trying so hard not to turn it into a whole imaginary future. It is embarrassing how one small message can change my mood for hours. I keep acting normal, but inside I am a badly managed festival of hope and fear.",
-      "There is someone whose name makes my day pause for half a second. I do not know if it is love or just the relief of being seen gently. Either way, I am trying not to ruin it by holding it too tightly.",
-    ],
-    Regret: [
-      "I regret how long I stayed quiet when something bothered me. At the time, silence felt safer than conflict. Now I realize silence was still a choice, and it slowly taught people that my comfort was negotiable. I am trying to forgive myself for not knowing better sooner.",
-      "I keep replaying a conversation where I laughed instead of saying I was hurt. I wanted to seem chill. I wanted to be easy to love. But now I think being easy to love should not require becoming hard to myself.",
-    ],
-    Funny: [
-      "My toxic trait is opening a productivity video, feeling inspired for eight minutes, then rewarding myself for the inspiration by doing absolutely nothing. At this point my plans have plans, and even those plans are tired of me.",
-      "I cleaned one corner of my room and immediately started acting like I had rebuilt my entire life from ashes. If anyone needs me, I will be accepting awards near the laundry pile I refused to look at.",
-    ],
-    Grateful: [
-      "Today someone remembered a tiny thing I said weeks ago. It was not huge, but it stayed with me. Being remembered gently can feel like a blanket. I think I am grateful for people who make you feel like your small details are not wasted.",
-      "I am grateful for the friend who does not demand a perfect explanation. Sometimes they just say, 'come sit,' and somehow that is enough. I hope everyone gets at least one person like that.",
-    ],
-    Lost: [
-      "I do not know what I am becoming yet. Some days that scares me. Other days it almost feels like freedom. I am in that strange space where the old version of me does not fit, but the new one has not arrived with instructions.",
-      "I keep waiting for a clear sign about what I should do next. But life keeps giving me fog instead of arrows. Maybe I have to learn how to move carefully without being completely sure.",
-    ],
-    Healing: [
-      "Healing is less graceful than I imagined. I thought it would feel like peace. Mostly it feels like noticing the same wound sooner, choosing a different reaction, then being tired from the effort. Still, I think something in me is slowly unclenching.",
-      "I deleted a message I wanted to send just to prove I still mattered. It felt small and huge at the same time. Maybe healing is when you stop knocking on doors that only open when they are bored.",
-    ],
-  },
-  grove: {
-    Hopeful: [
-      "I finally felt a little proud of myself today. Not the loud kind of proud, just the quiet kind where you realize you did not give up on yourself completely. I finished something I had been avoiding, stepped outside for air, and let myself believe that maybe I am not as stuck as I keep saying I am.",
-      "Something shifted this week. Nothing dramatic happened, but I caught myself planning for next month instead of just surviving today. That tiny future-thinking felt like a green shoot coming through cracked ground.",
-    ],
-    Heavy: [
-      "I had a hard conversation and did not collapse afterward. I cried, yes, and my hands shook, but I said what I needed to say. I am putting this here because sometimes growth looks like speaking with a trembling voice and not taking it back.",
-      "I admitted to someone that I have not been okay. They did not fix it, but they stayed. I forgot how much it matters when someone does not run from your heavier truths.",
-    ],
-    Angry: [
-      "I set a boundary today and the world did not end. The person was annoyed, obviously, because people who benefited from your silence rarely celebrate your voice. But I feel lighter. Angry, still, but lighter.",
-      "For once I did not over-explain my no. I just said no. It felt rude for about five seconds and then it felt like breathing.",
-    ],
-    Lonely: [
-      "I went for a walk alone and somehow did not feel lonely the whole time. I noticed flowers growing through a fence, a dog carrying a stick like treasure, and an old couple arguing about vegetables. Maybe being alone is not always the same as being abandoned.",
-      "I made peace with spending the evening by myself. Cooked something simple, played music, and let the room be quiet without treating it like a punishment. That felt new.",
-    ],
-    Love: [
-      "Someone was kind to me in a way that did not ask for anything back. I am trying to let that be enough without immediately searching for the catch. Maybe love, in its smallest form, is feeling safe enough to not perform.",
-      "I told a friend I loved them today. Not dramatically, not because anything happened, just because it was true. They said it back like it was the easiest thing in the world. I am still smiling about it.",
-    ],
-    Regret: [
-      "I apologized without making it about my guilt. That was harder than I expected. I wanted to explain, defend, soften the edges. Instead I listened. I cannot undo the mistake, but I can become someone who does not hide from repair.",
-      "I used to think regret was useless. Now I think it can be a map if you do not let it become a home. Today I chose one small thing differently because of what I learned the hard way.",
-    ],
-    Funny: [
-      "I accidentally motivated myself by pretending I was a background character in a cozy forest game. I made tea, folded clothes, and watered a plant like I was earning domestic side-quest points. Honestly? It worked.",
-      "I survived a family function by becoming emotionally unavailable to everyone except the snack table. The snack table understood me. The snack table did not ask about my future plans.",
-    ],
-    Grateful: [
-      "I am grateful for ordinary mornings that do not demand anything dramatic from me. Tea, sunlight on the floor, one message from a friend, and the feeling that maybe peace is not always a huge achievement. Sometimes it is just a small hour that does not hurt.",
-      "Today I realized I have people who would notice if I disappeared from a room. That sounds simple, but for someone who spent years feeling replaceable, it means more than I can explain.",
-    ],
-    Lost: [
-      "I still do not know where I am going, but I no longer feel like I have to punish myself for being unsure. I am allowed to take the next honest step without pretending I can see the whole road.",
-      "I asked for help today. Not in a polished way. More like, 'I do not know what I am doing, can you sit with me while I figure out the first piece?' It was humbling and also a relief.",
-    ],
-    Healing: [
-      "I noticed an old trigger and chose not to follow it all the way down. That sounds invisible, but it felt like winning a private battle. Nobody saw it, so I am leaving it here like a small flag in the soil.",
-      "I am slowly becoming someone I would have felt safe with when I was younger. That thought made me cry, but in a good way. Maybe that is healing too.",
-    ],
-  },
-  scorched: {
-    Hopeful: [
-      "The hopeful part of me is annoying because it keeps surviving things that should have killed it. I wanted to be colder by now. Instead, some tiny stupid light in me still believes I can have a softer life. I am mad at it, but I am also following it.",
-      "I got tired of waiting for an apology that probably is not coming. That sounds sad, but strangely it gave me hope. If closure is not arriving from them, maybe I can build my own door and walk out.",
-    ],
-    Heavy: [
-      "I hate how some people can bruise your trust and still sleep normally. Meanwhile you are stuck becoming a detective of your own pain, replaying tone, timing, and tiny details. I know I will move on eventually, but today I am letting myself admit that it was heavy.",
-      "There is a kind of hurt that makes you feel stupid for ever being soft. I do not want to become cruel, but I understand now how people start building walls and calling them standards.",
-    ],
-    Angry: [
-      "I am angry that I had to become 'strong' because other people were careless with me. Everyone praises resilience like it is a crown, but sometimes resilience is just what happens when nobody comes to help and you still have to wake up tomorrow.",
-      "People love your forgiveness when it benefits them. The second forgiveness comes with distance, suddenly you are cold, dramatic, changed. Yes, I changed. That was the whole point of surviving it.",
-    ],
-    Lonely: [
-      "The worst loneliness is after you stop explaining. Not because there is nothing to say, but because you finally understand the listener was never really listening. That silence feels scorched. Clean, maybe, but scorched.",
-      "I keep thinking about how many people liked the version of me that needed less. The moment I became a person with limits, the room got emptier. I am trying to see that as information instead of rejection.",
-    ],
-    Love: [
-      "I loved someone who treated my patience like a resource they could spend forever. I do not hate them exactly. I hate the version of me that kept finding poetry in their minimum effort. That version deserved better metaphors.",
-      "Missing someone does not mean they were good for you. I know that. I know it with my brain, my friends know it, even my blocked list knows it. But some evenings my heart acts like it did not attend the meeting.",
-    ],
-    Regret: [
-      "I regret giving unlimited chances to someone who used every chance to learn how much they could get away with. That sentence makes me feel embarrassed, but also awake. Never again will I confuse endurance with love.",
-      "I regret apologizing just to end the discomfort. I was not sorry. I was scared of being disliked. There is a difference, and I am finally old enough emotionally to notice it.",
-    ],
-    Funny: [
-      "My villain origin story is people saying 'just communicate' after I communicated in five fonts, three emotional formats, and one long paragraph they replied to with 'damn.' At this point I should invoice for the labor.",
-      "I have reached the stage of healing where I no longer stalk their profile, but I absolutely do judge their new captions if they appear by accident. Growth is not perfection. Growth is restraint with commentary.",
-    ],
-    Grateful: [
-      "I am weirdly grateful for the people who disappointed me clearly. It hurt, but at least the fog lifted. Confusion can keep you trapped longer than cruelty. Clarity burns, but it also lights the exit.",
-      "I am grateful I did not become what hurt me. I became sharper, yes, but not rotten. That feels like something worth protecting.",
-    ],
-    Lost: [
-      "After everything ended, I did not just lose them. I lost the version of my future that had quietly arranged itself around them. Now I am standing in the ashes trying to figure out which parts were mine to begin with.",
-      "I do not know who I am when I am not trying to be chosen. That is a terrifying confession. But maybe terrifying truths are still better than comfortable lies.",
-    ],
-    Healing: [
-      "I am learning that peace can feel boring after chaos. My nervous system keeps looking for proof that something is wrong. But nothing is wrong tonight. Nobody is yelling, nobody is vanishing, nobody is testing me. It is just quiet. I am trying to let quiet be safe.",
-      "Today I did not answer the message that would have pulled me back into the same old fire. I stared at it for a while, felt the old panic, then put my phone down. It was not easy. But the roots stayed unburned this time.",
-    ],
-  },
-  general: {
-    Hopeful: [
-      "I like the idea that nobody really knows what they are doing at first. Some people just panic more aesthetically. I am trying to be less ashamed of learning in public, failing quietly, and beginning again without making an announcement.",
-      "I saw a tiny plant growing out of a crack in the pavement today and it felt embarrassingly personal. I have also been growing in places that were not built for me. Maybe that still counts.",
-    ],
-    Heavy: [
-      "There are days when every notification feels like a responsibility and every silence feels like a verdict. I know that is not logical, but feelings rarely wait for logic to finish speaking. I am just tired of being reachable while feeling unreachable.",
-      "I wish people understood that being quiet is not always peace. Sometimes quiet is just what happens when explaining yourself has become more exhausting than being misunderstood.",
-    ],
-    Angry: [
-      "I am tired of being expected to stay graceful when other people are careless. Sometimes I do not want to be the bigger person. Sometimes I want the same energy returned with interest. I probably will not do it, but admitting it feels good.",
-      "The phrase 'do not take it personally' is funny because the thing was delivered directly to my emotional doorstep with my name on it. Where exactly should I take it? The post office?",
-    ],
-    Lonely: [
-      "I have friends, but I miss being known in an easy way. The kind where someone can tell from one sentence that you are not okay. I miss not having to submit evidence for my own sadness.",
-      "Sometimes I open apps just to feel near people, then close them because everyone seems too far away inside the screen. It is a strange modern loneliness: crowded, bright, and still empty.",
-    ],
-    Love: [
-      "I do not know if I miss the person or the version of myself that believed so easily around them. Maybe both. Love is confusing because even after it hurts you, it leaves behind rooms in your mind with good lighting.",
-      "I think love should feel like having somewhere to rest, not like constantly auditioning for a role you already got. I am writing that here so I remember it when someone charming makes me forget.",
-    ],
-    Regret: [
-      "I regret not taking more photos of ordinary days. Not for social media, just for memory. The tea cups, bad hair, half-clean rooms, people laughing mid-sentence. You think ordinary things will stay available forever. They do not.",
-      "I regret how often I made myself smaller to avoid making a moment awkward. The moment passed anyway. The smallness stayed longer.",
-    ],
-    Funny: [
-      "I keep making to-do lists with the confidence of a person who has never met me. Morning me is a CEO. Afternoon me is a confused intern. Night me is HR investigating what went wrong.",
-      "I bought a notebook to organize my life and immediately used the first page to write 'start using this notebook properly.' This is either self-awareness or a cry for help from stationery.",
-    ],
-    Grateful: [
-      "I am grateful for people who reply with warmth instead of performance. No perfect advice, no lecture, no turning your pain into their stage. Just a simple, 'I am here.' That is rare and holy in a very normal way.",
-      "Today I am grateful for food that tasted good, a message that came at the right time, and the fact that I did not say the mean thing I almost said. Growth sometimes has very unglamorous receipts.",
-    ],
-    Lost: [
-      "I am in a chapter where everything feels like a draft. My plans, my personality, my future, even the way I answer 'how are you?' Nothing feels final. Maybe that is okay. Drafts are still proof that something is being written.",
-      "I keep waiting to feel like an adult, but mostly I feel like three unfinished versions of myself wearing one hoodie. Maybe everyone is improvising and some people just have better shoes.",
-    ],
-    Healing: [
-      "I am trying to stop confusing peace with boredom. After years of stress, calm can feel suspicious. But maybe the absence of chaos is not a warning. Maybe it is a room I am allowed to sit in.",
-      "I caught myself being kinder to my past self today. Not fully, not perfectly, but for one second I thought, you were doing your best with the tools you had. That one second felt like a door opening.",
-    ],
-  },
+const STORY_SEEDS = {
+  Hopeful: [
+    ["cleaned one corner of my room", "the mug by my bed", "opening the window before noon", "maybe I am not broken, just backed up"],
+    ["sent a job application I was scared of", "the submit button", "a tiny cup of tea after", "trying counts even before winning"],
+    ["walked outside after avoiding sunlight", "a stray dog at the gate", "buying one guava from a cart", "outside did not judge me"],
+    ["answered a message I had ignored", "three typing dots", "a normal reply back", "not every delay ruins everything"],
+    ["started studying again after weeks", "one page of notes", "a pen that barely worked", "momentum can be embarrassingly small"],
+    ["went to sleep without doom-scrolling", "phone face down", "the fan making old-house noises", "rest can be a decision"],
+    ["cooked a real meal for myself", "too much salt", "steam on my glasses", "care still counts when it is clumsy"],
+    ["deleted an old chat shortcut", "my thumb looking for it", "the empty space on the screen", "absence can become freedom slowly"],
+    ["made a plan for next month", "a scratched notebook", "rent, groceries, one dream", "future me deserves a vote"],
+    ["told someone I need time", "a calm no", "my heartbeat being dramatic", "boundaries did not destroy me"],
+    ["wore the clothes I was saving", "a green shirt", "no special occasion", "being alive is enough occasion sometimes"],
+    ["opened my old sketchbook", "bad drawings", "one decent leaf", "I can begin badly and still begin"],
+    ["drank water before coffee", "a steel glass", "the smallest responsible choice", "I am learning to parent myself gently"],
+    ["cleaned my email inbox", "hundreds of unread things", "one folder named later", "chaos can be negotiated"],
+    ["talked to my sibling without snapping", "a silly meme", "a normal laugh", "peace can return in tiny pieces"],
+    ["went to therapy search page but did not book", "the open tab", "a list of names", "even looking is movement"],
+    ["stopped comparing my timeline", "someone's engagement post", "my own quiet evening", "their joy is not proof of my failure"],
+    ["saved a little money", "coins in a drawer", "not much, but mine", "small safety still feels like safety"],
+    ["prayed for myself without bargaining", "folded hands", "no dramatic promise", "I asked softly and that felt enough"],
+    ["made my bed for no reason", "crooked blanket", "pillow dent", "I wanted one place to look cared for"],
+  ],
+  Heavy: [
+    ["felt tired in a way sleep does not touch", "the bus window", "my reflection looking older", "I am functioning but not feeling held"],
+    ["smiled through a family call", "the question about my future", "my throat going tight", "being polite can cost too much"],
+    ["sat in the bathroom longer than needed", "cold tiles", "someone knocking once", "privacy became my only quiet room"],
+    ["kept working while my chest felt loud", "a spreadsheet", "one blinking cursor", "people only notice collapse, not the before"],
+    ["watched everyone make plans without me", "the group chat", "heart reactions piling up", "I felt like furniture in my own life"],
+    ["missed someone who hurt me", "an old photo", "my brain defending them", "grief does not check if they deserve it"],
+    ["could not explain why I was sad", "a half-written note", "too many reasons and none", "language gave up before I did"],
+    ["felt invisible in a crowded room", "birthday lights", "people laughing near me", "loneliness can be loud"],
+    ["heard a song and suddenly folded", "the second verse", "a memory I did not invite", "some days the past has good aim"],
+    ["kept saying I am fine", "dry lips", "automatic smile", "fine has become a password"],
+    ["felt guilty for resting", "an afternoon nap", "unfinished tasks", "my body asked nicely and I still judged it"],
+    ["held back tears in public", "a shop mirror", "one cashier being kind", "kindness is dangerous when you are already full"],
+    ["got bad news and went silent", "a plain message", "the room changing shape", "some words split the day in two"],
+    ["felt like I am behind everyone", "their announcements", "my quiet calendar", "comparison is a thief with good lighting"],
+    ["wanted comfort but could not ask", "a contact name", "deleted text", "needing people feels risky"],
+    ["woke up already exhausted", "morning light", "the same ceiling", "starting the day felt like continuing a war"],
+    ["pretended noise did not bother me", "plates clanging", "too many voices", "my nerves felt skinless"],
+    ["felt ashamed of needing help", "a form left incomplete", "my pride being useless", "survival should not be embarrassing"],
+    ["realized nobody knows the full version", "different masks", "different rooms", "I am tired of being edited"],
+    ["kept a whole breakdown scheduled for later", "public transport", "one hand gripping the bag", "sometimes control is just postponing tears"],
+  ],
+  Angry: [
+    ["watched someone rewrite the story", "their innocent tone", "my name turned into blame", "calm people can still be lying"],
+    ["got called sensitive again", "the little laugh after", "my jaw locking", "sensitive is what people say when truth inconveniences them"],
+    ["realized I was the backup plan", "late replies", "sudden availability", "I am not an emergency charger for lonely people"],
+    ["heard an apology with no change", "same words", "same behavior", "sorry is cheap when rent is due in actions"],
+    ["saw them be kind to strangers", "public sweetness", "private cruelty", "performance kindness makes me furious"],
+    ["got interrupted until I stopped talking", "half a sentence", "their louder opinion", "silence is not agreement"],
+    ["was expected to forgive on schedule", "everyone saying move on", "nobody asking what it cost", "peace should not mean protecting the person who broke it"],
+    ["found out they mocked me", "a screenshot", "my own words turned into a joke", "trust can die from secondhand laughter"],
+    ["did all the work and got none of the credit", "a project file", "their name in the praise", "being useful is not the same as being valued"],
+    ["was told to be mature", "my hands shaking", "their comfort prioritized", "maturity should not be a muzzle"],
+    ["noticed my boundary annoyed them", "one-word reply", "cold air after", "people miss the version of you they could use"],
+    ["got blamed for reacting", "the thing they started", "my voice finally rising", "the reaction became the crime"],
+    ["saw favoritism again", "same rules, different person", "my stomach dropping", "unfairness is exhausting when it is polite"],
+    ["was expected to understand everything", "their bad mood", "their excuses", "I am tired of being the emotional dustbin"],
+    ["got a fake compliment", "teeth in the smile", "a sting after", "some sweetness is just poison with manners"],
+    ["waited for them to notice", "the obvious hurt", "their comfortable blindness", "if you cared, I would not need subtitles"],
+    ["had my privacy treated like drama", "a shared secret", "too many people knowing", "betrayal travels fast"],
+    ["was compared to someone again", "their perfect example", "my patience thinning", "I am a person, not a failed copy"],
+    ["got told to calm down", "after being cornered", "after being dismissed", "calm is easier when you are not the one bleeding"],
+    ["finally stopped explaining", "their confusion", "my silence", "not every exit needs a speech"],
+  ],
+  Lonely: [
+    ["missed having a no-reason person", "a photo of the sky", "nobody to send it to", "casual closeness is what I crave"],
+    ["sat with people and still felt outside", "chairs in a circle", "inside jokes", "I was present but not included"],
+    ["watched my phone stay quiet", "charging cable", "no notifications", "silence has a weight"],
+    ["ate dinner alone again", "one plate", "too much rice", "the room too clean", "routine can become a witness"],
+    ["realized I am always the one asking", "how are you texts", "empty return lane", "care should have traffic both ways"],
+    ["wanted to call someone but chose not to", "contacts list", "thumb hovering", "I did not want to be a burden with a ringtone"],
+    ["felt replaced in a group", "new nicknames", "old jokes without me", "friendship can fade without a funeral"],
+    ["missed home while being at home", "familiar walls", "unfamiliar quiet", "places can change their meaning"],
+    ["stood at a party like a loading screen", "music too loud", "smile too practiced", "I wanted to disappear politely"],
+    ["saw best friends being best friends", "two people laughing", "my chest doing that pinch", "I am happy for them and sad for me"],
+    ["kept my good news to myself", "a tiny achievement", "no one obvious to tell", "joy also needs somewhere to sit"],
+    ["scrolled old chats", "messages from better days", "names that no longer fit", "memory is a cruel archive"],
+    ["felt lonely after posting", "a story with views", "no replies", "being seen is not the same as being reached"],
+    ["wanted someone to notice my mood", "short answers", "they did not ask", "maybe hints are unfair but directness scares me"],
+    ["walked behind a group", "their shoulders close", "my steps separate", "sometimes distance is only two feet"],
+    ["missed a version of myself", "old photos", "bigger smile", "I want to meet that person again"],
+    ["had nobody to gossip with", "a ridiculous thing happened", "the joke died inside me", "small laughter needs company"],
+    ["kept refreshing messages", "blue light", "same empty screen", "hope can become a habit"],
+    ["felt like a temporary person", "people passing through", "no one staying", "I want to be someone's familiar place"],
+    ["slept early to skip the evening", "lights off", "mind still awake", "night is harder when nobody expects you"],
+  ],
+  Love: [
+    ["caught feelings from ordinary kindness", "they saved me a seat", "my heart acting foolish", "gentleness is dangerous"],
+    ["miss someone I never dated", "almost messages", "almost plans", "almost can still bruise"],
+    ["like someone and hate how obvious I am", "checking their reply", "pretending not to smile", "my face is not loyal"],
+    ["received a voice note and replayed it", "background noise", "their laugh", "sound can become a place"],
+    ["want love but fear being known", "soft attention", "old defenses", "intimacy feels like opening a locked room"],
+    ["felt safe with a friend", "walking home", "quiet beside me", "maybe love is not always fireworks"],
+    ["saw my parents being gentle once", "tea offered without asking", "a small smile", "love can be old and quiet"],
+    ["still care about someone who left", "their birthday date", "my memory being stubborn", "care does not understand endings quickly"],
+    ["got jealous and felt ashamed", "a tagged photo", "my stomach twist", "feelings are not always fair but they are honest"],
+    ["wanted to confess but swallowed it", "the perfect moment", "my courage leaving", "some truths live under the tongue"],
+    ["love my friend more than I say", "their tired face", "wanting to protect them", "friendship is not a lesser love"],
+    ["was loved gently and panicked", "a patient message", "my urge to run", "kindness feels suspicious when you learned chaos first"],
+    ["miss being someone's favorite notification", "old name popping up", "the rush gone", "attention can become a ghost"],
+    ["made a playlist for someone", "songs I cannot send", "titles telling on me", "music is my cowardly confession"],
+    ["want simple love", "shared food", "normal errands", "someone remembering how I take tea", "romance can be domestic"],
+    ["felt loved by a small detail", "they noticed I was quiet", "no big speech", "attention is a language"],
+    ["kept a secret crush too long", "years of almost", "different cities now", "some feelings expire unopened"],
+    ["held back because timing is wrong", "right person maybe", "wrong season definitely", "love still needs a place to land"],
+    ["got butterflies from a stupid joke", "terrible pun", "my laugh betraying me", "standards vanish when the heart votes"],
+    ["chose myself over chemistry", "one last message", "a shaky block button", "love without peace is not home"],
+  ],
+  Regret: [
+    ["did not reply when someone needed me", "their old message", "my excuse at the time", "delay became distance"],
+    ["said something sharp to win", "their face after", "the victory tasting awful", "being right can still be ugly"],
+    ["stayed quiet to keep peace", "a room full of tension", "my truth folded small", "silence charged interest"],
+    ["left without explaining", "a half-goodbye", "years later", "avoidance is not kindness"],
+    ["took my parents for granted", "missed calls", "ordinary concern", "love sounded annoying until it got rare"],
+    ["wasted a year pretending", "fake goals", "fake confidence", "my own life waiting outside"],
+    ["trusted the wrong person with a secret", "their smile", "my story traveling", "some doors should stay locked"],
+    ["laughed at something that hurt someone", "group pressure", "their quietness", "cowardice can sound like laughter"],
+    ["ignored my health too long", "small symptoms", "bigger fear", "denial is not medicine"],
+    ["chose ego over apology", "drafted texts", "deleted everything", "pride is a lonely room"],
+    ["let a friendship fade", "we both got busy", "I stopped trying", "not all losses are dramatic"],
+    ["used someone as comfort", "not love", "just loneliness", "people are not blankets"],
+    ["stayed where I was disrespected", "small insults", "big excuses", "I taught them my limits were imaginary"],
+    ["spent money to feel less empty", "packages arriving", "same sadness", "new things cannot replace peace"],
+    ["pretended not to care", "cool voice", "burning chest", "indifference was just fear in sunglasses"],
+    ["missed one last visit", "I thought there was time", "there was not", "later is not a promise"],
+    ["made fun of my own dream", "before anyone else could", "then stopped trying", "self-protection became self-sabotage"],
+    ["kept choosing unavailable people", "the chase", "the crash", "familiar pain felt like proof"],
+    ["did not defend myself", "the accusation", "my frozen body", "sometimes the comeback arrives years late"],
+    ["forgot to be kind to younger me", "old mistakes", "old photos", "that person was surviving too"],
+  ],
+  Funny: [
+    ["acted confident and walked into the wrong room", "everyone staring", "my fake purpose", "I invented a destination on the spot"],
+    ["liked a very old post by accident", "the year on the caption", "my soul leaving", "I considered changing my identity"],
+    ["waved back at someone waving behind me", "full enthusiasm", "zero recovery plan", "my hand betrayed the bloodline"],
+    ["said you too to the waiter", "enjoy your meal", "my automatic mouth", "I hope they forgive me spiritually"],
+    ["pretended to understand a song lyric", "everyone singing", "my invented language", "confidence carried the chorus"],
+    ["sent a serious text with a typo", "I miss your soup instead of support", "no explanation helped", "autocorrect has enemies"],
+    ["joined a gym and got humbled by stairs", "day two", "legs negotiating", "fitness is rude"],
+    ["tried to cook fancy noodles", "smoke alarm", "one sad pan", "the recipe and I are no longer speaking"],
+    ["forgot why I entered a room", "stood there like an NPC", "left with nothing", "quest failed successfully"],
+    ["overdressed for a casual hangout", "everyone in slippers", "me looking like a side quest prince", "commitment was made"],
+    ["laughed during a serious moment", "wrong timing", "panic laugh", "my body chose social destruction"],
+    ["called my teacher mom once", "classroom silence", "instant regret", "I still remember the floor pattern"],
+    ["ordered food while trying to save money", "discount code", "delivery fee", "financial logic left the chat"],
+    ["typed a brave message and sent only okay", "paragraph deleted", "one tiny word", "communication champion"],
+    ["tried meditation and planned my whole week", "eyes closed", "brain sprinting", "peace had network issues"],
+    ["used a dramatic password hint", "forgot the password", "hint insulted me", "past me is toxic"],
+    ["sang with headphones too loud", "neighbor eye contact", "no stage, only shame", "tour cancelled"],
+    ["panicked at a compliment", "they said nice shirt", "I said congratulations", "why am I like this"],
+    ["opened the fridge five times", "same contents", "new hope", "science remains unexplained"],
+    ["made a to-do list and added make to-do list", "checked it off", "felt productive", "I fear I am unstoppable"],
+  ],
+  Grateful: [
+    ["someone remembered my exam date", "one good luck message", "my chest warming", "being remembered gently matters"],
+    ["my friend sent food without making it a big deal", "a simple parcel", "no lecture", "care can arrive quietly"],
+    ["a stranger helped me with directions", "rain starting", "their patient explanation", "small kindness changed the whole day"],
+    ["my sibling made me laugh", "stupid voice", "bad mood broken", "family can be annoying and saving at once"],
+    ["had one peaceful morning", "sun on the floor", "tea cooling", "nothing urgent", "peace felt borrowed but real"],
+    ["my plant grew a new leaf", "tiny green proof", "me checking twice", "life keeps making little arguments for staying"],
+    ["someone listened without fixing", "no advice parade", "just presence", "being heard is its own medicine"],
+    ["I found an old note from myself", "messy handwriting", "hope from a past version", "I accidentally comforted future me"],
+    ["my mother saved my favorite piece", "a plate covered for me", "ordinary love", "some affection is served as food"],
+    ["a teacher believed I could improve", "one sentence", "months ago", "their faith outlasted my confidence"],
+    ["the rain slowed everything down", "wet roads", "soft air", "my mind quieter", "weather can be kind"],
+    ["a friend did not judge my silence", "weeks without talking", "same warmth", "low-maintenance love is rare"],
+    ["got paid for small work", "not a huge amount", "my own effort", "earning even little feels like spine"],
+    ["laughed so hard my stomach hurt", "bad joke", "good people", "for five minutes I forgot the heavy stuff"],
+    ["my body carried me through another day", "tired feet", "steady breath", "I complain but I am thankful"],
+    ["someone asked if I reached home", "simple text", "late night", "care has tiny sentences"],
+    ["I had clean bedsheets", "fresh smell", "small luxury", "comfort does not always need money"],
+    ["my younger cousin hugged me", "sticky hands", "full trust", "love can be very unpolished"],
+    ["a song found me at the right time", "one chorus", "goosebumps", "music is such a strange rescue"],
+    ["I got another chance", "not dramatic", "just enough room", "I am grateful life did not close the door yet"],
+  ],
+  Lost: [
+    ["do not know what career I actually want", "tabs open", "advice everywhere", "my own voice missing", "options can feel like fog"],
+    ["feel like I outgrew my old self", "old habits", "new discomfort", "no manual", "change is awkward before it is clear"],
+    ["keep waiting for a sign", "same ceiling", "same questions", "no lightning", "maybe I have to choose without certainty"],
+    ["do not know where I belong", "different friend groups", "different versions of me", "none fully true", "identity feels rented"],
+    ["feel behind but also tired of racing", "milestones", "announcements", "my own slow path", "speed is not direction"],
+    ["left something and miss it anyway", "old routine", "new silence", "freedom can echo"],
+    ["changed my mind again", "plans crossed out", "people asking why", "growth looks flaky from outside"],
+    ["cannot tell if I need discipline or rest", "unfinished work", "heavy eyes", "guilt shouting", "self-knowledge is blurry"],
+    ["feel like everyone got instructions except me", "adult tasks", "forms and fees", "fake confidence", "I am improvising a life"],
+    ["lost interest in things I used to love", "dusty hobby", "quiet shelf", "no spark", "I miss wanting things"],
+    ["am scared my dream is not mine", "other people's praise", "my private boredom", "approval can disguise a cage"],
+    ["do not know if I am lonely or just changing", "fewer calls", "more quiet", "less tolerance", "maybe solitude is doing renovations"],
+    ["feel stuck between leaving and staying", "packed thoughts", "unpacked room", "same view", "indecision has furniture"],
+    ["cannot explain my mood", "not sad exactly", "not fine either", "weather inside", "language feels too simple"],
+    ["started over and feel embarrassed", "beginner mistakes", "younger people ahead", "my pride sweating", "new paths make everyone a learner"],
+    ["do not recognize my own goals", "old list", "new silence", "no excitement", "maybe wanting can expire"],
+    ["feel spiritually offline", "prayers quiet", "mind noisy", "no clear answer", "faith also has buffering days"],
+    ["want to disappear and restart", "not forever", "just elsewhere", "new name energy", "escape is tempting when clarity is absent"],
+    ["am tired of explaining my confusion", "people want decisions", "I have fog", "fog is not laziness"],
+    ["feel like a draft version", "half-built habits", "unfinished confidence", "loose edges", "maybe drafts are still real"],
+  ],
+  Healing: [
+    ["did not check their profile today", "muscle memory", "one stopped thumb", "I chose peace for ten seconds"],
+    ["cried and did not shame myself", "wet pillow", "quiet room", "no performance", "tears are not a failure"],
+    ["said no without giving a courtroom speech", "two letters", "racing heart", "I survived the silence after"],
+    ["noticed an old trigger early", "same tone", "old panic", "new pause", "awareness arrived before the spiral"],
+    ["stopped apologizing for needing space", "one evening offline", "no dramatic exit", "rest is not betrayal"],
+    ["forgave myself a little", "not fully", "just one corner", "maybe softness can start small"],
+    ["cleaned up after a bad week", "laundry basket", "fresh water", "tiny order", "repair can be domestic"],
+    ["talked about something I usually hide", "careful words", "someone staying", "truth did not make me unlovable"],
+    ["blocked someone and felt guilty", "quiet screen", "shaky hands", "guilt does not always mean wrong"],
+    ["let a good day be good", "no waiting for disaster", "ordinary sunlight", "joy deserves less suspicion"],
+    ["returned to an old hobby", "rusty start", "small fun", "I am allowed to be bad at joy"],
+    ["accepted that closure may not come", "no final talk", "no perfect answer", "I can still leave the room"],
+    ["stopped arguing with an imagined version of them", "shower debates", "fake comebacks", "my peace needed the microphone back"],
+    ["asked for reassurance directly", "awkward sentence", "honest need", "less guessing", "clarity felt kinder"],
+    ["caught myself being kind to my body", "stretching slowly", "not insulting the mirror", "neutral is progress too"],
+    ["let someone help me", "carrying one bag", "not proving toughness", "support did not make me smaller"],
+    ["deleted old screenshots", "receipts of pain", "empty gallery", "I do not need a museum of hurt"],
+    ["made peace with not being chosen", "their decision", "my dignity", "rejection is not a verdict"],
+    ["slept after a hard conversation", "no overthinking marathon", "just tired", "my nervous system deserved mercy"],
+    ["started again after relapsing into old habits", "same mistake", "less cruelty", "healing includes returning"],
+  ],
 };
+
+const COMMENT_VOICES = [
+  "relatable",
+  "supportive",
+  "gentle-advice",
+  "short-reaction",
+  "tiny-story",
+  "soft-disagree",
+  "warm-humor",
+  "older-sibling",
+  "quiet-witness",
+];
 
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function pick(array) {
-  return array[rand(0, array.length - 1)];
+function pick(arr) {
+  return arr[rand(0, arr.length - 1)];
 }
 
-function sample(array, count, excludeIds = new Set()) {
-  const filtered = array.filter((item) => !excludeIds.has(String(item._id || item)));
+function sample(arr, count, excludeSet = new Set()) {
+  const filtered = arr.filter((item) => !excludeSet.has(String(item._id || item)));
   const shuffled = filtered.slice().sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
@@ -447,37 +473,103 @@ function daysAgo(days, hourOffset = 0) {
   return date;
 }
 
+function categoryForMood(mood, index) {
+  const pattern = {
+    Hopeful: ["grove", "budding", "grove", "general"],
+    Heavy: ["budding", "scorched", "budding", "general"],
+    Angry: ["scorched", "scorched", "budding", "general"],
+    Lonely: ["budding", "budding", "general", "scorched"],
+    Love: ["grove", "budding", "general", "grove"],
+    Regret: ["budding", "scorched", "general", "budding"],
+    Funny: ["grove", "general", "budding", "grove"],
+    Grateful: ["grove", "grove", "general", "budding"],
+    Lost: ["budding", "general", "scorched", "budding"],
+    Healing: ["grove", "budding", "grove", "general"],
+  };
+  return pattern[mood][index % pattern[mood].length];
+}
+
+function categoryWarning(mood) {
+  if (["Heavy", "Lost"].includes(mood)) return "Heavy / Sensitive";
+  if (["Regret", "Healing"].includes(mood)) return "Self-reflection";
+  if (mood === "Angry") return "Vent";
+  if (mood === "Love") return "Relationship";
+  return "";
+}
+
 function randomCosmeticLoadout(index) {
   const frame = COSMETICS.frames[index % COSMETICS.frames.length];
   const badge = COSMETICS.badges[(index * 2) % COSMETICS.badges.length];
   const title = COSMETICS.titles[(index * 3) % COSMETICS.titles.length];
   const postTheme = COSMETICS.postThemes[(index * 5) % COSMETICS.postThemes.length];
   const extraItems = sample(
-    [
-      ...COSMETICS.frames,
-      ...COSMETICS.badges,
-      ...COSMETICS.titles,
-      ...COSMETICS.postThemes,
-    ].map((itemId) => ({ itemId })),
-    rand(2, 5)
+    [...COSMETICS.frames, ...COSMETICS.badges, ...COSMETICS.titles, ...COSMETICS.postThemes].map((itemId) => ({ itemId })),
+    rand(3, 7)
   ).map((item) => item.itemId);
 
   const allOwned = Array.from(new Set([frame, badge, title, postTheme, ...extraItems]));
 
   return {
-    ownedCosmetics: allOwned.map((itemId) => ({
-      itemId,
-      purchasedAt: daysAgo(rand(2, 30)),
-    })),
-    equippedCosmetics: {
-      badge,
-      frame,
-      title,
-      postTheme,
-      reactionStyle: "",
-      visualEffect: "",
-    },
+    ownedCosmetics: allOwned.map((itemId) => ({ itemId, purchasedAt: daysAgo(rand(2, 60)) })),
+    equippedCosmetics: { badge, frame, title, postTheme, reactionStyle: "", visualEffect: "" },
   };
+}
+
+function makeStory(mood, index) {
+  const [hook, object, scene, takeaway] = STORY_SEEDS[mood][index];
+  const openings = [
+    `I need to admit something: I ${hook}.`,
+    `This is small, but it stayed with me. I ${hook}.`,
+    `I do not really have a neat ending for this. I just ${hook}.`,
+    `I have been thinking about how I ${hook}.`,
+  ];
+  const middles = [
+    `The weird part was ${object}. It should have been ordinary, but it made the whole thing feel too real. I kept noticing ${scene}, like my brain wanted one tiny detail to hold onto instead of the bigger feeling.`,
+    `It happened around ${object}, and for some reason ${scene} became the part I cannot stop replaying. Nothing dramatic happened after that. I just carried it around quietly.`,
+    `There was ${object}, then ${scene}, and suddenly I felt like the day had a hidden subtitle only I could read. I hate when ordinary moments expose something I was trying to ignore.`,
+    `I remember ${object} more than the actual conversation. I remember ${scene}. Sometimes the smallest details become evidence that something mattered.`,
+  ];
+  const endings = [
+    `I guess the confession is that ${takeaway}. I am not asking anyone to fix it. I just wanted it outside my chest for a while.`,
+    `Maybe that is the lesson, or maybe I am just trying to make meaning out of a messy day. Either way, ${takeaway}.`,
+    `It sounds simple when I type it, but it did not feel simple inside me. ${takeaway}.`,
+    `I do not know what I will do with this feeling yet. For now, ${takeaway}.`,
+  ];
+
+  const longMiddle = index % 5 === 0
+    ? `\n\nI also noticed how much energy I spend trying to make my feelings look reasonable before I let anyone see them. Even here, anonymous, part of me wants to edit this until it sounds mature. But the raw version is probably more honest: I am tired, hopeful, embarrassed, and trying at the same time.\n\n`
+    : index % 4 === 0
+      ? `\n\nThe part I cannot say out loud is that I wanted someone to notice without me making a scene. I know that is unfair sometimes. People are not mind readers. Still, wanting to be noticed gently is such a human thing.\n\n`
+      : `\n\n`;
+
+  return `${openings[index % openings.length]}\n\n${middles[(index * 2) % middles.length]}${longMiddle}${endings[(index * 3) % endings.length]}`;
+}
+
+function makeComment(mood, postIndex, commentIndex, seed) {
+  const [, object, scene, takeaway] = seed;
+  const voice = COMMENT_VOICES[(postIndex + commentIndex) % COMMENT_VOICES.length];
+  const endings = [
+    "Hope you are a little gentler with yourself after typing it.",
+    "Leaving this here so it does not feel like you said it into empty air.",
+    "That kind of honesty is small but not easy.",
+    "I hope the next hour is less heavy than this one.",
+    "This is exactly the sort of thing people hide and then feel alone with.",
+    "You made it sound human, not dramatic.",
+  ];
+
+  const bank = {
+    relatable: `The ${object} detail is what got me. I have had a completely different situation do the same thing, where one tiny object suddenly holds the whole mood.`,
+    supportive: `I do not think you are weird for feeling this. The line about "${takeaway}" makes sense in a way I wish it did not.`,
+    "gentle-advice": `Maybe do not force yourself to solve all of it tonight. Sometimes naming the feeling clearly is already the first useful thing.`,
+    "short-reaction": `Damn. The part with ${scene} hit harder than expected.`,
+    "tiny-story": `This reminded me of a day when I kept staring at something ordinary and suddenly realized I was not okay. It is strange how the body picks the smallest witnesses.`,
+    "soft-disagree": `I get why you are judging yourself, but from outside it reads less like weakness and more like someone trying to survive without instructions.`,
+    "warm-humor": `Not me nodding at this like the ${object} personally attacked both of us. Feelings really choose the weirdest props.`,
+    "older-sibling": `For what it is worth, this sounds like a person growing awareness, not a person failing. Those are very different things.`,
+    "quiet-witness": `I read the whole thing. No big advice, just witnessing it with you for a second.`,
+  };
+
+  return `${bank[voice]} ${endings[(postIndex * 7 + commentIndex) % endings.length]}`;
 }
 
 function buildPostReactions(category, author, users) {
@@ -486,34 +578,30 @@ function buildPostReactions(category, author, users) {
   let burnCount;
 
   if (category === "budding") {
-    waterCount = rand(5, 24);
-    burnCount = waterCount;
+    waterCount = rand(8, 28);
+    burnCount = rand(Math.max(5, waterCount - 5), Math.min(40, waterCount + 5));
   } else if (category === "grove") {
-    waterCount = rand(22, 40);
-    burnCount = rand(1, Math.min(14, waterCount - 5));
+    waterCount = rand(24, 40);
+    burnCount = rand(5, 16);
   } else if (category === "scorched") {
-    burnCount = rand(22, 40);
-    waterCount = rand(1, Math.min(14, burnCount - 5));
+    burnCount = rand(24, 40);
+    waterCount = rand(5, 18);
   } else {
-    waterCount = rand(8, 40);
+    waterCount = rand(12, 40);
     burnCount = rand(5, 35);
-    if (Math.abs(waterCount - burnCount) < 3) burnCount = Math.max(5, burnCount - 4);
   }
 
   const wateredUsers = sample(users, waterCount, exclude);
   const used = new Set([...exclude, ...wateredUsers.map((u) => String(u._id))]);
   const burnedUsers = sample(users, burnCount, used);
 
-  return {
-    wateredBy: uniqueIds(wateredUsers),
-    burnedBy: uniqueIds(burnedUsers),
-  };
+  return { wateredBy: uniqueIds(wateredUsers), burnedBy: uniqueIds(burnedUsers) };
 }
 
-function buildComments(postIndex, postDate, users, author) {
-  const count = rand(4, 7);
+function buildComments(mood, postIndex, seed, postDate, users, author) {
+  const count = rand(5, 9);
   const commenters = sample(users, count, new Set([String(author._id)]));
-  const boostedIndexes = new Set(sample([...Array(count).keys()], rand(1, 2)).map((n) => n));
+  const boostedIndexes = new Set(sample([...Array(count).keys()], rand(1, 3)).map((n) => n));
 
   return commenters.map((commenter, i) => {
     const isBoosted = boostedIndexes.has(i);
@@ -525,7 +613,7 @@ function buildComments(postIndex, postDate, users, author) {
 
     return {
       userId: commenter._id,
-      text: pick(COMMENT_BANK),
+      text: makeComment(mood, postIndex, i, seed),
       image: null,
       wateredBy: uniqueIds(wateredUsers),
       burnedBy: uniqueIds(burnedUsers),
@@ -540,37 +628,46 @@ function buildComments(postIndex, postDate, users, author) {
 }
 
 function buildComfortCards(users, author) {
-  const cards = sample(COMFORT_TEXTS, rand(2, 4)).map((text) => {
-    const senders = sample(users, rand(2, 9), new Set([String(author._id)]));
-    return {
-      text,
-      count: senders.length,
-      sentBy: uniqueIds(senders),
-    };
+  return sample(COMFORT_TEXTS, rand(3, 5)).map((text) => {
+    const senders = sample(users, rand(3, 12), new Set([String(author._id)]));
+    return { text, count: senders.length, sentBy: uniqueIds(senders) };
   });
-
-  return cards;
 }
 
-function confessionMessage(category, mood, variant) {
-  const options = CONFESSION_TEMPLATES[category][mood];
-  return options[variant % options.length];
+function validateUniqueContent(confessions) {
+  const seenPosts = new Map();
+  const seenComments = new Map();
+
+  for (const confession of confessions) {
+    const postKey = confession.message.trim().toLowerCase();
+    if (seenPosts.has(postKey)) {
+      throw new Error(`Duplicate confession text found for mood ${confession.mood}`);
+    }
+    seenPosts.set(postKey, true);
+
+    for (const comment of confession.comments || []) {
+      const commentKey = comment.text.trim().toLowerCase();
+      if (seenComments.has(commentKey)) {
+        throw new Error(`Duplicate comment text found: ${comment.text}`);
+      }
+      seenComments.set(commentKey, true);
+    }
+  }
+
+  return { postCount: seenPosts.size, commentCount: seenComments.size };
 }
 
 async function resetSeedData() {
   const deleteConfessions = await Confession.deleteMany({ isSeedContent: true });
   const deleteUsers = await User.deleteMany({ isSeedUser: true });
-
   console.log(`Reset starter confessions: ${deleteConfessions.deletedCount}`);
   console.log(`Reset starter users: ${deleteUsers.deletedCount}`);
 }
 
 async function createSeedUsers() {
   const passwordHash = await bcrypt.hash(`starter-${Date.now()}-${Math.random()}`, 10);
-
-  const users = SEED_PERSONAS.map(([username, persona], index) => {
+  const users = SEED_PERSONAS.slice(0, 90).map(([username, persona], index) => {
     const cosmetics = randomCosmeticLoadout(index);
-
     return {
       username,
       email: `${username}@seed.confession-wall.local`,
@@ -581,41 +678,36 @@ async function createSeedUsers() {
       role: "user",
       isSeedUser: true,
       seedPersona: persona,
-      seeds: rand(75, 900),
+      seeds: rand(75, 1200),
       showSeedsOnProfile: rand(0, 1) === 1,
       ownedCosmetics: cosmetics.ownedCosmetics,
       equippedCosmetics: cosmetics.equippedCosmetics,
-      dailyStreak: {
-        current: rand(0, 12),
-        best: rand(2, 28),
-        lastVisitDateKey: "",
-      },
-      createdAt: daysAgo(rand(15, 60)),
+      dailyStreak: { current: rand(0, 18), best: rand(2, 36), lastVisitDateKey: "" },
+      createdAt: daysAgo(rand(15, 90)),
       updatedAt: daysAgo(rand(0, 14)),
     };
   });
-
   return User.insertMany(users, { ordered: false });
 }
 
 function buildConfessions(users) {
-  const categories = ["budding", "grove", "scorched", "general"];
   const confessions = [];
   let globalIndex = 0;
 
-  categories.forEach((category, categoryIndex) => {
-    for (let i = 0; i < 20; i += 1) {
-      const mood = MOODS[i % MOODS.length];
-      const variant = Math.floor(i / MOODS.length);
-      const author = users[(globalIndex * 7 + categoryIndex * 3) % users.length];
-      const createdAt = daysAgo(rand(0, 12), -i);
+  for (const mood of MOODS) {
+    for (let i = 0; i < POSTS_PER_MOOD; i += 1) {
+      const seed = STORY_SEEDS[mood][i];
+      const category = categoryForMood(mood, i);
+      const author = users[(globalIndex * 7 + i * 3) % users.length];
+      const createdAt = daysAgo(rand(0, 18), -i);
       const reactions = buildPostReactions(category, author, users);
-      const comments = buildComments(globalIndex, createdAt, users, author);
+      const comments = buildComments(mood, globalIndex, seed, createdAt, users, author);
       const postTheme = author.equippedCosmetics?.postTheme || pick(COSMETICS.postThemes);
+      const warning = categoryWarning(mood);
 
       confessions.push({
         userId: author._id,
-        message: confessionMessage(category, mood, variant),
+        message: makeStory(mood, i),
         image: null,
         images: [],
         mood,
@@ -624,16 +716,10 @@ function buildConfessions(users) {
         seedBatch: SEED_BATCH,
         postTheme,
         contentWarning: {
-          enabled: ["Heavy", "Regret", "Lost", "Angry"].includes(mood),
-          category: ["Heavy", "Lost"].includes(mood)
-            ? "Heavy / Sensitive"
-            : mood === "Regret"
-              ? "Self-reflection"
-              : mood === "Angry"
-                ? "Vent"
-                : "",
-          note: "Fictional starter confession with emotional themes.",
-          sensitive: ["Heavy", "Regret", "Lost", "Angry"].includes(mood),
+          enabled: Boolean(warning),
+          category: warning,
+          note: warning ? "Fictional starter confession with emotional themes." : "",
+          sensitive: Boolean(warning),
         },
         wateredBy: reactions.wateredBy,
         burnedBy: reactions.burnedBy,
@@ -653,31 +739,24 @@ function buildConfessions(users) {
 
       globalIndex += 1;
     }
-  });
+  }
 
+  validateUniqueContent(confessions);
   return confessions;
 }
 
 async function refreshSeedUserAvatars() {
   const users = await User.find({ isSeedUser: true }).sort({ createdAt: 1, username: 1 });
-
   if (!users.length) {
     console.log("No seed users found. Run the seed script first, or run with --reset to recreate starter users.");
     return;
   }
-
   const operations = users.map((user, index) => ({
     updateOne: {
       filter: { _id: user._id },
-      update: {
-        $set: {
-          profilePicture: seedAvatarPath(index),
-          updatedAt: new Date(),
-        },
-      },
+      update: { $set: { profilePicture: seedAvatarPath(index), updatedAt: new Date() } },
     },
   }));
-
   const result = await User.bulkWrite(operations);
   console.log(`Refreshed seed user avatars: ${result.modifiedCount || operations.length}`);
   console.log(`Avatar pool available: ${SEED_AVATAR_PATHS.length}`);
@@ -685,7 +764,6 @@ async function refreshSeedUserAvatars() {
 
 async function main() {
   const mongoUri = process.env.MONGO_URI;
-
   if (!mongoUri) {
     console.error("Missing MONGO_URI in server/.env");
     process.exit(1);
@@ -701,15 +779,15 @@ async function main() {
   }
 
   if (DRY_RUN) {
-    console.log("Dry run: would create 90 fictional seed users and 80 starter confessions.");
+    console.log("Dry run: would create 90 fictional seed users and 200 starter confessions.");
+    console.log("Each mood gets 20 unique confessions.");
+    console.log("Each confession gets 5-9 unique comments, with boosted comment reactions.");
     console.log(`Avatar pool available: ${SEED_AVATAR_PATHS.length}`);
     await mongoose.disconnect();
     return;
   }
 
-  if (SHOULD_RESET) {
-    await resetSeedData();
-  }
+  if (SHOULD_RESET) await resetSeedData();
 
   const existingSeedUsers = await User.countDocuments({ isSeedUser: true });
   const existingSeedConfessions = await Confession.countDocuments({ isSeedContent: true });
@@ -718,25 +796,33 @@ async function main() {
     console.log("Starter community content already exists.");
     console.log(`Seed users: ${existingSeedUsers}`);
     console.log(`Seed confessions: ${existingSeedConfessions}`);
-    console.log("Use --reset to remove and recreate starter content, or --force to add another batch.");
+    console.log("Use --reset to replace starter content, or --force to add another batch.");
     await mongoose.disconnect();
     return;
   }
 
   const users = await createSeedUsers();
   const confessions = buildConfessions(users);
+  const uniqueReport = validateUniqueContent(confessions);
   await Confession.insertMany(confessions, { ordered: false });
 
-  const counts = confessions.reduce((acc, confession) => {
+  const countsByMood = confessions.reduce((acc, confession) => {
+    acc[confession.mood] = (acc[confession.mood] || 0) + 1;
+    return acc;
+  }, {});
+  const countsByCategory = confessions.reduce((acc, confession) => {
     acc[confession.seedCategory] = (acc[confession.seedCategory] || 0) + 1;
     return acc;
   }, {});
 
-  console.log("Starter community seed complete.");
+  console.log("Richer starter community seed complete.");
   console.log(`Created fictional seed users: ${users.length}`);
   console.log(`Assigned profile avatars from pool: ${SEED_AVATAR_PATHS.length}`);
   console.log(`Created starter confessions: ${confessions.length}`);
-  console.log("By category:", counts);
+  console.log(`Unique confession texts: ${uniqueReport.postCount}`);
+  console.log(`Unique comment texts: ${uniqueReport.commentCount}`);
+  console.log("By mood:", countsByMood);
+  console.log("By category:", countsByCategory);
   console.log("All starter users/content are marked with isSeedUser/isSeedContent for cleanup.");
 
   await mongoose.disconnect();
@@ -744,8 +830,6 @@ async function main() {
 
 main().catch(async (err) => {
   console.error("Seed starter content failed:", err);
-  try {
-    await mongoose.disconnect();
-  } catch (_) {}
+  try { await mongoose.disconnect(); } catch (_) {}
   process.exit(1);
 });
