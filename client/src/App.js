@@ -241,27 +241,6 @@ function ShopButton() {
 }
 
 
-function MobileGuidebookButton() {
-  const openGuidebook = () => {
-    window.dispatchEvent(
-      new CustomEvent("cw:open-guidebook", {
-        detail: { mode: "manual", source: "mobile-navbar" },
-      })
-    );
-  };
-
-  return (
-    <button
-      type="button"
-      className="nav-guidebook-mobile-btn"
-      onClick={openGuidebook}
-      title="Open Guidebook"
-      aria-label="Open Guidebook"
-    >
-      <span aria-hidden="true">📜</span>
-    </button>
-  );
-}
 
 function SeedCounter()
 
@@ -914,7 +893,6 @@ function Navbar() {
           }}
         >
           <ShopButton />
-          <MobileGuidebookButton />
           {user && <SeedCounter />}
 
           <Link

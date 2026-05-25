@@ -8,6 +8,7 @@ const GROVE_ICON = "\uD83C\uDF3F";
 const BUDDING_ICON = "\uD83C\uDF31";
 const SCORCHED_ICON = "\uD83D\uDD25";
 const SHOP_ICON = "\uD83D\uDED2";
+const GUIDEBOOK_ICON = "📜";
 const CONFESS_ICON = "\uD83C\uDF3F";
 const ACTIVITY_ICON = "\uD83D\uDD14";
 const PROFILE_ICON = "\uD83D\uDC64";
@@ -30,6 +31,14 @@ export default function MobileBottomNav({ onConfess }) {
     navigate("/?compose=true");
   };
 
+  const openGuidebook = () => {
+    window.dispatchEvent(
+      new CustomEvent("cw:open-guidebook", {
+        detail: { mode: "manual", source: "mobile-bottom-nav" },
+      })
+    );
+  };
+
   if (!user) {
     return (
       <nav
@@ -38,11 +47,13 @@ export default function MobileBottomNav({ onConfess }) {
       >
         <button
           type="button"
-          onClick={() => navigate("/shop")}
-          className={isActive("/shop") ? "active" : ""}
+          onClick={openGuidebook}
+          className="mobile-bottom-guidebook-btn"
+          title="Open Guidebook"
+          aria-label="Open Guidebook"
         >
-          {SHOP_ICON}
-          <span>Shop</span>
+          {GUIDEBOOK_ICON}
+          <span>Guide</span>
         </button>
 
         <button
@@ -87,13 +98,15 @@ export default function MobileBottomNav({ onConfess }) {
   return (
     <nav className="mobile-home-bottom-nav mobile-home-bottom-nav--auth" aria-label="Mobile bottom navigation">
       <button
-        type="button"
-        onClick={() => navigate("/shop")}
-        className={isActive("/shop") ? "active" : ""}
-      >
-        {SHOP_ICON}
-        <span>Shop</span>
-      </button>
+          type="button"
+          onClick={openGuidebook}
+          className="mobile-bottom-guidebook-btn"
+          title="Open Guidebook"
+          aria-label="Open Guidebook"
+        >
+          {GUIDEBOOK_ICON}
+          <span>Guide</span>
+        </button>
 
       <div className="mobile-bottom-quest-slot">
         <DailyQuestDropdown variant="bottom" />

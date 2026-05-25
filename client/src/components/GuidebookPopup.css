@@ -630,3 +630,101 @@ body.cw-guidebook-open .demon-sprite {
     font-size: 11px !important;
   }
 }
+
+/* === Mobile compact Guidebook safety patch === */
+@media (max-width: 720px) {
+  .cw-guidebook-backdrop {
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    background: rgba(0, 7, 3, 0.84) !important;
+  }
+
+  .cw-guidebook {
+    width: min(100%, 430px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 18px !important;
+  }
+
+  .cw-guidebook-header {
+    padding: 14px 14px 12px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  .cw-guidebook-header h2 {
+    font-size: clamp(19px, 7vw, 28px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .cw-guidebook-close {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cw-guidebook-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cw-guidebook-tabs {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 10px 12px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(180, 255, 120, 0.14) !important;
+    scrollbar-width: thin;
+  }
+
+  .cw-guidebook-tab {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 9px 11px !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+  }
+
+  .cw-guidebook-page {
+    padding: 14px !important;
+  }
+
+  .cw-guidebook-copy h3 {
+    font-size: clamp(21px, 7vw, 30px) !important;
+    line-height: 1.12 !important;
+  }
+
+  .cw-guidebook-summary {
+    font-size: 14px !important;
+    line-height: 1.48 !important;
+  }
+
+  .cw-guidebook-points,
+  .cw-guidebook-media-grid,
+  .cw-guidebook-step-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .cw-guidebook-shot {
+    min-height: 90px !important;
+  }
+
+  .cw-guidebook-shot img {
+    max-height: 240px !important;
+    object-fit: contain !important;
+  }
+}

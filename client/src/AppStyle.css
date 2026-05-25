@@ -8188,3 +8188,22 @@ button.confession-image-scroller__item {
     transform: scale(0.96);
   }
 }
+
+/* === Mobile bottom Guidebook nav patch === */
+@media (max-width: 720px) {
+  .navbar .nav-shop-btn {
+    display: inline-flex !important;
+  }
+
+  .navbar .nav-guidebook-mobile-btn {
+    display: none !important;
+  }
+
+  .mobile-home-bottom-nav .mobile-bottom-guidebook-btn {
+    position: relative;
+  }
+
+  .mobile-home-bottom-nav .mobile-bottom-guidebook-btn span {
+    white-space: nowrap;
+  }
+}
