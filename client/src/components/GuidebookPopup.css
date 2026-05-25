@@ -414,3 +414,29 @@ body.cw-guidebook-open {
     grid-template-columns: 1fr;
   }
 }
+
+/* Guidebook modal click shield safety */
+body.cw-guidebook-open {
+  overflow: hidden;
+}
+
+.cw-guidebook-backdrop {
+  z-index: 2147483000 !important;
+  pointer-events: auto !important;
+  isolation: isolate;
+}
+
+.cw-guidebook {
+  position: relative;
+  z-index: 2147483001 !important;
+  pointer-events: auto !important;
+}
+
+body.cw-guidebook-open .spirit-hitbox,
+body.cw-guidebook-open .left-spirit,
+body.cw-guidebook-open .right-spirit,
+body.cw-guidebook-open .krishna-sprite,
+body.cw-guidebook-open .demon-sprite {
+  pointer-events: none !important;
+}
+

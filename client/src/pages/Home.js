@@ -1482,6 +1482,10 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
 
   useEffect(() => {
     const handleSpiritClick = (e) => {
+      // Guidebook is a modal. While it is open, never let the desktop
+      // Krishna/Demon spirit raycast capture clicks behind the guide.
+      if (document.body.classList.contains("cw-guidebook-open")) return;
+      if (e.target?.closest?.(".cw-guidebook-backdrop, .cw-guidebook, .cw-guidebook-launcher")) return;
       if (e.target.closest('[data-ui="true"]')) return;
   
       if (isOpaqueAt(leftImgRef.current, e)) {
@@ -1497,6 +1501,11 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
       }
     };
     const handleMouseMove = (e) => {
+  if (document.body.classList.contains("cw-guidebook-open")) {
+    setLeftHover(false);
+    setRightHover(false);
+    return;
+  }
   setLeftHover(isOpaqueAt(leftImgRef.current, e));
   setRightHover(isOpaqueAt(rightImgRef.current, e));
 };
