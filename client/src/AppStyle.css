@@ -8681,3 +8681,22 @@ button.confession-image-scroller__item {
     z-index: 2147482000 !important;
   }
 }
+
+
+/* === Desktop notification priority fix: hide floating Guidebook while inbox is open === */
+@media (min-width: 721px) {
+  body.cw-notifications-open .cw-guidebook-launcher {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transform: translateY(-8px) scale(0.98) !important;
+  }
+
+  body.cw-notifications-open .cw-notification-bell-wrap {
+    z-index: 2147483000 !important;
+  }
+
+  body.cw-notifications-open .cw-notification-dropdown {
+    z-index: 2147483100 !important;
+  }
+}

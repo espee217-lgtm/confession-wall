@@ -315,6 +315,20 @@ function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const bodyClass = "cw-notifications-open";
+
+    if (open) {
+      document.body.classList.add(bodyClass);
+    } else {
+      document.body.classList.remove(bodyClass);
+    }
+
+    return () => {
+      document.body.classList.remove(bodyClass);
+    };
+  }, [open]);
+
   const authHeaders = token
     ? {
         Authorization: `Bearer ${token}`,
