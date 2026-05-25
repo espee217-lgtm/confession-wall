@@ -8250,12 +8250,16 @@ button.confession-image-scroller__item {
   .trending-leaderboard-hero::before {
     content: "" !important;
     position: absolute !important;
-    left: 12% !important;
-    right: 12% !important;
-    bottom: 76px !important;
-    height: 20px !important;
-    background: url("/assets/trending/leaf_divider.webp") center / contain no-repeat !important;
-    opacity: 0.35 !important;
+    left: 14% !important;
+    right: 14% !important;
+    bottom: 78px !important;
+    height: 1px !important;
+    background:
+      linear-gradient(90deg, transparent, rgba(227, 255, 168, 0.62), transparent) !important;
+    box-shadow:
+      0 0 10px rgba(141, 255, 106, 0.24),
+      0 8px 18px rgba(141, 255, 106, 0.08) !important;
+    opacity: 0.72 !important;
     pointer-events: none !important;
   }
 
