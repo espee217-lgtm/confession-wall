@@ -9160,3 +9160,26 @@ button.confession-image-scroller__item {
     transform: translateY(-7px) !important;
   }
 }
+
+/* Mobile only: notifications live in the bottom Activity tab, so hide the duplicate top bell button.
+   Keep the wrapper/dropdown alive so the bottom Activity tab can still open the notification popout. */
+@media (max-width: 720px) {
+  .navbar .cw-notification-bell-btn,
+  .top-navbar .cw-notification-bell-btn,
+  .nav-actions .cw-notification-bell-btn,
+  .cw-notification-bell-btn {
+    display: none !important;
+  }
+
+  .navbar .cw-notification-bell-wrap,
+  .top-navbar .cw-notification-bell-wrap,
+  .nav-actions .cw-notification-bell-wrap,
+  .cw-notification-bell-wrap {
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}
