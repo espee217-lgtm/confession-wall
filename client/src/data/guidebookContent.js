@@ -1,8 +1,9 @@
 export const GUIDEBOOK_VERSION = "1.0.0";
 
-const img = (file, alt) => ({
+const img = (file, alt, options = {}) => ({
   src: `/guidebook/desktop/${file}`,
   alt,
+  ...options,
 });
 
 export const GUIDEBOOK_SECTIONS = [
@@ -242,20 +243,59 @@ export const GUIDEBOOK_SECTIONS = [
   {
     id: "events",
     label: "Events & Safety",
-    eyebrow: "Community systems",
-    title: "Weekly events, reports, and safer walls",
+    eyebrow: "Play fair, stay safe",
+    title: "Events, quests, reports, and safer walls",
     summary:
-      "Events give the wall a game-like rhythm. Reports help the community stay safer without turning Confession Wall into therapy or formal counseling.",
-    images: [
-      img("event_button.webp", "Weekly Forest Event card on the home page."),
-      img("EventPage.webp", "Weekly Forest Event page with cycle rules, leaderboard, and rewards."),
-      img("report.webp", "Report button on a post or comment."),
-    ],
+      "Events give Confession Wall a game-like rhythm. Safety tools help the wall stay usable, human, and supportive without pretending to replace professional help.",
     points: [
-      "Open the Weekly Forest Event card to see the current cycle, leaderboard, and rewards.",
-      "Some events reward the most watered or most burned posts during the event window.",
-      "Use Report when a post or comment breaks the rules.",
-      "Confession Wall is for anonymous venting and community support, not a replacement for professional help.",
+      "Daily Quests are simple tasks for free Seed rewards.",
+      "Weekly Forest Events are timed community cycles with leaderboards and rewards.",
+      "Report is for posts or comments that break the rules.",
+      "Confession Wall is anonymous venting and community support, not therapy or formal counseling.",
+    ],
+    steps: [
+      {
+        badge: "Daily Quests",
+        title: "Earn Seeds through daily actions",
+        text:
+          "Open Daily Quests to track small tasks like visiting, posting, or commenting. Completing them builds your streak and gives free Seed rewards over time.",
+        images: [
+          img("daily_quest_desktop.webp", "Daily Quest panel showing streaks, progress bars, and Seed rewards."),
+        ],
+      },
+      {
+        badge: "Event Card",
+        title: "Use the Home event card to enter the weekly cycle",
+        text:
+          "The Weekly Forest Event card on Home shows the current event, its live status, and the time left. Click it to open the full event page.",
+        images: [
+          img("event_button.webp", "Weekly Forest Event card on the home page."),
+        ],
+      },
+      {
+        badge: "Event Page",
+        title: "Check rules, leaderboards, and rewards",
+        text:
+          "The event page explains the current cycle, leaderboard windows, qualifying posts, and rewards such as most watered or most burned event results.",
+        images: [
+          img("EventPage.webp", "Weekly Forest Event page with cycle rules, leaderboard, and rewards."),
+        ],
+      },
+      {
+        badge: "Report",
+        title: "Report posts or comments that break rules",
+        text:
+          "Use Report when something is harmful, unsafe, spammy, or against the wall rules. Post reports are available from Grove, Budding, and Scorched cards. Comment reports are available inside the comment page.",
+        images: [
+          img("report.webp", "Compact Report button used for posts and comments.", { variant: "compact" }),
+        ],
+      },
+      {
+        badge: "Safety note",
+        title: "Community support, not professional care",
+        text:
+          "Confession Wall is a place to vent, be heard, and support each other. It is not a replacement for therapy, emergency help, medical advice, or legal advice.",
+      },
     ],
   },
 ];

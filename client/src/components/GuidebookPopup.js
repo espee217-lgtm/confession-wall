@@ -109,7 +109,10 @@ export default function GuidebookPopup({ open, onClose }) {
                     {step.images?.length ? (
                       <div className={`cw-guidebook-step-media cw-guidebook-step-media--${step.images.length}`}>
                         {step.images.map((image) => (
-                          <figure className="cw-guidebook-shot cw-guidebook-shot--step" key={image.src}>
+                          <figure
+                            className={`cw-guidebook-shot cw-guidebook-shot--step${image.variant ? ` cw-guidebook-shot--${image.variant}` : ""}`}
+                            key={image.src}
+                          >
                             <img src={image.src} alt={image.alt} loading="lazy" decoding="async" />
                           </figure>
                         ))}
@@ -122,7 +125,7 @@ export default function GuidebookPopup({ open, onClose }) {
               <div className="cw-guidebook-media-grid">
                 {(activeSection.images || []).map((image, index) => (
                   <figure
-                    className={`cw-guidebook-shot${index === 0 ? " cw-guidebook-shot--primary" : ""}`}
+                    className={`cw-guidebook-shot${index === 0 ? " cw-guidebook-shot--primary" : ""}${image.variant ? ` cw-guidebook-shot--${image.variant}` : ""}`}
                     key={image.src}
                   >
                     <img src={image.src} alt={image.alt} loading="lazy" decoding="async" />
