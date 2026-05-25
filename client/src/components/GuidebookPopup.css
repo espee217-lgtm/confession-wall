@@ -1,0 +1,291 @@
+body.cw-guidebook-open {
+  overflow: hidden;
+}
+
+.cw-guidebook-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(170, 255, 110, 0.16), transparent 34%),
+    rgba(0, 7, 3, 0.76);
+}
+
+.cw-guidebook {
+  width: min(1120px, calc(100vw - 56px));
+  max-height: min(760px, calc(100vh - 56px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: rgba(246, 255, 226, 0.94);
+  background:
+    linear-gradient(145deg, rgba(6, 30, 12, 0.98), rgba(2, 14, 7, 0.98)),
+    radial-gradient(circle at top left, rgba(185, 255, 92, 0.18), transparent 42%);
+  border: 1px solid rgba(182, 255, 116, 0.24);
+  border-radius: 28px;
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px rgba(255, 255, 210, 0.06);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.cw-guidebook-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid rgba(180, 255, 120, 0.14);
+  background: linear-gradient(90deg, rgba(16, 55, 19, 0.76), rgba(5, 23, 8, 0.36));
+}
+
+.cw-guidebook-kicker,
+.cw-guidebook-eyebrow {
+  margin: 0 0 6px;
+  color: rgba(198, 255, 135, 0.8);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.cw-guidebook-header h2 {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(28px, 3vw, 48px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f5ffd7;
+  text-shadow: 0 0 18px rgba(183, 255, 107, 0.28);
+}
+
+.cw-guidebook-version {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 120, 0.18);
+  color: rgba(237, 255, 203, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.cw-guidebook-close {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(230, 255, 180, 0.22);
+  color: rgba(246, 255, 226, 0.84);
+  background: rgba(255, 255, 220, 0.07);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cw-guidebook-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  flex: 1;
+}
+
+.cw-guidebook-tabs {
+  padding: 18px 14px;
+  border-right: 1px solid rgba(180, 255, 120, 0.12);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.2), transparent),
+    rgba(2, 18, 7, 0.7);
+  overflow-y: auto;
+}
+
+.cw-guidebook-tab {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(190, 255, 120, 0.12);
+  color: rgba(241, 255, 218, 0.74);
+  background: rgba(255, 255, 220, 0.035);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cw-guidebook-tab.is-active {
+  color: #f5ffd7;
+  background: linear-gradient(135deg, rgba(119, 190, 55, 0.28), rgba(20, 64, 21, 0.52));
+  border-color: rgba(201, 255, 134, 0.38);
+  box-shadow: 0 0 18px rgba(157, 255, 91, 0.16);
+}
+
+.cw-guidebook-page {
+  min-height: 0;
+  padding: 22px;
+  overflow-y: auto;
+}
+
+.cw-guidebook-copy {
+  max-width: 860px;
+  margin-bottom: 18px;
+}
+
+.cw-guidebook-copy h3 {
+  margin: 0 0 10px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(24px, 2.2vw, 38px);
+  letter-spacing: 0.07em;
+  color: #f6ffd7;
+}
+
+.cw-guidebook-summary {
+  max-width: 840px;
+  margin: 0 0 16px;
+  color: rgba(246, 255, 226, 0.78);
+  font-size: 16px;
+  line-height: 1.58;
+}
+
+.cw-guidebook-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cw-guidebook-points li {
+  position: relative;
+  padding: 12px 14px 12px 34px;
+  border-radius: 16px;
+  border: 1px solid rgba(190, 255, 120, 0.12);
+  background: rgba(255, 255, 220, 0.045);
+  color: rgba(246, 255, 226, 0.78);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.cw-guidebook-points li::before {
+  content: "✦";
+  position: absolute;
+  left: 13px;
+  top: 12px;
+  color: rgba(194, 255, 120, 0.78);
+}
+
+.cw-guidebook-media-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cw-guidebook-shot {
+  margin: 0;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(188, 255, 130, 0.16);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 220, 0.05), rgba(0, 0, 0, 0.18)),
+    rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 220, 0.035);
+}
+
+.cw-guidebook-shot--primary {
+  grid-column: 1 / -1;
+}
+
+.cw-guidebook-shot img {
+  width: 100%;
+  height: 100%;
+  max-height: 330px;
+  object-fit: contain;
+  display: block;
+}
+
+.cw-guidebook-shot--primary img {
+  max-height: 390px;
+}
+
+.cw-guidebook-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 22px;
+  border-top: 1px solid rgba(180, 255, 120, 0.14);
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(246, 255, 226, 0.58);
+  font-size: 13px;
+}
+
+.cw-guidebook-footer button {
+  border: 1px solid rgba(206, 255, 140, 0.36);
+  border-radius: 999px;
+  padding: 10px 18px;
+  color: #efffca;
+  background: linear-gradient(135deg, rgba(91, 150, 43, 0.55), rgba(20, 70, 26, 0.78));
+  font-family: "Cinzel", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.cw-guidebook-launcher {
+  position: fixed;
+  right: 24px;
+  top: 86px;
+  z-index: 4700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(197, 255, 128, 0.28);
+  color: rgba(244, 255, 218, 0.86);
+  background:
+    linear-gradient(135deg, rgba(18, 55, 18, 0.88), rgba(4, 18, 6, 0.86));
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38), 0 0 18px rgba(154, 255, 92, 0.14);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.cw-guidebook-launcher:hover {
+  transform: translateY(-1px);
+  border-color: rgba(216, 255, 148, 0.46);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 22px rgba(154, 255, 92, 0.22);
+}
+
+.cw-guidebook-launcher-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (max-width: 920px) {
+  .cw-guidebook-launcher {
+    display: none;
+  }
+
+  .cw-guidebook-backdrop {
+    display: none;
+  }
+}

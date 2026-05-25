@@ -1606,6 +1606,7 @@ const scorchedPosts = confessions.filter(
   (c) => (c.burnedBy?.length || 0) > (c.wateredBy?.length || 0)
 );
 const NEW_WINDOW = 1000 * 60 * 60 * 24 * 7; // 7 days
+const CW_GUIDEBOOK_VERSION = "1.0.0";
 
 const freshPosts = confessions
   .filter((c) => {
@@ -1668,13 +1669,34 @@ const [image, setImage] = useState([]);
     };
   }, []);
 
+const openGuidebookAfterTutorial = useCallback((mode = "auto") => {
+  if (typeof window === "undefined" || window.innerWidth < 920) return;
+
+  window.setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent("cw:open-guidebook", {
+        detail: { mode },
+      })
+    );
+  }, mode === "auto" ? 450 : 150);
+}, []);
+
 useEffect(() => {
   const seenTutorial = localStorage.getItem("seenHomeTutorial");
 
   if (!seenTutorial) {
     setShowTutorial(true);
+    return;
   }
-}, []);
+
+  try {
+    if (localStorage.getItem("cwGuidebookSeenVersion") !== CW_GUIDEBOOK_VERSION) {
+      openGuidebookAfterTutorial("auto");
+    }
+  } catch {
+    openGuidebookAfterTutorial("auto");
+  }
+}, [openGuidebookAfterTutorial]);
 
 useEffect(() => {
   const params = new URLSearchParams(location.search);
@@ -2525,6 +2547,7 @@ useEffect(() => {
       } else {
         localStorage.setItem("seenHomeTutorial", "true");
         setShowTutorial(false);
+        openGuidebookAfterTutorial("auto");
       }
     }}
     style={{
@@ -2554,6 +2577,7 @@ useEffect(() => {
     onClick={() => {
       localStorage.setItem("seenHomeTutorial", "true");
       setShowTutorial(false);
+      openGuidebookAfterTutorial("auto");
     }}
     style={{
       padding: "10px 18px",

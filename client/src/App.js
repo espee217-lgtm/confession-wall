@@ -13,6 +13,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
+import GuidebookPopup, { GUIDEBOOK_VERSION } from "./components/GuidebookPopup";
 import Home from "./pages/Home";
 import ConfessionPage from "./pages/ConfessionPage";
 import Register from "./pages/Register";
@@ -1107,6 +1108,39 @@ function Footer() {
 function AppContent() {
   const location = useLocation();
   const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
+  const hideGuidebookLauncher = HIDE_NAVBAR_ROUTES.includes(location.pathname);
+  const [guidebookOpen, setGuidebookOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenGuidebook = (event) => {
+      const mode = event?.detail?.mode || "manual";
+
+      if (mode === "auto") {
+        try {
+          if (localStorage.getItem("cwGuidebookSeenVersion") === GUIDEBOOK_VERSION) {
+            return;
+          }
+        } catch {
+          // localStorage can fail in private modes; still allow the guidebook to open.
+        }
+      }
+
+      setGuidebookOpen(true);
+    };
+
+    window.addEventListener("cw:open-guidebook", handleOpenGuidebook);
+    return () => window.removeEventListener("cw:open-guidebook", handleOpenGuidebook);
+  }, []);
+
+  const closeGuidebook = () => {
+    try {
+      localStorage.setItem("cwGuidebookSeenVersion", GUIDEBOOK_VERSION);
+    } catch {
+      // Ignore localStorage failures; closing the popup should still work.
+    }
+
+    setGuidebookOpen(false);
+  };
 
   useEffect(() => {
     applySeo({
@@ -1157,6 +1191,21 @@ function AppContent() {
       </Routes>
 
       {!hideFooter && <Footer />}
+
+      {!hideGuidebookLauncher && (
+        <button
+          type="button"
+          className="cw-guidebook-launcher"
+          onClick={() => setGuidebookOpen(true)}
+          title="Open the Confession Wall Guidebook"
+          aria-label="Open the Confession Wall Guidebook"
+        >
+          <span className="cw-guidebook-launcher-icon" aria-hidden="true">📜</span>
+          <span>Guidebook</span>
+        </button>
+      )}
+
+      <GuidebookPopup open={guidebookOpen} onClose={closeGuidebook} />
       <ToastContainer />
     </>
   );
