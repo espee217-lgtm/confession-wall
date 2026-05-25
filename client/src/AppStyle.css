@@ -8153,3 +8153,38 @@ button.confession-image-scroller__item {
     font-size: 8px !important;
   }
 }
+
+/* === Mobile Guidebook launcher patch === */
+.nav-guidebook-mobile-btn {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .navbar .nav-shop-btn {
+    display: none !important;
+  }
+
+  .navbar .nav-guidebook-mobile-btn {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    margin: 0;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 255, 150, 0.4);
+    background: radial-gradient(circle at top, rgba(220, 255, 165, 0.2), rgba(5, 25, 8, 0.9));
+    color: #eaffc9;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(140, 255, 110, 0.2);
+    font-size: 18px;
+    line-height: 1;
+    flex: 0 0 auto;
+  }
+
+  .navbar .nav-guidebook-mobile-btn:active {
+    transform: scale(0.96);
+  }
+}

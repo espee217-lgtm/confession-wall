@@ -440,3 +440,193 @@ body.cw-guidebook-open .demon-sprite {
   pointer-events: none !important;
 }
 
+/* === Mobile compact Guidebook patch === */
+@media (max-width: 720px) {
+  .cw-guidebook-backdrop {
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    background: rgba(0, 7, 3, 0.84) !important;
+  }
+
+  .cw-guidebook {
+    width: min(100%, 430px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 18px !important;
+  }
+
+  .cw-guidebook-header {
+    padding: 14px 14px 12px !important;
+    gap: 10px !important;
+    align-items: flex-start !important;
+  }
+
+  .cw-guidebook-kicker,
+  .cw-guidebook-eyebrow {
+    font-size: 9px !important;
+    letter-spacing: 0.18em !important;
+  }
+
+  .cw-guidebook-header h2 {
+    font-size: clamp(19px, 7vw, 28px) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .cw-guidebook-version {
+    margin-top: 6px !important;
+    padding: 4px 9px !important;
+    font-size: 10px !important;
+  }
+
+  .cw-guidebook-close {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .cw-guidebook-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cw-guidebook-tabs {
+    display: flex !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 10px 12px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(180, 255, 120, 0.14) !important;
+    scrollbar-width: thin;
+  }
+
+  .cw-guidebook-tab {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 9px 11px !important;
+    border-radius: 999px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+  }
+
+  .cw-guidebook-page {
+    padding: 14px !important;
+  }
+
+  .cw-guidebook-copy {
+    margin-bottom: 14px !important;
+  }
+
+  .cw-guidebook-copy h3 {
+    font-size: clamp(21px, 7vw, 30px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .cw-guidebook-summary {
+    font-size: 14px !important;
+    line-height: 1.48 !important;
+  }
+
+  .cw-guidebook-points {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .cw-guidebook-points li {
+    padding: 10px 12px 10px 30px !important;
+    border-radius: 14px !important;
+    font-size: 13px !important;
+  }
+
+  .cw-guidebook-points li::before {
+    left: 11px !important;
+    top: 10px !important;
+  }
+
+  .cw-guidebook-media-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .cw-guidebook-shot {
+    min-height: 92px !important;
+    border-radius: 15px !important;
+  }
+
+  .cw-guidebook-shot img,
+  .cw-guidebook-shot--primary img,
+  .cw-guidebook-shot--step img {
+    max-height: 190px !important;
+  }
+
+  .cw-guidebook-step-list {
+    gap: 12px !important;
+  }
+
+  .cw-guidebook-step {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .cw-guidebook-step h4 {
+    font-size: 16px !important;
+    line-height: 1.18 !important;
+  }
+
+  .cw-guidebook-step p {
+    font-size: 13px !important;
+    line-height: 1.44 !important;
+  }
+
+  .cw-guidebook-step-badge {
+    font-size: 9px !important;
+    padding: 4px 9px !important;
+  }
+
+  .cw-guidebook-step-media,
+  .cw-guidebook-step-media--2 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .cw-guidebook-shot--compact {
+    max-width: 100% !important;
+    min-height: 80px !important;
+    padding: 12px 16px !important;
+  }
+
+  .cw-guidebook-shot--compact img {
+    max-height: 74px !important;
+  }
+
+  .cw-guidebook-footer {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    align-items: center !important;
+    font-size: 11px !important;
+  }
+
+  .cw-guidebook-footer span {
+    display: none !important;
+  }
+
+  .cw-guidebook-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+    font-size: 11px !important;
+  }
+}
