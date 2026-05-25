@@ -134,20 +134,52 @@ export const GUIDEBOOK_SECTIONS = [
     id: "echoes",
     label: "Echoes",
     eyebrow: "Talk back gently",
-    title: "Comment, reply, save, and stay updated",
+    title: "Echo Roots, replies, saves, and alerts",
     summary:
-      "Open a confession to leave an Echo Root. Click an existing comment to reply under it. Save posts as Pressed Leaves and check notifications from the bell.",
-    images: [
-      img("makingcomment.webp", "Comment input and Echo Roots under a confession."),
-      img("replyingacomment.webp", "Reply view opened from an existing comment."),
-      img("Pressed_leaves_profile.webp", "View Pressed Leaves button from the profile area."),
-      img("notification_button.webp", "Notification bell and notification inbox preview."),
-    ],
+      "After a confession is planted, people can answer gently, reply under comments, save posts for later, and follow updates from the bell.",
     points: [
-      "Comments are called Echo Roots because they grow under a confession.",
-      "Click a comment to open its reply view and echo back directly.",
-      "Pressed Leaves bookmark posts you want to revisit later.",
-      "The notification bell shows updates from activity, reports, rewards, and replies.",
+      "Echo Roots are comments under a confession.",
+      "Replies grow under a specific Echo Root, not the whole post.",
+      "Pressed Leaves are bookmarks for posts you want to revisit.",
+      "The bell keeps activity, replies, rewards, reports, and updates in one place.",
+    ],
+    steps: [
+      {
+        badge: "Echo Root",
+        title: "Leave a comment under a confession",
+        text:
+          "Open a confession and write in the comment bar. Press Bloom to leave an Echo Root under that post.",
+        images: [
+          img("makingcomment.webp", "Comment input and Echo Roots under a confession."),
+        ],
+      },
+      {
+        badge: "Reply",
+        title: "Click a comment to reply directly",
+        text:
+          "When you click an existing comment, its own reply view opens. Your reply stays under that comment as a smaller echo thread.",
+        images: [
+          img("replyingacomment.webp", "Reply view opened from an existing comment."),
+        ],
+      },
+      {
+        badge: "Pressed Leaves",
+        title: "Save posts you want to revisit",
+        text:
+          "Pressed Leaves are bookmarks. Use them on posts you care about, then open your profile and choose View Pressed Leaves to find them again.",
+        images: [
+          img("Pressed_leaves_profile.webp", "View Pressed Leaves button from the profile area."),
+        ],
+      },
+      {
+        badge: "Bell",
+        title: "Stay updated from notifications",
+        text:
+          "The notification bell shows updates from activity, replies, rewards, report outcomes, and other important wall events.",
+        images: [
+          img("notification_button.webp", "Notification bell and notification inbox preview."),
+        ],
+      },
     ],
   },
   {
