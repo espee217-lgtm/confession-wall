@@ -72,22 +72,62 @@ export const GUIDEBOOK_SECTIONS = [
   {
     id: "react",
     label: "Realms",
-    eyebrow: "Water, burn, grow",
-    title: "Reactions decide where posts live",
+    eyebrow: "Water the plant, burn the roots",
+    title: "How realms work",
     summary:
-      "Water means support. Burn means disagreement, intensity, or a darker reaction. Each post moves between realms based on the balance of Water and Fire.",
-    images: [
-      img("Reactions_ui.webp", "Water and Burn reaction UI with the flourishing status bar."),
-      img("Groove_desktop.webp", "Grove page showing posts with more Water than Fire."),
-      img("budding_desktop.webp", "Budding page showing new or balanced posts."),
-      img("scorched_desktop.webp", "Scorched page showing posts with more Fire than Water."),
-      img("comfortcards.webp", "Comfort cards and golden side notes around a confession."),
-    ],
+      "Every confession has a place on the wall. Watering the plant means support and growth. Fire means burn, intensity, or disagreement. The balance between both decides where the post lives.",
     points: [
-      "Water > Fire sends a confession toward Grove.",
-      "Water = Fire keeps it in Budding, including brand-new 0 = 0 posts.",
-      "Fire > Water sends it into Scorched.",
-      "Comfort Cards are quick support notes like “I hear you” or “You are not alone.”",
+      "🌱 Water > Fire → Grove: supported posts grow into the Thriving Grove.",
+      "🌱 Water = Fire → Budding: new or balanced posts wait in Budding, including 0 = 0.",
+      "🔥 Fire > Water → Scorched: posts with more Fire fall into the Scorched Lands.",
+      "Comfort Cards are support notes, not realm votes. They help people feel heard without changing the Water/Fire balance directly.",
+    ],
+    steps: [
+      {
+        badge: "Step 1",
+        title: "Use Water and Fire",
+        text:
+          "The plant icon is Water. On Confession Wall, watering a post means you are helping it grow. Fire is the darker reaction for burn, intensity, or disagreement.",
+        images: [
+          img("Reactions_ui.webp", "Water and Fire reaction UI with the flourishing status bar."),
+        ],
+      },
+      {
+        badge: "Grove",
+        title: "More Water sends it upward",
+        text:
+          "When a confession has more Water than Fire, it moves toward Grove. Grove is where supported, nourished, or positively received posts live.",
+        images: [
+          img("Groove_desktop.webp", "Grove page showing posts with more Water than Fire."),
+        ],
+      },
+      {
+        badge: "Budding",
+        title: "Balanced posts wait in Budding",
+        text:
+          "Budding is for new or equal posts. If Water and Fire are tied, even 0 Water and 0 Fire, the confession stays here while its fate is still open.",
+        images: [
+          img("budding_desktop.webp", "Budding page showing new or balanced posts."),
+        ],
+      },
+      {
+        badge: "Scorched",
+        title: "More Fire sends it downward",
+        text:
+          "If a confession receives more Fire than Water, it falls into Scorched. This realm holds posts that were burned more than watered.",
+        images: [
+          img("scorched_desktop.webp", "Scorched page showing posts with more Fire than Water."),
+        ],
+      },
+      {
+        badge: "Support",
+        title: "Comfort Cards are separate support notes",
+        text:
+          "Comfort Cards are quick messages like “I hear you” or “You are not alone.” They appear as golden side notes around a confession so people can support without writing a full comment.",
+        images: [
+          img("comfortcards.webp", "Comfort cards and golden side notes around a confession."),
+        ],
+      },
     ],
   },
   {
