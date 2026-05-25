@@ -398,6 +398,77 @@ function MobileTrendingPodium({ posts, page, navigate }) {
   );
 }
 
+function MobileTrendingCard({ post, rank, onOpen }) {
+  const realm = getRealm(post);
+  const stats = getPostStats(post);
+  const username = getPostAuthorUsername(post);
+  const moodLabel = getPostMoodLabel(post, realm);
+  const message = getPostMessage(post);
+  const comfortCards = Array.isArray(post?.comfortCards) ? post.comfortCards.slice(0, 3) : [];
+  const skinAsset = getMobileSkinAsset(post, realm, rank);
+
+  return (
+    <button
+      type="button"
+      className={`trending-mobile-card trending-mobile-card--${realm} trending-mobile-card--${getRankTier(rank)}`}
+      style={{ "--trending-mobile-card-skin": `url(${skinAsset})` }}
+      onClick={onOpen}
+      aria-label={`Open rank ${rank} confession by ${username}`}
+    >
+      <span className="trending-mobile-card-rank" aria-hidden="true">
+        {String(rank).padStart(2, "0")}
+      </span>
+
+      <span className="trending-mobile-card-meta">
+        <strong>@{username}</strong>
+        <em>{moodLabel}</em>
+        <em>{realm}</em>
+      </span>
+
+      <span className="trending-mobile-card-message">{message}</span>
+
+      {comfortCards.length > 0 && (
+        <span className="trending-mobile-card-comforts" aria-label="Comfort cards">
+          {comfortCards.map((card, index) => (
+            <span key={`${getComfortChipLabel(card)}-${index}`}>
+              {getComfortChipLabel(card)}
+              {Number(card?.count) > 0 ? <em>{card.count}</em> : null}
+            </span>
+          ))}
+        </span>
+      )}
+
+      <span className="trending-mobile-card-stats" aria-label="Trending stats">
+        <span>🌱 {stats.water}</span>
+        <span>🔥 {stats.burn}</span>
+        <span>💬 {stats.echoes}</span>
+      </span>
+    </button>
+  );
+}
+
+function MobileTrendingRankedList({ posts, page, navigate }) {
+  const mobilePosts = posts.slice(3);
+  if (!mobilePosts.length) return null;
+
+  return (
+    <section className="trending-mobile-ranked-list" aria-label="More ranked trending confessions">
+      {mobilePosts.map((post, index) => {
+        const rank = (page - 1) * PAGE_LIMIT + index + 4;
+        const realm = getRealm(post);
+        return (
+          <MobileTrendingCard
+            key={post._id}
+            post={post}
+            rank={rank}
+            onOpen={() => navigate(`/confession/${post._id}?realm=${realm}`)}
+          />
+        );
+      })}
+    </section>
+  );
+}
+
 function TrendingPagination({ page, totalPages, loading, onChangePage }) {
   const visiblePages = getVisiblePageNumbers(page, totalPages);
 
@@ -547,6 +618,7 @@ export default function TrendingPage() {
   };
 
   return (
+    <>
     <main className="search-page-shell trending-page-shell">
       <button type="button" className="trending-floating-back-btn" onClick={() => navigate(-1)}>
         back
@@ -604,7 +676,18 @@ export default function TrendingPage() {
       </section>
 
       {!error && posts.length > 0 && (
-        <MobileTrendingPodium posts={posts} page={page} navigate={navigate} />
+        <>
+          <MobileTrendingPodium posts={posts} page={page} navigate={navigate} />
+          <MobileTrendingRankedList posts={posts} page={page} navigate={navigate} />
+          <div className="trending-mobile-pagination-wrap">
+            <TrendingPagination
+              page={page}
+              totalPages={totalPages}
+              loading={loading}
+              onChangePage={handlePageChange}
+            />
+          </div>
+        </>
       )}
 
       {error && <div className="search-state-card error">{error}</div>}
@@ -617,7 +700,7 @@ export default function TrendingPage() {
       )}
 
       {!error && posts.length > 0 && (
-        <section className="trending-leaderboard-layout">
+        <section className="trending-leaderboard-layout trending-desktop-layout">
           <div className="trending-ranked-list">
             {posts.map((post, index) => {
               const rank = (page - 1) * PAGE_LIMIT + index + 1;
@@ -734,7 +817,8 @@ export default function TrendingPage() {
         </section>
       )}
 
-      <MobileBottomNav />
     </main>
+    <MobileBottomNav />
+    </>
   );
 }

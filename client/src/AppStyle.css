@@ -8739,3 +8739,319 @@ button.confession-image-scroller__item {
     font-size: 18px !important;
   }
 }
+
+/* === Mobile Trending optimized split patch ===
+   Desktop keeps the old connected-node leaderboard. Mobile uses a separate,
+   flatter layout so the image skins are the card instead of boxes inside boxes. */
+.trending-mobile-ranked-list,
+.trending-mobile-pagination-wrap {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  /* Hide duplicate top profile avatar on phones; bottom Profile tab remains. */
+  .navbar .nav-actions .nav-profile-wrap,
+  .top-navbar .nav-actions .nav-profile-wrap,
+  .nav-actions .nav-profile-wrap {
+    display: none !important;
+  }
+
+  .trending-page-shell {
+    padding-bottom: 132px !important;
+    overflow: visible !important;
+  }
+
+  .trending-desktop-layout {
+    display: none !important;
+  }
+
+  .trending-mobile-ranked-list,
+  .trending-mobile-pagination-wrap {
+    display: block !important;
+    width: min(100%, calc(100vw - 24px)) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .trending-mobile-ranked-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    margin-top: 14px !important;
+  }
+
+  .trending-mobile-pagination-wrap .trending-pagination {
+    padding: 18px 0 8px !important;
+  }
+
+  .trending-mobile-podium {
+    width: min(100%, calc(100vw - 24px)) !important;
+    margin: 10px auto 16px !important;
+    padding: 12px 10px 10px !important;
+    border-radius: 24px !important;
+    background:
+      radial-gradient(circle at 50% 8%, rgba(205, 255, 125, 0.10), transparent 44%),
+      linear-gradient(180deg, rgba(3, 27, 8, 0.58), rgba(1, 12, 4, 0.78)) !important;
+    border: 1px solid rgba(215, 255, 145, 0.15) !important;
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 rgba(255, 255, 220, 0.08) !important;
+    overflow: hidden !important;
+  }
+
+  .trending-mobile-podium-head {
+    padding: 0 2px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .trending-mobile-podium-stage {
+    height: clamp(188px, 51vw, 238px) !important;
+    margin-top: 0 !important;
+  }
+
+  .trending-mobile-podium-base {
+    width: min(104%, 420px) !important;
+    bottom: 0 !important;
+    opacity: 0.98 !important;
+  }
+
+  .trending-mobile-podium-slot {
+    filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.42)) !important;
+  }
+
+  .trending-mobile-podium-slot--1 {
+    top: 8px !important;
+  }
+
+  .trending-mobile-podium-slot--2 {
+    left: 7% !important;
+    top: 58px !important;
+  }
+
+  .trending-mobile-podium-slot--3 {
+    right: 7% !important;
+    top: 70px !important;
+  }
+
+  .trending-mobile-podium-slot .cw-framed-avatar,
+  .trending-mobile-podium-slot .cw-framed-avatar * {
+    pointer-events: none !important;
+  }
+
+  .trending-mobile-card {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 188px !important;
+    padding: 18px 16px 14px 86px !important;
+    border: 1px solid rgba(224, 255, 160, 0.20) !important;
+    border-radius: 26px !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    color: rgba(250, 255, 230, 0.98) !important;
+    background:
+      linear-gradient(90deg, rgba(1, 10, 4, 0.88), rgba(2, 14, 6, 0.36) 48%, rgba(1, 10, 4, 0.80)),
+      var(--trending-mobile-card-skin),
+      linear-gradient(135deg, rgba(5, 28, 10, 0.92), rgba(1, 8, 3, 0.94)) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    box-shadow:
+      0 20px 42px rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(255, 239, 160, 0.03),
+      inset 0 1px 0 rgba(255, 255, 220, 0.10) !important;
+    font-family: Georgia, serif !important;
+    isolation: isolate !important;
+  }
+
+  .trending-mobile-card::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
+    background:
+      radial-gradient(circle at 88% 8%, rgba(255, 235, 150, 0.16), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 220, 0.04), transparent 30%, rgba(0, 0, 0, 0.22)),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014), rgba(255, 255, 255, 0.014) 1px, transparent 1px, transparent 5px) !important;
+  }
+
+  .trending-mobile-card::after {
+    content: "" !important;
+    position: absolute !important;
+    inset: 7px !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(215, 255, 150, 0.13) !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  .trending-mobile-card > * {
+    position: relative !important;
+    z-index: 2 !important;
+  }
+
+  .trending-mobile-card-rank {
+    position: absolute !important;
+    left: 16px !important;
+    top: 16px !important;
+    width: 54px !important;
+    height: 54px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(255, 238, 150, 0.32) !important;
+    background:
+      radial-gradient(circle, rgba(225, 255, 143, 0.18), rgba(6, 28, 8, 0.88)) !important;
+    box-shadow:
+      0 0 18px rgba(178, 255, 95, 0.12),
+      inset 0 1px 0 rgba(255, 255, 220, 0.12) !important;
+    color: #fff2b3 !important;
+    font-family: Cinzel, Georgia, serif !important;
+    font-weight: 900 !important;
+    font-size: 20px !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .trending-mobile-card-rank::after {
+    content: "rank" !important;
+    position: absolute !important;
+    bottom: 7px !important;
+    font-size: 6px !important;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase !important;
+    color: rgba(226, 255, 170, 0.76) !important;
+  }
+
+  .trending-mobile-card-meta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 11px !important;
+  }
+
+  .trending-mobile-card-meta strong {
+    color: #9cff9c !important;
+    font-size: 13px !important;
+    max-width: 140px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .trending-mobile-card-meta em {
+    padding: 4px 9px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(213, 255, 153, 0.22) !important;
+    background: rgba(3, 24, 7, 0.58) !important;
+    color: rgba(255, 244, 196, 0.92) !important;
+    font-size: 9px !important;
+    font-style: normal !important;
+    font-weight: 900 !important;
+    text-transform: capitalize !important;
+  }
+
+  .trending-mobile-card-message {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    min-height: 74px !important;
+    font-family: Georgia, serif !important;
+    font-size: clamp(20px, 6vw, 28px) !important;
+    line-height: 1.08 !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.86) !important;
+  }
+
+  .trending-mobile-card-comforts {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 13px !important;
+    padding-bottom: 2px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-x: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  .trending-mobile-card-comforts::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .trending-mobile-card-comforts span {
+    flex: 0 0 auto !important;
+    max-width: 154px !important;
+    padding: 6px 10px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(212, 255, 156, 0.19) !important;
+    background: rgba(2, 24, 8, 0.72) !important;
+    color: rgba(248, 255, 224, 0.92) !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .trending-mobile-card-comforts em {
+    margin-left: 6px !important;
+    color: rgba(255, 236, 152, 0.92) !important;
+    font-style: normal !important;
+  }
+
+  .trending-mobile-card-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+    padding-top: 10px !important;
+    border-top: 1px solid rgba(218, 255, 150, 0.12) !important;
+  }
+
+  .trending-mobile-card-stats span {
+    text-align: center !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    color: rgba(245, 255, 220, 0.88) !important;
+    white-space: nowrap !important;
+  }
+
+  .trending-mobile-card--green,
+  .trending-mobile-card--gold {
+    border-color: rgba(245, 229, 139, 0.24) !important;
+  }
+
+  .trending-mobile-card--silver {
+    border-color: rgba(190, 225, 255, 0.24) !important;
+  }
+
+  .trending-mobile-card--bronze,
+  .trending-mobile-card--scorched {
+    border-color: rgba(255, 170, 112, 0.22) !important;
+  }
+
+  .mobile-home-bottom-nav {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: max(14px, env(safe-area-inset-bottom)) !important;
+    z-index: 9000 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .trending-mobile-card {
+    padding-left: 78px !important;
+  }
+
+  .trending-mobile-card-rank {
+    left: 13px !important;
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .trending-mobile-podium-stage {
+    height: 202px !important;
+  }
+}
