@@ -23,8 +23,10 @@
     0 16px 34px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.09),
     inset 0 -1px 0 rgba(10, 22, 16, 0.42);
-  backdrop-filter: blur(12px) saturate(118%);
-  -webkit-backdrop-filter: blur(12px) saturate(118%);
+  backdrop-filter: blur(10px) saturate(112%);
+  -webkit-backdrop-filter: blur(10px) saturate(112%);
+  contain: layout paint style;
+  transform: translateZ(0);
   transition:
     transform 0.18s ease,
     filter 0.18s ease,
@@ -41,6 +43,19 @@
     0 20px 40px rgba(0, 0, 0, 0.25),
     0 0 22px rgba(98, 190, 118, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.11);
+}
+
+
+.forest-event-strip--loading {
+  opacity: 1;
+}
+
+.forest-event-strip--loading .forest-event-strip__badge {
+  opacity: 0.82;
+}
+
+.forest-event-strip--loading .forest-event-strip__timer {
+  opacity: 0.78;
 }
 
 .forest-event-strip::before {
@@ -281,5 +296,21 @@
   .forest-event-strip::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+
+@media (max-width: 720px) {
+  .forest-event-strip {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow:
+      0 10px 22px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .forest-event-strip::after {
+    animation: none;
+    opacity: 0.48;
   }
 }

@@ -9,6 +9,57 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const API_URL = `${API_BASE}/api/confessions/weekly-event`;
+const EVENT_STATUS_CACHE_KEY = "cw-weekly-event-status-v1";
+const EVENT_STATUS_CACHE_MS = 5 * 60 * 1000;
+const EVENT_STRIP_IMAGE_WEBP = "/assets/fig-event-strip.webp";
+const EVENT_STRIP_IMAGE_FALLBACK = "/assets/fig.png";
+
+const FALLBACK_EVENT = {
+  name: "Forest Event",
+  phase: "active",
+  countdownMs: 0,
+  statusText: "Loading event...",
+  label: "Weekly",
+  border: "rgba(188, 255, 168, 0.28)",
+  accent: "#d7f3b9",
+  background:
+    "linear-gradient(135deg, rgba(18, 42, 31, 0.76), rgba(5, 18, 12, 0.88))",
+  description: "Weekly forest challenge loading.",
+};
+
+function readCachedStatus() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(EVENT_STATUS_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed?.savedAt || !parsed?.data?.currentEvent) return null;
+
+    if (Date.now() - parsed.savedAt > EVENT_STATUS_CACHE_MS) {
+      window.sessionStorage.removeItem(EVENT_STATUS_CACHE_KEY);
+      return null;
+    }
+
+    return parsed.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+function writeCachedStatus(data) {
+  if (typeof window === "undefined" || !data?.currentEvent) return;
+
+  try {
+    window.sessionStorage.setItem(
+      EVENT_STATUS_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), data })
+    );
+  } catch (err) {
+    // Ignore storage failures. The banner should still work normally.
+  }
+}
 
 function formatCompactCountdown(ms) {
   const safeMs = Number(ms) || 0;
@@ -33,11 +84,18 @@ function formatCompactCountdown(ms) {
   return `${minutes}m left`;
 }
 
-function getCompactStatus(event) {
+function getCompactStatus(event, isLoading = false) {
   if (!event) {
     return {
       timerText: "",
       badgeText: "",
+    };
+  }
+
+  if (isLoading) {
+    return {
+      timerText: "Loading...",
+      badgeText: "Event",
     };
   }
 
@@ -59,28 +117,41 @@ function getCompactStatus(event) {
 }
 
 export default function ForestEventBanner({ compact = false, statusData = null }) {
-  const [status, setStatus] = useState(statusData);
+  const [status, setStatus] = useState(() => statusData || readCachedStatus());
+
+  useEffect(() => {
+    const preload = new Image();
+    preload.src = EVENT_STRIP_IMAGE_WEBP;
+  }, []);
 
   useEffect(() => {
     if (statusData) {
       setStatus(statusData);
+      writeCachedStatus(statusData);
       return undefined;
     }
 
     let alive = true;
+    const controller = new AbortController();
 
     const loadStatus = async () => {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
         const data = await res.json().catch(() => null);
 
         if (!res.ok || !alive || !data?.currentEvent) {
           return;
         }
 
+        writeCachedStatus(data);
         setStatus(data);
       } catch (err) {
-        console.error("Forest event banner error:", err);
+        if (err?.name !== "AbortError") {
+          console.error("Forest event banner error:", err);
+        }
       }
     };
 
@@ -92,25 +163,22 @@ export default function ForestEventBanner({ compact = false, statusData = null }
 
     return () => {
       alive = false;
+      controller.abort();
       window.clearInterval(interval);
     };
   }, [statusData]);
 
-  const event = status?.currentEvent;
-
-  if (!event) {
-    return null;
-  }
-
+  const isLoading = !status?.currentEvent;
+  const event = status?.currentEvent || FALLBACK_EVENT;
   const isActive = event.phase === "active";
 
   if (compact) {
-    const compactStatus = getCompactStatus(event);
+    const compactStatus = getCompactStatus(event, isLoading);
 
     return (
       <Link
         to="/weekly-events"
-        className="forest-event-strip"
+        className={`forest-event-strip${isLoading ? " forest-event-strip--loading" : ""}`}
         aria-label={`Open weekly event ${event.name}`}
         style={{
           "--event-strip-border": event.border,
@@ -121,10 +189,16 @@ export default function ForestEventBanner({ compact = false, statusData = null }
         <span className="forest-event-strip__art" aria-hidden="true">
           <img
             className="weekly-event-bg-image"
-            src="/assets/fig.png"
+            src={EVENT_STRIP_IMAGE_WEBP}
+            onError={(event) => {
+              if (event.currentTarget.src.endsWith(EVENT_STRIP_IMAGE_FALLBACK)) return;
+              event.currentTarget.src = EVENT_STRIP_IMAGE_FALLBACK;
+            }}
             alt=""
             aria-hidden="true"
+            loading="eager"
             decoding="async"
+            fetchPriority="high"
           />
         </span>
 
