@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import DailyQuestDropdown from "./DailyQuestDropdown";
 
 const TRENDING_ICON = "\uD83D\uDCC8";
 const GROVE_ICON = "\uD83C\uDF3F";
@@ -93,6 +94,11 @@ export default function MobileBottomNav({ onConfess }) {
         {SHOP_ICON}
         <span>Shop</span>
       </button>
+
+      <div className="mobile-bottom-quest-slot">
+        <DailyQuestDropdown variant="bottom" />
+        <span className="mobile-bottom-quest-label">Daily</span>
+      </div>
 
       <button type="button" onClick={goConfess} className="confess">
         {CONFESS_ICON}
