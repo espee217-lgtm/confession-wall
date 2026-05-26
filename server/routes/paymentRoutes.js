@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Razorpay = require("razorpay");
 
@@ -7,12 +8,15 @@ const Notification = require("../models/Notification");
 const SeedPurchase = require("../models/SeedPurchase");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
+const { getCountryCurrency } = require("../utils/countryCurrency");
+const { detectPaymentCountry } = require("../utils/paymentGeo");
 const {
   calculateSeedCredit,
   getBonusForPurchaseNumber,
   getSeedPack,
   getSeedPacksForRegion,
-  normalizeRegion,
+  getUnsupportedPaymentReason,
+  isCountryPaymentSupported,
 } = require("../utils/seedPacks");
 
 const router = express.Router();
@@ -34,6 +38,35 @@ const getRazorpayClient = () => {
 
 const getSuccessfulPurchaseCount = (user) =>
   Math.max(0, Math.floor(Number(user?.successfulSeedPurchaseCount || 0)));
+
+const attachOptionalUser = async (req) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token || !process.env.JWT_SECRET) return null;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    req.user = user || null;
+    return req.user;
+  } catch {
+    return null;
+  }
+};
+
+const getPaymentLocation = (req) => {
+  const detected = detectPaymentCountry(req);
+  const currency = getCountryCurrency(detected.countryCode);
+  const paymentsSupported = isCountryPaymentSupported(detected.countryCode);
+
+  return {
+    ...detected,
+    currency: currency || "",
+    paymentsSupported,
+    unavailableReason: paymentsSupported
+      ? ""
+      : getUnsupportedPaymentReason(detected.countryCode),
+  };
+};
 
 const buildPackPreview = (pack, purchaseNumber) => {
   const credit = calculateSeedCredit(pack.baseSeeds, purchaseNumber);
@@ -233,24 +266,28 @@ const creditVerifiedPurchase = async ({
   throw lastError;
 };
 
-router.get("/seed-packs", protect, async (req, res) => {
+router.get("/seed-packs", async (req, res) => {
   try {
-    const region = normalizeRegion(req.query.region);
-    const freshUser = await User.findById(req.user._id).select(
-      "successfulSeedPurchaseCount"
-    );
-    const successfulSeedPurchaseCount = getSuccessfulPurchaseCount(
-      freshUser || req.user
-    );
+    await attachOptionalUser(req);
+
+    const location = getPaymentLocation(req);
+    const successfulSeedPurchaseCount = getSuccessfulPurchaseCount(req.user);
     const nextPurchaseNumber = successfulSeedPurchaseCount + 1;
     const bonusPercentForNextPurchase =
       getBonusForPurchaseNumber(nextPurchaseNumber);
-    const packs = getSeedPacksForRegion(region).map((pack) =>
-      buildPackPreview(pack, nextPurchaseNumber)
-    );
+    const packs = location.paymentsSupported
+      ? getSeedPacksForRegion(location.countryCode).map((pack) =>
+          buildPackPreview(pack, nextPurchaseNumber)
+        )
+      : [];
 
     res.json({
-      region,
+      location,
+      region: location.countryCode,
+      currency: location.currency,
+      paymentsSupported: location.paymentsSupported,
+      unavailableReason: location.unavailableReason,
+      keyId: process.env.RAZORPAY_KEY_ID || "",
       successfulSeedPurchaseCount,
       nextPurchaseNumber,
       bonusPercentForNextPurchase,
@@ -268,15 +305,23 @@ router.post("/seed-packs/order", protect, async (req, res) => {
       return res.status(503).json({ message: paymentUnavailableMessage });
     }
 
-    const region = normalizeRegion(req.body?.region);
-    const pack = getSeedPack(region, req.body?.packId);
+    const location = getPaymentLocation(req);
 
-    if (!pack) {
+    if (!location.paymentsSupported) {
+      return res.status(403).json({
+        message: location.unavailableReason || "Seed purchases are not available in your country yet.",
+        location,
+      });
+    }
+
+    const pack = getSeedPack(location.countryCode, req.body?.packId);
+
+    if (!pack || pack.amountMinor < 100) {
       return res.status(400).json({ message: "Invalid Seed pack." });
     }
 
     const razorpay = getRazorpayClient();
-    const receipt = `seed_${Date.now()}`;
+    const receipt = `seed_${Date.now()}_${String(req.user._id).slice(-6)}`;
     const order = await razorpay.orders.create({
       amount: pack.amountMinor,
       currency: pack.currency,
@@ -284,7 +329,8 @@ router.post("/seed-packs/order", protect, async (req, res) => {
       notes: {
         userId: String(req.user._id),
         packId: pack.id,
-        region: pack.region,
+        country: pack.region,
+        currency: pack.currency,
       },
     });
 
@@ -313,10 +359,18 @@ router.post("/seed-packs/order", protect, async (req, res) => {
       currency: purchase.currency,
       keyId: process.env.RAZORPAY_KEY_ID,
       pack,
+      location,
       bonusPreview,
     });
   } catch (err) {
-    console.error("Seed pack order error:", err.message);
+    const razorpayStatus = err?.statusCode || err?.error?.status_code;
+    const razorpayDescription = err?.error?.description;
+
+    if (razorpayStatus === 401) {
+      return res.status(401).json({ message: "Razorpay credentials were rejected." });
+    }
+
+    console.error("Seed pack order error:", razorpayDescription || err.message);
     res.status(500).json({ message: "Could not create payment order right now." });
   }
 });
