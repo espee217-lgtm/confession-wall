@@ -51,6 +51,20 @@ function seedAvatarPath(index) {
   return SEED_AVATAR_PATHS[index % SEED_AVATAR_PATHS.length];
 }
 
+const SEED_EMAIL_DOMAIN = "@seed.confession-wall.local";
+function seedUserFilter() {
+  return {
+    $or: [
+      { isSeedUser: true },
+      { email: { $regex: /@seed\.confession-wall\.local$/i } },
+    ],
+  };
+}
+
+function cleanUserPool(users) {
+  return (users || []).filter((user) => user && user._id);
+}
+
 const COSMETICS = {
   badges: [
     "badge-sprout-soul",
@@ -1452,14 +1466,22 @@ function random() {
 function rand(min, max) { return Math.floor(random() * (max - min + 1)) + min; }
 function pick(arr) { return arr[rand(0, arr.length - 1)]; }
 function sample(arr, count, excludeSet = new Set()) {
-  const pool = arr.filter((item) => !excludeSet.has(String(item._id || item)));
+  const safeArr = Array.isArray(arr) ? arr : [];
+  const pool = safeArr.filter((item) => {
+    if (!item) return false;
+    const id = item._id || item;
+    if (!id) return false;
+    return !excludeSet.has(String(id));
+  });
   for (let i = pool.length - 1; i > 0; i -= 1) {
     const j = rand(0, i);
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   return pool.slice(0, Math.min(count, pool.length));
 }
-function uniqueIds(users) { return [...new Set(users.map((user) => user._id))]; }
+function uniqueIds(users) {
+  return [...new Set((users || []).filter((user) => user && user._id).map((user) => user._id))];
+}
 function daysAgo(days, hourOffset = 0) {
   const date = new Date();
   date.setDate(date.getDate() - days);
@@ -1826,6 +1848,10 @@ function makeComment(mood, category, postIndex, commentIndex, topic) {
 }
 
 function buildPostReactions(category, author, users) {
+  if (!author || !author._id) {
+    throw new Error("buildPostReactions received a missing author. Seed users were not loaded correctly.");
+  }
+  const safeUsers = cleanUserPool(users);
   const exclude = new Set([String(author._id)]);
   let waterCount;
   let burnCount;
@@ -1842,15 +1868,22 @@ function buildPostReactions(category, author, users) {
     waterCount = rand(12, 40);
     burnCount = rand(5, 34);
   }
-  const wateredUsers = sample(users, waterCount, exclude);
+  const wateredUsers = sample(safeUsers, waterCount, exclude);
   const used = new Set([...exclude, ...wateredUsers.map((u) => String(u._id))]);
-  const burnedUsers = sample(users, burnCount, used);
+  const burnedUsers = sample(safeUsers, burnCount, used);
   return { wateredBy: uniqueIds(wateredUsers), burnedBy: uniqueIds(burnedUsers) };
 }
 
 function buildComments(mood, category, postIndex, topic, postDate, users, author) {
+  if (!author || !author._id) {
+    throw new Error("buildComments received a missing author. Seed users were not loaded correctly.");
+  }
+  const safeUsers = cleanUserPool(users);
   const count = rand(5, 9);
-  const commenters = sample(users, count, new Set([String(author._id)]));
+  const commenters = sample(safeUsers, count, new Set([String(author._id)]));
+  if (commenters.length < 5) {
+    throw new Error(`Not enough seed users available for comments. Found ${safeUsers.length}.`);
+  }
   const boostedIndexes = new Set(sample([...Array(count).keys()], rand(1, 3)).map((n) => n));
   return commenters.map((commenter, i) => {
     const isBoosted = boostedIndexes.has(i);
@@ -1858,9 +1891,9 @@ function buildComments(mood, category, postIndex, topic, postDate, users, author
     const burnCount = category === "scorched"
       ? (isBoosted ? rand(3, 12) : rand(0, 6))
       : (isBoosted ? rand(0, 4) : rand(0, 3));
-    const wateredUsers = sample(users, waterCount, new Set([String(commenter._id)]));
+    const wateredUsers = sample(safeUsers, waterCount, new Set([String(commenter._id)]));
     const used = new Set([String(commenter._id), ...wateredUsers.map((u) => String(u._id))]);
-    const burnedUsers = sample(users, burnCount, used);
+    const burnedUsers = sample(safeUsers, burnCount, used);
     return {
       userId: commenter._id,
       text: makeComment(mood, category, postIndex, i, topic),
@@ -1878,8 +1911,12 @@ function buildComments(mood, category, postIndex, topic, postDate, users, author
 }
 
 function buildComfortCards(users, author) {
+  if (!author || !author._id) {
+    throw new Error("buildComfortCards received a missing author. Seed users were not loaded correctly.");
+  }
+  const safeUsers = cleanUserPool(users);
   return sample(COMFORT_TEXTS, rand(3, 5)).map((text) => {
-    const senders = sample(users, rand(3, 12), new Set([String(author._id)]));
+    const senders = sample(safeUsers, rand(3, 12), new Set([String(author._id)]));
     return { text, count: senders.length, sentBy: uniqueIds(senders) };
   });
 }
@@ -1939,13 +1976,13 @@ async function wipeContentOnly() {
 
 async function resetSeedUsersAndContent() {
   const deleteConfessions = await Confession.deleteMany({ isSeedContent: true });
-  const deleteUsers = await User.deleteMany({ isSeedUser: true });
+  const deleteUsers = await User.deleteMany(seedUserFilter());
   console.log(`Deleted seed confessions: ${deleteConfessions.deletedCount}`);
   console.log(`Deleted seed users: ${deleteUsers.deletedCount}`);
 }
 
 async function ensureSeedUsers() {
-  const existing = await User.find({ isSeedUser: true }).sort({ createdAt: 1, username: 1 });
+  const existing = await User.find(seedUserFilter()).sort({ createdAt: 1, username: 1 });
   const passwordHash = await bcrypt.hash(`starter-${Date.now()}-${Math.random()}`, 10);
   const existingNames = new Set(existing.map((u) => u.username));
   const usersToCreate = [];
@@ -1976,7 +2013,7 @@ async function ensureSeedUsers() {
     await User.insertMany(usersToCreate, { ordered: false });
     console.log(`Created missing fictional seed users: ${usersToCreate.length}`);
   }
-  const allSeedUsers = await User.find({ isSeedUser: true }).sort({ createdAt: 1, username: 1 });
+  const allSeedUsers = await User.find(seedUserFilter()).sort({ createdAt: 1, username: 1 });
   const operations = allSeedUsers.slice(0, TARGET_SEED_USERS).map((user, index) => ({
     updateOne: {
       filter: { _id: user._id },
@@ -1984,7 +2021,12 @@ async function ensureSeedUsers() {
     },
   }));
   if (operations.length) await User.bulkWrite(operations);
-  return User.find({ isSeedUser: true }).sort({ createdAt: 1, username: 1 }).limit(TARGET_SEED_USERS);
+  const freshUsers = await User.find(seedUserFilter()).sort({ createdAt: 1, username: 1 }).limit(TARGET_SEED_USERS);
+  const safeUsers = cleanUserPool(freshUsers);
+  if (safeUsers.length < 20) {
+    throw new Error(`Only ${safeUsers.length} fictional seed users loaded after ensureSeedUsers(). Check the User schema seed fields/email filter.`);
+  }
+  return safeUsers;
 }
 
 async function refreshSeedUserAvatars() {
@@ -1994,6 +2036,10 @@ async function refreshSeedUserAvatars() {
 }
 
 function buildConfessions(users) {
+  const safeUsers = cleanUserPool(users);
+  if (safeUsers.length < 20) {
+    throw new Error(`Cannot build starter confessions because only ${safeUsers.length} seed users are available.`);
+  }
   const confessions = [];
   let globalIndex = 0;
   for (const mood of MOODS) {
@@ -2001,10 +2047,10 @@ function buildConfessions(users) {
     for (let i = 0; i < POSTS_PER_MOOD; i += 1) {
       const topic = topics[i];
       const category = categoryForMood(mood, i);
-      const author = users[(globalIndex * 7 + i * 3) % users.length];
+      const author = safeUsers[(globalIndex * 7 + i * 3) % safeUsers.length];
       const createdAt = daysAgo(rand(0, 26), -Math.floor(i / 5));
-      const reactions = buildPostReactions(category, author, users);
-      const comments = buildComments(mood, category, globalIndex, topic, createdAt, users, author);
+      const reactions = buildPostReactions(category, author, safeUsers);
+      const comments = buildComments(mood, category, globalIndex, topic, createdAt, safeUsers, author);
       const postTheme = author.equippedCosmetics?.postTheme || pick(COSMETICS.postThemes);
       const warning = categoryWarning(mood);
       confessions.push({
@@ -2026,7 +2072,7 @@ function buildConfessions(users) {
         wateredBy: reactions.wateredBy,
         burnedBy: reactions.burnedBy,
         seedReactionRewardedBy: [],
-        comfortCards: buildComfortCards(users, author),
+        comfortCards: buildComfortCards(safeUsers, author),
         poll: undefined,
         weeklyEventTracking: [],
         isHidden: false,
