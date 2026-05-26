@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const DAILY_QUEST_DISPLAY_RULES = [
@@ -108,6 +109,7 @@ function getDailyQuestDropdownState(user) {
 
 export default function DailyQuestDropdown({ variant = "navbar" }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const questRef = useRef(null);
   const [open, setOpen] = useState(false);
   const questState = useMemo(() => getDailyQuestDropdownState(user), [user]);
@@ -263,6 +265,18 @@ export default function DailyQuestDropdown({ variant = "navbar" }) {
               </small>
             </div>
           </div>
+
+          <button
+            type="button"
+            className="quest-drop-title-link"
+            onClick={() => {
+              setOpen(false);
+              navigate("/titles");
+            }}
+          >
+            <strong>Title Achievements</strong>
+            <span>Unlock and equip display titles</span>
+          </button>
         </div>
       )}
     </div>

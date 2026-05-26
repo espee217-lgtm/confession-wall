@@ -21,6 +21,7 @@ const specialActivityRoutes = require("./routes/specialActivityRoutes");
 const giftRoutes = require("./routes/giftRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const shopRoutes = require("./routes/shopRoutes");
+const titleRoutes = require("./routes/titleRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
@@ -109,6 +110,7 @@ app.use("/api/special-activity", specialActivityRoutes);
 app.use("/api/gift", giftRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/shop", shopRoutes);
+app.use("/api/titles", titleRoutes);
 app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {

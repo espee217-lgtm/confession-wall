@@ -10,6 +10,13 @@ const Notification = require("../models/Notification");
 const AdminLog = require("../models/AdminLog");
 const { awardSeeds, debitSeeds } = require("../utils/seedRewards");
 const {
+  formatEquippedTitle,
+  getAchievementTitles,
+  getAchievementTitleById,
+  hasUnlockedTitle,
+  unlockTitleForUser,
+} = require("../utils/achievementTitles");
+const {
   ensureWeeklyEventMaintenance,
   getWeeklyEventStatus,
   finalizeCurrentWeeklyResults,
@@ -247,6 +254,74 @@ router.get("/users", adminProtect, async (req, res) => {
   } catch (err) {
     console.error("Fetch users error:", err);
     res.status(500).json({ message: "Could not fetch users" });
+  }
+});
+
+// GET /api/admin/titles
+router.get("/titles", adminProtect, async (req, res) => {
+  try {
+    res.json(
+      getAchievementTitles().map((title) => ({
+        id: title.id,
+        name: title.name,
+        description: title.description,
+        requirementText: title.requirementText,
+        supported: title.supported !== false,
+      }))
+    );
+  } catch (err) {
+    console.error("Fetch admin titles error:", err);
+    res.status(500).json({ message: "Could not fetch titles." });
+  }
+});
+
+// PATCH /api/admin/users/:userId/grant-title
+router.patch("/users/:userId/grant-title", adminProtect, async (req, res) => {
+  try {
+    const titleId = String(req.body?.titleId || "").trim();
+    const equip = Boolean(req.body?.equip);
+    const title = getAchievementTitleById(titleId);
+
+    if (!title) {
+      return res.status(400).json({ message: "Unknown title achievement." });
+    }
+
+    const targetUser = await User.findById(req.params.userId).select("-password");
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const alreadyUnlocked = hasUnlockedTitle(targetUser, title.id);
+    const grantResult = await unlockTitleForUser(targetUser, title.id, {
+      allowUnsupported: true,
+      link: "/titles",
+    });
+
+    if (equip) {
+      targetUser.set("equippedCosmetics.title", title.id);
+      await targetUser.save();
+    }
+
+    const updatedUser = await User.findById(targetUser._id).select("-password");
+
+    res.json({
+      message: alreadyUnlocked
+        ? `@${targetUser.username} already has ${title.name}.`
+        : `Granted ${title.name} to @${targetUser.username}.`,
+      title: {
+        id: title.id,
+        name: title.name,
+        description: title.description,
+      },
+      alreadyUnlocked,
+      granted: Boolean(grantResult.unlocked),
+      equippedTitle: formatEquippedTitle(updatedUser || targetUser),
+      user: updatedUser || targetUser,
+    });
+  } catch (err) {
+    console.error("Grant title error:", err);
+    res.status(500).json({ message: "Could not grant title right now." });
   }
 });
 

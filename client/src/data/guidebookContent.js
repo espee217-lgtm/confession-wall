@@ -193,7 +193,7 @@ export const GUIDEBOOK_SECTIONS = [
     points: [
       "The Seed counter shows your current balance.",
       "Daily Quests are the free way to earn Seeds without paying real money.",
-      "The Shop uses Seeds for profile frames, badges, display titles, post themes, and effects.",
+      "The Shop uses Seeds for profile frames, badges, post themes, and effects. Display titles are earned through achievements.",
       "Guests can preview the Shop, but login is required to buy, equip, or purchase Seeds.",
     ],
     steps: [
@@ -210,13 +210,13 @@ export const GUIDEBOOK_SECTIONS = [
         badge: "Shop",
         title: "Spend Seeds on cosmetics",
         text:
-          "Open the Shop to preview and unlock cosmetic drops. Frames, badges, titles, post themes, and visual effects are bought with Seeds, then equipped to style your profile and posts.",
+          "Open the Shop to preview and unlock cosmetic drops. Frames, badges, post themes, and visual effects are bought with Seeds, then equipped to style your profile and posts.",
         images: [
-          img("shop_desktop.webp", "Shop page with featured cosmetic drops, profile frames, badges, titles, and post themes."),
+          img("shop_desktop.webp", "Shop page with featured cosmetic drops, profile frames, badges, and post themes."),
         ],
         notes: [
           "Profile Frames decorate your avatar.",
-          "Badges and titles show near your name.",
+          "Badges show near your name, while display titles are earned from achievements.",
           "Post themes change how your confessions appear.",
         ],
       },

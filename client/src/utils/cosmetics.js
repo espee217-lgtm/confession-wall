@@ -46,6 +46,51 @@ export const COSMETIC_META = {
     name: "Grove Guardian",
     type: "title",
   },
+  first_bloom: {
+    icon: "🌱",
+    name: "First Bloom",
+    type: "title",
+  },
+  kind_soul: {
+    icon: "💚",
+    name: "Kind Soul",
+    type: "title",
+  },
+  grove_guardian: {
+    icon: "🛡️",
+    name: "Grove Guardian",
+    type: "title",
+  },
+  scorched_survivor: {
+    icon: "🔥",
+    name: "Scorched Survivor",
+    type: "title",
+  },
+  steady_spirit: {
+    icon: "🌿",
+    name: "Steady Spirit",
+    type: "title",
+  },
+  ancient_listener: {
+    icon: "🌙",
+    name: "Ancient Listener",
+    type: "title",
+  },
+  comfort_giver: {
+    icon: "✨",
+    name: "Comfort Giver",
+    type: "title",
+  },
+  the_handsome_one: {
+    icon: "H",
+    name: "The Handsome One",
+    type: "title",
+  },
+  truth_keeper: {
+    icon: "🗝️",
+    name: "Truth Keeper",
+    type: "title",
+  },
 
   "post-theme-moonlit-grove": {
     icon: "🌌",

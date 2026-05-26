@@ -453,7 +453,9 @@ const decorateShopItem = (item, now = new Date()) => ({
 });
 
 const buildShopItemsPayload = (now = new Date()) =>
-  SHOP_ITEMS.map((item) => decorateShopItem(item, now));
+  SHOP_ITEMS.filter((item) => item.type !== "title").map((item) =>
+    decorateShopItem(item, now)
+  );
 
 function equipCosmeticOnUser(user, item) {
   const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];
@@ -531,6 +533,12 @@ router.post("/buy/:itemId", protect, async (req, res) => {
       return res.status(404).json({ message: "Shop item not found." });
     }
 
+    if (item.type === "title") {
+      return res.status(400).json({
+        message: "Display titles are now earned through achievements.",
+      });
+    }
+
     const availabilityStatus = getAvailabilityStatus(item);
 
     if (availabilityStatus === "upcoming") {
@@ -594,6 +602,12 @@ router.post("/equip/:itemId", protect, async (req, res) => {
 
     if (!item) {
       return res.status(404).json({ message: "Shop item not found." });
+    }
+
+    if (item.type === "title") {
+      return res.status(400).json({
+        message: "Display titles are now managed through achievements.",
+      });
     }
 
     const equipField = COSMETIC_TYPE_TO_EQUIP_FIELD[item.type];

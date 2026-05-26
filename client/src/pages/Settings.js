@@ -1,12 +1,11 @@
 import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import MobileBottomNav from "../components/MobileBottomNav";
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "../components/FramedAvatar";
 import {
-  getBadgeLabel,
   getCosmeticMeta,
   getPostThemeStyle,
 } from "../utils/cosmetics";
@@ -22,6 +21,19 @@ const SHOP_API_URL = process.env.REACT_APP_API_BASE
   : window.location.hostname === "localhost"
   ? "http://localhost:5000/api/shop"
   : "https://confession-wall-hn63.onrender.com/api/shop";
+
+const TITLE_API_URL = process.env.REACT_APP_API_BASE
+  ? `${process.env.REACT_APP_API_BASE}/api/titles`
+  : window.location.hostname === "localhost"
+  ? "http://localhost:5000/api/titles"
+  : "https://confession-wall-hn63.onrender.com/api/titles";
+
+const SETTINGS_TITLE_PREVIEW_IDS = [
+  "first_bloom",
+  "kind_soul",
+  "grove_guardian",
+  "the_handsome_one",
+];
 
 function getPasswordError(password) {
   if (!password || password.length < 8)
@@ -101,8 +113,14 @@ function Msg({ text, type, palette }) {
   );
 }
 
-function Section({ title, children, defaultOpen = false, palette }) {
+function Section({ title, children, defaultOpen = false, palette, openSignal = 0 }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    if (openSignal > 0) {
+      setOpen(true);
+    }
+  }, [openSignal]);
 
   return (
     <div style={{ marginBottom: "1rem" }}>
@@ -144,39 +162,6 @@ function Section({ title, children, defaultOpen = false, palette }) {
   );
 }
 
-function EquippedRow({ label, item, palette }) {
-  return (
-    <div
-      style={{
-        padding: "10px",
-        borderRadius: "14px",
-        background: "rgba(255,255,255,0.045)",
-        border: `1px solid ${palette.border}`,
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-      }}
-    >
-      <span style={{ fontSize: "1.1rem" }}>{item?.icon || "✦"}</span>
-      <div>
-        <div
-          style={{
-            fontSize: "10px",
-            color: palette.muted,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-          }}
-        >
-          {label}
-        </div>
-        <strong style={{ color: palette.text, fontSize: "12px" }}>
-          {item?.name || "None equipped"}
-        </strong>
-      </div>
-    </div>
-  );
-}
-
 function normalizeOwnedCosmetics(ownedCosmetics) {
   if (!Array.isArray(ownedCosmetics)) return [];
 
@@ -187,6 +172,111 @@ function normalizeOwnedCosmetics(ownedCosmetics) {
 
     return owned;
   });
+}
+
+function getTitleProgressPercent(title) {
+  const progress = Number(title?.progress || 0);
+  const target = Number(title?.target || 0);
+
+  if (!Number.isFinite(progress) || !Number.isFinite(target) || target <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, (progress / target) * 100));
+}
+
+function formatTitleProgress(title) {
+  if (!title) return "";
+
+  if (title.supported === false || title.progress === null || title.progress === undefined) {
+    return "future";
+  }
+
+  const progress = Math.min(Number(title.progress || 0), Number(title.target || 0));
+  return `${progress} / ${title.target}`;
+}
+
+function SettingsTitleProgressBox({
+  rows,
+  loading,
+  error,
+  equippedTitleId,
+  currentTitleName,
+  onViewAll,
+  className = "",
+}) {
+  return (
+    <aside
+      className={`cosmetic-hub-box cw-settings-title-progress-box ${className}`.trim()}
+      aria-label="Title progress"
+    >
+      <div className="cw-settings-title-progress-head">
+        <span>Title Progress</span>
+      </div>
+
+      <div className="cw-settings-title-current">
+        <span>Current</span>
+        {equippedTitleId ? (
+          <DisplayTitlePill titleId={equippedTitleId} />
+        ) : (
+          <strong>No title equipped</strong>
+        )}
+        {equippedTitleId && <em>{currentTitleName}</em>}
+      </div>
+
+      <div className="cw-settings-title-preview-list">
+        {loading && rows.length === 0 ? (
+          <p className="cw-settings-title-soft">Loading title progress...</p>
+        ) : error && rows.length === 0 ? (
+          <p className="cw-settings-title-soft">Title progress unavailable.</p>
+        ) : (
+          rows.map((title) => {
+            const isEquipped = equippedTitleId === title.id;
+            const status = isEquipped ? "equipped" : title.unlocked ? "unlocked" : "locked";
+
+            return (
+              <div
+                key={title.id}
+                className={`cw-settings-title-progress-row ${
+                  title.unlocked ? "is-unlocked" : "is-locked"
+                } ${isEquipped ? "is-equipped" : ""}`}
+              >
+                <div className="cw-settings-title-row-top">
+                  <strong>{title.name}</strong>
+                  <span>{status}</span>
+                </div>
+
+                <div className="cw-settings-title-row-progress">
+                  <small>{formatTitleProgress(title)}</small>
+                  <div className="cw-settings-title-mini-meter" aria-hidden="true">
+                    <i style={{ width: `${getTitleProgressPercent(title)}%` }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <button type="button" onClick={onViewAll} className="cw-settings-title-view-all">
+        View All Titles
+      </button>
+    </aside>
+  );
+}
+
+function CosmeticHubBox({ title, children, actionLabel, onAction, className = "" }) {
+  return (
+    <aside className={`cosmetic-hub-box ${className}`.trim()}>
+      <div className="cosmetic-hub-box-head">
+        <span>{title}</span>
+      </div>
+      <div className="cosmetic-hub-box-body">{children}</div>
+      <button type="button" className="cosmetic-hub-box-action" onClick={onAction}>
+        {actionLabel}
+      </button>
+    </aside>
+  );
 }
 
 function InventoryCard({
@@ -365,6 +455,10 @@ export default function Settings() {
   const [shopLoading, setShopLoading] = useState(false);
   const [cosmeticBusy, setCosmeticBusy] = useState("");
   const [cosmeticMsg, setCosmeticMsg] = useState({ text: "", type: "" });
+  const [titleState, setTitleState] = useState(null);
+  const [titleLoading, setTitleLoading] = useState(false);
+  const [titleError, setTitleError] = useState("");
+  const [inventoryOpenSignal, setInventoryOpenSignal] = useState(0);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -377,6 +471,50 @@ export default function Settings() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState({ text: "", type: "" });
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const loadTitleProgress = useCallback(async () => {
+    if (!token) {
+      setTitleState(null);
+      setTitleError("");
+      return;
+    }
+
+    try {
+      setTitleLoading(true);
+      setTitleError("");
+
+      const res = await fetch(`${TITLE_API_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Could not load title progress.");
+      }
+
+      setTitleState(data);
+    } catch (err) {
+      console.error("Settings title progress load error:", err);
+      setTitleError(err.message || "Could not load title progress.");
+    } finally {
+      setTitleLoading(false);
+    }
+  }, [token]);
+
+  const scrollToCosmeticInventory = useCallback((type) => {
+    setInventoryOpenSignal((value) => value + 1);
+
+    window.setTimeout(() => {
+      const target = document.getElementById(`settings-${type}-inventory`);
+      const fallback = document.getElementById("settings-cosmetic-inventory");
+      const element = target || fallback;
+
+      if (!element) return;
+
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      element.focus?.({ preventScroll: true });
+    }, 80);
+  }, []);
 
   useEffect(() => {
     if (!user) navigate("/login");
@@ -425,6 +563,12 @@ export default function Settings() {
   }, [user, token]);
 
   useEffect(() => {
+    if (!user || !token) return;
+
+    loadTitleProgress();
+  }, [user, token, loadTitleProgress]);
+
+  useEffect(() => {
     const root = document.documentElement;
 
     if (theme === "system") {
@@ -437,20 +581,32 @@ export default function Settings() {
   if (!user) return null;
 
   const equipped = user?.equippedCosmetics || {};
-  const badge = getBadgeLabel(equipped.badge);
-
   const badgeItem = getCosmeticMeta(equipped.badge);
   const frameItem = getCosmeticMeta(equipped.frame || equipped.visualEffect);
   const titleItem = getCosmeticMeta(equipped.title);
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
   const previewThemeStyle = getPostThemeStyle(equipped.postTheme, "budding");
+  const allTitleRows = Array.isArray(titleState?.allTitles) ? titleState.allTitles : [];
+  const preferredTitleRows = SETTINGS_TITLE_PREVIEW_IDS.map((titleId) =>
+    allTitleRows.find((title) => title.id === titleId)
+  ).filter(Boolean);
+  const titlePreviewRows =
+    preferredTitleRows.length > 0 ? preferredTitleRows : allTitleRows.slice(0, 4);
+  const equippedTitleId = equipped.title || titleState?.equippedTitle?.id || "";
+  const equippedTitleDefinition = allTitleRows.find((title) => title.id === equippedTitleId);
+  const currentTitleName = equippedTitleId
+    ? titleState?.equippedTitle?.name ||
+      equippedTitleDefinition?.name ||
+      titleItem?.name ||
+      "Equipped title"
+    : "No title equipped";
 
   const ownedCosmeticIds = new Set(
     normalizeOwnedCosmetics(user?.ownedCosmetics).map((owned) => owned.itemId)
   );
 
-  const ownedInventoryItems = shopItems.filter((item) =>
-    ownedCosmeticIds.has(item.id)
+  const ownedInventoryItems = shopItems.filter(
+    (item) => ownedCosmeticIds.has(item.id) && item.type !== "title"
   );
 
   const ownedInventoryByType = {
@@ -458,7 +614,6 @@ export default function Settings() {
     frame: ownedInventoryItems.filter(
       (item) => item.type === "frame" || item.type === "visualEffect"
     ),
-    title: ownedInventoryItems.filter((item) => item.type === "title"),
     postTheme: ownedInventoryItems.filter((item) => item.type === "postTheme"),
   };
 
@@ -527,11 +682,12 @@ export default function Settings() {
 
       const updatedUser = {
         ...user,
-        username: data.username,
-        profilePicture: data.profilePicture,
+        ...data,
       };
 
       syncUser(updatedUser);
+      setProfilePicture(null);
+      await loadTitleProgress();
 
       setProfileMsg({ text: "Profile updated!", type: "success" });
     } catch {
@@ -883,71 +1039,155 @@ export default function Settings() {
             <Msg {...profileMsg} palette={palette} />
 
             <form onSubmit={handleProfileSubmit}>
-              <div
-                className="cw-settings-profile-hero"
-                style={{
-                  background:
-                    "radial-gradient(circle at 50% 0%, rgba(140,255,150,0.12), transparent 45%), rgba(255,255,255,0.035)",
-                  border: `1px solid ${palette.border}`,
-                  borderRadius: "22px",
-                  padding: "20px 14px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <FramedAvatar
-                  src={preview || user?.profilePicture}
-                  username={username || user?.username}
-                  frameId={equipped.frame}
-                  effectId={equipped.visualEffect}
-                  size={92}
-                  placeholder={(username || user?.username || "U")
-                    ?.charAt(0)
-                    ?.toUpperCase()}
-                />
-
-                <h3
-                  style={{
-                    margin: "12px 0 2px",
-                    color: palette.text,
-                    fontSize: "1.2rem",
-                  }}
-                >
-                  {username || user?.username}{" "}
-                  <AnimatedBadge badgeId={equipped.badge} size="md" />
-                </h3>
-
+              <div className="settings-cosmetic-hub cw-settings-profile-title-branch">
                 <div
+                  className="cw-settings-profile-hero cosmetic-hub-node cosmetic-hub-node--center"
                   style={{
-                    margin: "6px 0 12px",
+                    background:
+                      "radial-gradient(circle at 50% 0%, rgba(140,255,150,0.12), transparent 45%), rgba(255,255,255,0.035)",
+                    border: `1px solid ${palette.border}`,
+                    borderRadius: "22px",
+                    padding: "20px 14px",
                     display: "flex",
-                    justifyContent: "center",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    marginBottom: "16px",
                   }}
                 >
-                  <DisplayTitlePill titleId={equipped.title} size="big" />
+                  <FramedAvatar
+                    src={preview || user?.profilePicture}
+                    username={username || user?.username}
+                    frameId={equipped.frame}
+                    effectId={equipped.visualEffect}
+                    size={92}
+                    placeholder={(username || user?.username || "U")
+                      ?.charAt(0)
+                      ?.toUpperCase()}
+                  />
+
+                  <h3
+                    style={{
+                      margin: "12px 0 2px",
+                      color: palette.text,
+                      fontSize: "1.2rem",
+                    }}
+                  >
+                    {username || user?.username}{" "}
+                    <AnimatedBadge badgeId={equipped.badge} size="md" />
+                  </h3>
+
+                  <div
+                    style={{
+                      margin: "6px 0 12px",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <DisplayTitlePill titleId={equipped.title} size="big" />
+                  </div>
+
+                  <label
+                    style={{
+                      color: palette.accent,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      border: `1px solid ${palette.border}`,
+                      borderRadius: "20px",
+                      padding: "6px 16px",
+                      letterSpacing: "0.06em",
+                    }}
+                  >
+                    change photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImage}
+                      style={{ display: "none" }}
+                    />
+                  </label>
                 </div>
 
-                <label
-                  style={{
-                    color: palette.accent,
-                    fontSize: "12px",
-                    cursor: "pointer",
-                    border: `1px solid ${palette.border}`,
-                    borderRadius: "20px",
-                    padding: "6px 16px",
-                    letterSpacing: "0.06em",
-                  }}
+                <div
+                  className="cosmetic-connector-line cosmetic-connector-line--left-upper"
+                  aria-hidden="true"
+                />
+                <div
+                  className="cosmetic-connector-line cosmetic-connector-line--left-lower"
+                  aria-hidden="true"
+                />
+                <div
+                  className="cosmetic-connector-line cosmetic-connector-line--right-upper"
+                  aria-hidden="true"
+                />
+                <div
+                  className="cosmetic-connector-line cosmetic-connector-line--right-lower"
+                  aria-hidden="true"
+                />
+
+                <CosmeticHubBox
+                  title="Badges"
+                  actionLabel="Manage Badges"
+                  onAction={() => scrollToCosmeticInventory("badges")}
+                  className="cosmetic-hub-box--left-upper"
                 >
-                  change photo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImage}
-                    style={{ display: "none" }}
-                  />
-                </label>
+                  <div className="cosmetic-hub-preview cosmetic-hub-preview--badge">
+                    {equipped.badge ? (
+                      <AnimatedBadge badgeId={equipped.badge} size="lg" />
+                    ) : (
+                      <span className="cosmetic-hub-empty-icon">✦</span>
+                    )}
+                    <strong>{badgeItem?.name || "No badge equipped"}</strong>
+                  </div>
+                </CosmeticHubBox>
+
+                <CosmeticHubBox
+                  title="Post Themes"
+                  actionLabel="Manage Themes"
+                  onAction={() => scrollToCosmeticInventory("post-themes")}
+                  className="cosmetic-hub-box--left-lower"
+                >
+                  <div
+                    className="cosmetic-hub-theme-preview"
+                    style={previewThemeStyle}
+                  >
+                    <span>@anonymous</span>
+                    <p>a quiet confession glow</p>
+                  </div>
+                  <strong className="cosmetic-hub-equipped-name">
+                    {postThemeItem?.name || "No post theme equipped"}
+                  </strong>
+                </CosmeticHubBox>
+
+                <SettingsTitleProgressBox
+                  className="cosmetic-hub-box--right-upper"
+                  rows={titlePreviewRows}
+                  loading={titleLoading}
+                  error={titleError}
+                  equippedTitleId={equippedTitleId}
+                  currentTitleName={currentTitleName}
+                  onViewAll={() => navigate("/titles")}
+                />
+
+                <CosmeticHubBox
+                  title="Avatar Frames"
+                  actionLabel="Manage Frames"
+                  onAction={() => scrollToCosmeticInventory("frames")}
+                  className="cosmetic-hub-box--right-lower"
+                >
+                  <div className="cosmetic-hub-avatar-preview">
+                    <FramedAvatar
+                      src={preview || user?.profilePicture}
+                      username={username || user?.username}
+                      frameId={equipped.frame}
+                      effectId={equipped.visualEffect}
+                      size={48}
+                      placeholder={(username || user?.username || "U")
+                        ?.charAt(0)
+                        ?.toUpperCase()}
+                    />
+                    <strong>{frameItem?.name || "No frame equipped"}</strong>
+                  </div>
+                </CosmeticHubBox>
               </div>
 
               <p
@@ -1006,65 +1246,10 @@ export default function Settings() {
             </form>
           </Section>
 
-          <Section title="equipped cosmetics" defaultOpen={true} palette={palette}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: "10px",
-                marginBottom: "14px",
-              }}
-            >
-              <EquippedRow label="Badge" item={badgeItem} palette={palette} />
-              <EquippedRow label="Frame" item={frameItem} palette={palette} />
-              <EquippedRow label="Title" item={titleItem} palette={palette} />
-              <EquippedRow
-                label="Post Theme"
-                item={postThemeItem}
-                palette={palette}
-              />
-            </div>
-
-            <div
-              className="cw-settings-preview-card"
-              style={{
-                ...previewCardStyle,
-                ...previewThemeStyle,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
-                <FramedAvatar
-                  src={preview || user?.profilePicture}
-                  username={username || user?.username}
-                  frameId={equipped.frame}
-                  effectId={equipped.visualEffect}
-                  size={38}
-                  placeholder={(username || user?.username || "U")
-                    ?.charAt(0)
-                    ?.toUpperCase()}
-                />
-
-                <div>
-                  <strong style={{ color: "#dfffe5", fontSize: "12px" }}>
-                    @{username || user?.username}{" "}
-                    <AnimatedBadge badgeId={equipped.badge} size="sm" />
-                  </strong>
-
-                  <div style={{ marginTop: "4px" }}>
-                    <DisplayTitlePill titleId={equipped.title} />
-                  </div>
-                </div>
-              </div>
-
-              <p style={{ margin: "14px 0 0", color: "rgba(240,255,235,0.9)" }}>
-                this is how your confession card aura feels.
-              </p>
-            </div>
-
+          <Section title="profile visibility" palette={palette}>
             <div
               className="cw-settings-seed-row"
               style={{
-                marginTop: "14px",
                 padding: "12px",
                 borderRadius: "14px",
                 border: `1px solid ${palette.border}`,
@@ -1114,7 +1299,12 @@ export default function Settings() {
             </div>
           </Section>
 
-          <Section title="cosmetic inventory" palette={palette}>
+          <Section
+            title="cosmetic inventory"
+            palette={palette}
+            openSignal={inventoryOpenSignal}
+          >
+            <div id="settings-cosmetic-inventory" tabIndex="-1" />
             <Msg {...cosmeticMsg} palette={palette} />
 
             {shopLoading ? (
@@ -1142,22 +1332,28 @@ export default function Settings() {
                 }}
               >
                 You do not own any cosmetics yet. Visit the Forest Shop to unlock
-                badges, frames, titles, and post themes.
+                badges, frames, and post themes.
               </div>
             ) : (
               <>
                 {[
                   ["badge", "Profile Badges"],
                   ["frame", "Profile Frames"],
-                  ["title", "Display Titles"],
                   ["postTheme", "Post Themes"],
                 ].map(([type, label]) => {
                   const list = ownedInventoryByType[type];
 
                   if (!list || list.length === 0) return null;
 
+                  const anchorId =
+                    type === "badge"
+                      ? "settings-badges-inventory"
+                      : type === "frame"
+                      ? "settings-frames-inventory"
+                      : "settings-post-themes-inventory";
+
                   return (
-                    <div key={type} style={{ marginBottom: "16px" }}>
+                    <div key={type} id={anchorId} tabIndex="-1" style={{ marginBottom: "16px" }}>
                       <h4
                         style={{
                           margin: "0 0 8px",
@@ -1478,12 +1674,3 @@ export default function Settings() {
     </div>
   );
 }
-
-const previewCardStyle = {
-  borderRadius: "16px",
-  padding: "14px",
-  background:
-    "linear-gradient(135deg, rgba(6, 28, 13, 0.82), rgba(3, 15, 7, 0.9))",
-  border: "1px solid rgba(110, 190, 125, 0.16)",
-  boxShadow: "0 12px 35px rgba(0,0,0,0.24)",
-};

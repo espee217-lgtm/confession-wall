@@ -21,6 +21,7 @@ const {
   defaultDailyStreak,
   getDailyQuestSummary,
 } = require("../utils/dailyQuests");
+const { refreshAchievementTitlesForUser } = require("../utils/achievementTitles");
 const { ensureWeeklyEventMaintenance } = require("../utils/weeklyForestEvents");
 
 const storage = new CloudinaryStorage({
@@ -52,6 +53,7 @@ const buildUserPayload = (user) => ({
   username: user.username,
   email: user.email,
   profilePicture: user.profilePicture,
+  profileChangeCount: user.profileChangeCount || 0,
   bio: user.bio,
   isAdmin: user.isAdmin,
   role: user.role,
@@ -73,6 +75,9 @@ const buildUserPayload = (user) => ({
   temporaryCosmeticOverride: user.temporaryCosmeticOverride || {},
   scorchedReboundBoosts: Math.max(0, Math.min(2, Number(user.scorchedReboundBoosts || 0))),
   weeklyRewards: Array.isArray(user.weeklyRewards) ? user.weeklyRewards : [],
+  achievementTitles: Array.isArray(user.achievementTitles)
+    ? user.achievementTitles
+    : [],
 
   equippedCosmetics: user.equippedCosmetics || {
     badge: "",
@@ -388,10 +393,11 @@ router.post("/register", upload.single("profilePicture"), async (req, res) => {
 
     const dailyVisitUpdate = await applyDailyVisit(user._id, "/");
     const updatedUser = dailyVisitUpdate?.user || (await User.findById(user._id));
+    const titleUpdate = await refreshAchievementTitlesForUser(updatedUser?._id || user._id);
 
     res.json({
       ...tokens,
-      user: buildUserPayload(updatedUser || user),
+      user: buildUserPayload(titleUpdate?.user || updatedUser || user),
     });
   } catch (err) {
     console.error("Register error:", err.message);
@@ -452,10 +458,11 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     const dailyVisitUpdate = await applyDailyVisit(user._id, "/");
     const updatedUser = dailyVisitUpdate?.user || (await User.findById(user._id));
+    const titleUpdate = await refreshAchievementTitlesForUser(updatedUser?._id || user._id);
 
     res.json({
       ...tokens,
-      user: buildUserPayload(updatedUser || user),
+      user: buildUserPayload(titleUpdate?.user || updatedUser || user),
     });
   } catch (err) {
     console.error("Login error:", err.message);
@@ -636,21 +643,37 @@ router.post("/reset-password", resetPasswordLimiter, async (req, res) => {
 
 router.put("/profile", protect, upload.single("profilePicture"), async (req, res) => {
   try {
-    const updates = {};
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    let profileImageChanged = false;
 
     if (req.body.username) {
-      updates.username = sanitizeText(req.body.username, { maxLength: 40, allowNewLines: false });
+      user.username = sanitizeText(req.body.username, { maxLength: 40, allowNewLines: false });
     }
 
     if (req.file) {
-      updates.profilePicture = req.file.path;
+      const nextProfilePicture = req.file.path;
+      profileImageChanged = Boolean(nextProfilePicture && nextProfilePicture !== user.profilePicture);
+      user.profilePicture = nextProfilePicture;
     }
 
-    const updated = await User.findByIdAndUpdate(req.user._id, updates, {
-      new: true,
-    }).select("-password");
+    if (profileImageChanged) {
+      user.profileChangeCount = Number(user.profileChangeCount || 0) + 1;
+    }
 
-    res.json(updated);
+    await user.save();
+
+    const titleUpdate = profileImageChanged
+      ? await refreshAchievementTitlesForUser(user._id)
+      : null;
+
+    const updated = await User.findById(titleUpdate?.user?._id || user._id).select("-password");
+
+    res.json(updated || user);
   } catch (err) {
     console.error("Update profile error:", err.message);
     res.status(500).json({ message: "Could not update profile right now." });
@@ -702,7 +725,8 @@ router.get("/me", protect, async (req, res) => {
   await ensureWeeklyEventMaintenance();
   const dailyVisitUpdate = await applyDailyVisit(req.user._id, "/");
   const freshUser = dailyVisitUpdate?.user || (await User.findById(req.user._id));
-  res.json(buildUserPayload(freshUser || req.user));
+  const titleUpdate = await refreshAchievementTitlesForUser(freshUser?._id || req.user._id);
+  res.json(buildUserPayload(titleUpdate?.user || freshUser || req.user));
 });
 
 // PRIVATE SAVED CONFESSIONS / PRESSED LEAVES
@@ -986,6 +1010,9 @@ router.get("/user/:id", async (req, res) => {
 
       ownedCosmetics: Array.isArray(user.ownedCosmetics)
         ? user.ownedCosmetics
+        : [],
+      achievementTitles: Array.isArray(user.achievementTitles)
+        ? user.achievementTitles
         : [],
 
       temporaryCosmeticOverride: user.temporaryCosmeticOverride || {},

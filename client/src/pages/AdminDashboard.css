@@ -233,6 +233,15 @@
   color: #8f9dc5;
 }
 
+.adminDash-select {
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 8px 10px;
+  background: rgba(9, 14, 28, 0.9);
+  color: #eff3ff;
+  outline: none;
+}
+
 .adminDash-chipRow {
   display: flex;
   gap: 8px;
@@ -301,6 +310,18 @@
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.adminDash-titleGrantGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adminDash-titleSelect {
+  width: 170px;
+  max-width: 100%;
 }
 
 .adminDash-btn {
@@ -425,6 +446,14 @@
 
   .adminDash-actionRow {
     justify-content: flex-start;
+  }
+
+  .adminDash-titleGrantGroup {
+    width: 100%;
+  }
+
+  .adminDash-titleSelect {
+    flex: 1 1 160px;
   }
 
   .adminDash-tabRow {

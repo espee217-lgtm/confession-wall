@@ -22,7 +22,7 @@ const TYPE_LABELS = {
   visualEffect: "Profile Frame",
 };
 
-const TYPE_ORDER = ["all", "badge", "frame", "title", "postTheme"];
+const TYPE_ORDER = ["all", "badge", "frame", "postTheme"];
 const SEED_ICON = "\uD83C\uDF31";
 const FIRE_ICON = "\uD83D\uDD25";
 // Keep this list synced with server/utils/seedRewards.js and weeklyForestEvents constants.
@@ -772,7 +772,11 @@ function Shop() {
           throw new Error(data.message || "Could not load shop.");
         }
 
-        setItems(Array.isArray(data.items) ? data.items : []);
+        setItems(
+          Array.isArray(data.items)
+            ? data.items.filter((item) => getDisplayType(item.type) !== "title")
+            : []
+        );
 
         if (data.serverNow) {
           const serverNow = new Date(data.serverNow);
@@ -1087,9 +1091,9 @@ function Shop() {
           <p className="shop-kicker">Confession Wall Cosmetics</p>
           <h1>Forest Shop</h1>
           <p className="shop-subtitle">
-            Spend Seeds on profile badges, frames, display titles, post
-            themes, and avatar auras. Phase 1 keeps everything cosmetic
-            only, so nobody gets unfair power.
+            Spend Seeds on profile badges, frames, post themes, and avatar
+            auras. Display titles are earned through achievements, so nobody
+            gets unfair power.
           </p>
         </div>
 
@@ -1129,6 +1133,24 @@ function Shop() {
           onClick={() => navigate("/buy-seeds")}
         >
           Buy Seeds
+        </button>
+      </section>
+
+      <section className="shop-title-achievements-notice" aria-label="Display title achievements">
+        <div>
+          <p className="shop-kicker">Display Titles</p>
+          <h2>Titles are now achievement rewards</h2>
+          <p>
+            Display titles are earned through confession, comment, and reaction
+            milestones. Visit Title Achievements to unlock and equip one.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="shop-title-achievements-btn"
+          onClick={() => navigate("/titles")}
+        >
+          View Title Achievements
         </button>
       </section>
       
@@ -1189,13 +1211,13 @@ function Shop() {
           <h2>{isLoggedIn ? "Equipped right now" : "Your cosmetics after login"}</h2>
           <p>
             {isLoggedIn
-              ? "Your active cosmetics. Frames, titles, badges, and post themes now display across your profile and posts."
+              ? "Your active shop cosmetics. Frames, badges, and post themes now display across your profile and posts."
               : "Create an account or log in to unlock, equip, and manage cosmetics from the Shop."}
           </p>
         </div>
 
         <div className="shop-equipped-grid">
-          {["badge", "frame", "title", "postTheme"].map((type) => {
+          {["badge", "frame", "postTheme"].map((type) => {
             const activeId =
               type === "frame"
                 ? equipped.frame || equipped.visualEffect

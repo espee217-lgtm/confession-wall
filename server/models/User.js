@@ -71,6 +71,12 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    profileChangeCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     bio: {
       type: String,
       default: "",
@@ -183,6 +189,18 @@ const userSchema = new mongoose.Schema(
         {
           itemId: { type: String, required: true },
           purchasedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+
+    achievementTitles: {
+      type: [
+        {
+          id: { type: String, required: true, trim: true },
+          name: { type: String, required: true, trim: true },
+          description: { type: String, default: "", trim: true },
+          unlockedAt: { type: Date, default: Date.now },
         },
       ],
       default: [],

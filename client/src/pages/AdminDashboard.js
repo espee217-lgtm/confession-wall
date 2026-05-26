@@ -108,6 +108,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [reports, setReports] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [grantableTitles, setGrantableTitles] = useState([]);
+  const [selectedGrantTitleIds, setSelectedGrantTitleIds] = useState({});
 
   const [weeklyEventStatus, setWeeklyEventStatus] = useState(null);
   const [weeklyBusy, setWeeklyBusy] = useState(false);
@@ -172,6 +174,12 @@ export default function AdminDashboard() {
     setUsers(Array.isArray(data) ? data : []);
   };
 
+  const fetchGrantableTitles = async () => {
+    const res = await fetch(`${API_URL}/titles`, { headers });
+    const data = await res.json().catch(() => []);
+    setGrantableTitles(Array.isArray(data) ? data : []);
+  };
+
   const fetchReports = async () => {
     const res = await fetch(REPORT_URL, { headers });
     const data = await res.json().catch(() => []);
@@ -215,6 +223,7 @@ export default function AdminDashboard() {
         fetchReports(),
         fetchConfessions(),
         fetchUsers(),
+        fetchGrantableTitles(),
         fetchLogs(),
         fetchWeeklyEventStatus(),
       ]);
@@ -593,6 +602,45 @@ export default function AdminDashboard() {
       console.error(err);
       window.cwToast?.("Something went wrong while giving seeds.", "error") ||
         alert("Something went wrong while giving seeds.");
+    }
+  };
+
+  const grantTitleToUser = async (id, username, titleId) => {
+    const selectedTitle = grantableTitles.find((title) => title.id === titleId);
+
+    if (!selectedTitle) {
+      window.cwToast?.("Choose a title to grant.", "error") ||
+        alert("Choose a title to grant.");
+      return;
+    }
+
+    if (!window.confirm(`Grant ${selectedTitle.name} to @${username}?`)) return;
+
+    try {
+      const res = await fetch(`${API_URL}/users/${id}/grant-title`, {
+        method: "PATCH",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ titleId }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not grant title.", "error") ||
+          alert(data.message || "Could not grant title.");
+        return;
+      }
+
+      updateUserInState(data.user);
+      window.cwToast?.(data.message || "Title granted.", "success") ||
+        alert(data.message || "Title granted.");
+    } catch (err) {
+      console.error(err);
+      window.cwToast?.("Something went wrong while granting the title.", "error") ||
+        alert("Something went wrong while granting the title.");
     }
   };
 
@@ -1691,6 +1739,13 @@ export default function AdminDashboard() {
                   const isOnline = onlineUsernameSet.has(
                     safeText(user.username).toLowerCase()
                   );
+                  const selectedTitleId =
+                    selectedGrantTitleIds[user._id] || grantableTitles[0]?.id || "";
+                  const hasSelectedTitle = Array.isArray(user.achievementTitles)
+                    ? user.achievementTitles.some(
+                        (title) => String(title?.id || title || "") === selectedTitleId
+                      )
+                    : false;
 
                   return (
                     <article key={user._id} className="adminDash-itemCard">
@@ -1749,6 +1804,46 @@ export default function AdminDashboard() {
                           >
                             Give Seeds
                           </button>
+
+                          <div className="adminDash-titleGrantGroup">
+                            <select
+                              className="adminDash-select adminDash-titleSelect"
+                              value={selectedTitleId}
+                              onChange={(event) =>
+                                setSelectedGrantTitleIds((prev) => ({
+                                  ...prev,
+                                  [user._id]: event.target.value,
+                                }))
+                              }
+                              disabled={grantableTitles.length === 0}
+                              aria-label={`Select title to grant to @${user.username}`}
+                            >
+                              {grantableTitles.length === 0 ? (
+                                <option value="">No titles</option>
+                              ) : (
+                                grantableTitles.map((title) => (
+                                  <option key={title.id} value={title.id}>
+                                    {title.name}
+                                  </option>
+                                ))
+                              )}
+                            </select>
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnSecondary"
+                              onClick={() =>
+                                grantTitleToUser(user._id, user.username, selectedTitleId)
+                              }
+                              disabled={!selectedTitleId || hasSelectedTitle}
+                              title={
+                                hasSelectedTitle
+                                  ? "User already has this title."
+                                  : "Grant the selected achievement title."
+                              }
+                            >
+                              {hasSelectedTitle ? "Already Has Title" : "Grant Title"}
+                            </button>
+                          </div>
 
                           <button
                             type="button"

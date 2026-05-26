@@ -20,6 +20,7 @@ const {
   applyConfessionQuestProgress,
   applyReactionQuestProgress,
 } = require("../utils/dailyQuests");
+const { refreshAchievementTitlesForUser } = require("../utils/achievementTitles");
 const {
   USER_PUBLIC_SELECT,
   ensureWeeklyEventMaintenance,
@@ -961,6 +962,9 @@ router.post(
       });
 
       await applyConfessionQuestProgress(req.user._id, `/confession/${saved._id}`);
+      await refreshAchievementTitlesForUser(req.user._id, {
+        link: `/confession/${saved._id}`,
+      });
 
       const responsePost = populated?.toObject ? populated.toObject() : populated;
       responsePost.seedReward = seedReward;
@@ -1037,6 +1041,12 @@ router.post(
           userId: confession.userId,
           type: "comment",
           message: `${req.user.username || "Someone"} sent a comfort card to your confession.`,
+          link: `/confession/${confession._id}`,
+        });
+      }
+
+      if (confession.userId) {
+        await refreshAchievementTitlesForUser(confession.userId, {
           link: `/confession/${confession._id}`,
         });
       }
@@ -1222,6 +1232,9 @@ router.post(
       });
 
       await applyCommentQuestProgress(req.user._id, `/confession/${confession._id}`);
+      await refreshAchievementTitlesForUser(req.user._id, {
+        link: `/confession/${confession._id}`,
+      });
 
       const updated = await Confession.findById(req.params.id)
         .populate("userId", USER_PUBLIC_SELECT)
@@ -1332,6 +1345,10 @@ router.post(
         },
       });
 
+      await refreshAchievementTitlesForUser(req.user._id, {
+        link: `/confession/${confession._id}/comment/${comment._id}`,
+      });
+
       const updated = await Confession.findById(req.params.id)
         .populate("userId", USER_PUBLIC_SELECT)
         .populate("comments.userId", USER_PUBLIC_SELECT)
@@ -1417,6 +1434,12 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
     }
 
     await confession.save();
+
+    if (confession.userId) {
+      await refreshAchievementTitlesForUser(confession.userId, {
+        link: `/confession/${confession._id}`,
+      });
+    }
 
     if (!alreadyVoted) {
       await applyReactionQuestProgress(userId, confession._id, `/confession/${confession._id}`);

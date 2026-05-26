@@ -39,6 +39,7 @@ import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
 import TrendingPage from "./pages/TrendingPage";
 import * as ShopModule from "./pages/Shop";
+import TitleAchievements from "./pages/TitleAchievements";
 import BuySeeds from "./pages/BuySeeds";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
@@ -84,6 +85,10 @@ const ROUTE_SEO = {
   "/search": {
     title: "Search Confessions - Confession Wall",
     description: "Search public anonymous confessions across Confession Wall.",
+  },
+  "/titles": {
+    title: "Title Achievements - Confession Wall",
+    description: "Unlock and equip achievement-based display titles on Confession Wall.",
   },
   "/weekly-events": {
     title: "Weekly Events - Confession Wall",
@@ -1221,6 +1226,7 @@ function AppContent() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/shop" element={<ShopRoute />} />
+        <Route path="/titles" element={<TitleAchievements />} />
         <Route path="/buy-seeds" element={<BuySeeds />} />
         <Route path="/choose" element={<ChoicePage />} />
         <Route path="/reena" element={<ReenaPage />} />

@@ -11,6 +11,7 @@
 
 .shop-hero,
 .shop-buyseeds-cta,
+.shop-title-achievements-notice,
 .shop-guest-notice,
 .shop-equipped-panel,
 .shop-earn-panel,
@@ -139,6 +140,55 @@
 
 .shop-buyseeds-cta-btn:hover {
   transform: translateY(-1px);
+}
+
+.shop-title-achievements-notice {
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 218, 110, 0.24);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255, 220, 116, 0.13), transparent 34%),
+    linear-gradient(145deg, rgba(8, 31, 12, 0.9), rgba(3, 13, 6, 0.96));
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shop-title-achievements-notice h2 {
+  margin: 0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  color: #f8ffd9;
+}
+
+.shop-title-achievements-notice p {
+  margin: 8px 0 0;
+  color: rgba(236, 255, 226, 0.74);
+  font-size: 14px;
+  line-height: 1.58;
+  max-width: 720px;
+}
+
+.shop-title-achievements-btn {
+  min-height: 40px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 220, 120, 0.36);
+  color: #f8ffd9;
+  background: linear-gradient(135deg, rgba(116, 178, 61, 0.9), rgba(70, 93, 25, 0.94));
+  box-shadow: 0 0 18px rgba(255, 218, 105, 0.14);
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-weight: 800;
+}
+
+.shop-title-achievements-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(255, 218, 105, 0.2);
 }
 
 .shop-guest-notice {
@@ -479,7 +529,7 @@
 
 .shop-equipped-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1165,7 +1215,8 @@
     grid-template-columns: 1fr;
   }
 
-  .shop-buyseeds-cta {
+  .shop-buyseeds-cta,
+  .shop-title-achievements-notice {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1204,7 +1255,8 @@
     padding: 24px 14px 46px;
   }
 
-  .shop-buyseeds-cta {
+  .shop-buyseeds-cta,
+  .shop-title-achievements-notice {
     margin-top: 14px;
     padding: 16px;
   }
@@ -1218,15 +1270,18 @@
     flex: 1 1 120px;
   }
 
-  .shop-buyseeds-cta h2 {
+  .shop-buyseeds-cta h2,
+  .shop-title-achievements-notice h2 {
     font-size: 22px;
   }
 
-  .shop-buyseeds-cta p {
+  .shop-buyseeds-cta p,
+  .shop-title-achievements-notice p {
     font-size: 13px;
   }
 
-  .shop-buyseeds-cta-btn {
+  .shop-buyseeds-cta-btn,
+  .shop-title-achievements-btn {
     width: 100%;
   }
 
