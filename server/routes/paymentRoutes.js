@@ -119,6 +119,45 @@ const verifyRazorpaySignature = ({
   );
 };
 
+
+const verifyRazorpayWebhookSignature = ({ rawBody, signature, webhookSecret }) => {
+  if (!rawBody || !signature || !webhookSecret) return false;
+
+  const bodyBuffer = Buffer.isBuffer(rawBody)
+    ? rawBody
+    : Buffer.from(String(rawBody));
+
+  const expected = crypto
+    .createHmac("sha256", webhookSecret)
+    .update(bodyBuffer)
+    .digest("hex");
+
+  const expectedBuffer = Buffer.from(expected, "hex");
+  const receivedBuffer = Buffer.from(String(signature), "hex");
+
+  return (
+    expectedBuffer.length === receivedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  );
+};
+
+const parseWebhookBody = (rawBody) => {
+  const rawText = Buffer.isBuffer(rawBody)
+    ? rawBody.toString("utf8")
+    : String(rawBody || "");
+
+  return JSON.parse(rawText);
+};
+
+const getPaymentEntityFromWebhook = (payload) =>
+  payload?.payload?.payment?.entity || null;
+
+const isSupportedPaymentSuccessEvent = (eventName) =>
+  ["payment.captured", "order.paid"].includes(eventName);
+
+const acknowledgeWebhook = (res, extra = {}) =>
+  res.status(200).json({ received: true, ...extra });
+
 const buildSeedPurchaseMessage = (packName, credit) => {
   if (credit.bonusSeeds > 0) {
     return `Your ${packName} purchase added ${credit.baseSeeds} Seeds + ${credit.bonusSeeds} bonus Seeds.`;
@@ -265,6 +304,103 @@ const creditVerifiedPurchase = async ({
 
   throw lastError;
 };
+
+
+router.post("/", async (req, res) => {
+  if (!req.originalUrl.includes("/api/payments/webhook")) {
+    return res.status(404).json({ message: "API route not found" });
+  }
+
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("Razorpay webhook rejected: RAZORPAY_WEBHOOK_SECRET is not configured.");
+      return res.status(503).json({ message: "Webhook is not configured." });
+    }
+
+    const webhookSignature = req.headers["x-razorpay-signature"];
+    const rawBody = req.body;
+
+    const signatureValid = verifyRazorpayWebhookSignature({
+      rawBody,
+      signature: webhookSignature,
+      webhookSecret,
+    });
+
+    if (!signatureValid) {
+      console.error("Razorpay webhook rejected: invalid signature.");
+      return res.status(400).json({ message: "Invalid webhook signature." });
+    }
+
+    const payload = parseWebhookBody(rawBody);
+    const eventName = payload?.event;
+
+    if (!isSupportedPaymentSuccessEvent(eventName)) {
+      return acknowledgeWebhook(res, { ignored: true, event: eventName || "unknown" });
+    }
+
+    const payment = getPaymentEntityFromWebhook(payload);
+
+    if (!payment?.order_id || !payment?.id) {
+      console.warn("Razorpay webhook ignored: missing payment/order identifiers.");
+      return acknowledgeWebhook(res, { ignored: true, reason: "missing_payment_identifiers" });
+    }
+
+    const purchase = await SeedPurchase.findOne({
+      razorpayOrderId: payment.order_id,
+    });
+
+    if (!purchase) {
+      console.warn("Razorpay webhook ignored: no SeedPurchase found for order", payment.order_id);
+      return acknowledgeWebhook(res, { ignored: true, reason: "purchase_not_found" });
+    }
+
+    if (
+      Number(payment.amount) !== Number(purchase.amountMinor) ||
+      String(payment.currency || "").toUpperCase() !== String(purchase.currency || "").toUpperCase()
+    ) {
+      await markPurchaseFailed(
+        purchase,
+        "Razorpay webhook amount/currency did not match the Seed purchase."
+      );
+
+      console.error("Razorpay webhook rejected: amount/currency mismatch", {
+        orderId: payment.order_id,
+        paymentAmount: payment.amount,
+        paymentCurrency: payment.currency,
+        purchaseAmount: purchase.amountMinor,
+        purchaseCurrency: purchase.currency,
+      });
+
+      return res.status(400).json({ message: "Payment amount/currency mismatch." });
+    }
+
+    const result = await creditVerifiedPurchase({
+      purchaseId: purchase._id,
+      userId: purchase.userId,
+      razorpayOrderId: payment.order_id,
+      razorpayPaymentId: payment.id,
+    });
+
+    return acknowledgeWebhook(res, {
+      event: eventName,
+      credited: !result.alreadyCredited,
+      alreadyCredited: Boolean(result.alreadyCredited),
+    });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return acknowledgeWebhook(res, { alreadyProcessed: true });
+    }
+
+    if (err instanceof SyntaxError) {
+      return res.status(400).json({ message: "Invalid webhook JSON." });
+    }
+
+    console.error("Razorpay webhook error:", err.message);
+    return res.status(500).json({ message: "Could not process webhook." });
+  }
+});
 
 router.get("/seed-packs", async (req, res) => {
   try {

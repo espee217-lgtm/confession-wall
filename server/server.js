@@ -84,11 +84,17 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-admin-log-secret"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-admin-log-secret", "x-razorpay-signature"],
 };
 
 app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
+
+app.use(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json", limit: "1mb" }),
+  paymentRoutes
+);
 
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
