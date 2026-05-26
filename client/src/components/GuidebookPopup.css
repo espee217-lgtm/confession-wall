@@ -728,3 +728,16 @@ body.cw-guidebook-open .demon-sprite {
     object-fit: contain !important;
   }
 }
+
+/* === Notification panel guard ===
+   The notification dropdown already adds body.cw-notifications-open from App.js.
+   While that panel is open, hide Guidebook launchers so they cannot visually
+   or click-wise interfere with the notification inbox. This restores the old
+   behavior without changing z-index stacking. */
+body.cw-notifications-open .cw-guidebook-launcher,
+body.cw-notifications-open .nav-guidebook-mobile-btn,
+body.cw-notifications-open .mobile-bottom-guidebook-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
