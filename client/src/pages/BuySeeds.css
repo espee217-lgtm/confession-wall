@@ -404,3 +404,7 @@
     text-align: center;
   }
 }
+
+.buy-seeds-region-note.warning {
+  color: #ffd8bd;
+}

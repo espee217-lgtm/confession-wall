@@ -14,151 +14,24 @@ const SEED_ICON = "\uD83C\uDF31";
 const PAYMENT_UNAVAILABLE_MESSAGE =
   "Payments are not available yet. Please try again later.";
 const RAZORPAY_CHECKOUT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
-const DEFAULT_PAYMENT_REGION = "IN";
-const REGION_LABELS = {
-  IN: "India",
-  US: "United States",
-  GB: "United Kingdom",
-};
-const CURRENCY_LOCALE_MAP = {
-  INR: "en-IN",
-  USD: "en-US",
-  GBP: "en-GB",
-};
-const GUEST_SEED_PACKS = {
-  "starter-bloom": {
-    name: "Starter Bloom",
-    baseSeeds: 100,
-    description: "Small premium Seed boost for first unlocks.",
-  },
-  "grove-pack": {
-    name: "Grove Pack",
-    baseSeeds: 300,
-    description: "Balanced Seed pack for cosmetics and profile style.",
-  },
-  "ancient-pack": {
-    name: "Ancient Pack",
-    baseSeeds: 800,
-    description: "Premium bundle for bigger cosmetic unlocks.",
-  },
-  "mythic-grove-pack": {
-    name: "Mythic Grove Pack",
-    baseSeeds: 1800,
-    description: "Best-value supporter pack for major unlocks.",
-  },
-};
-const GUEST_REGION_PRICING = {
-  IN: {
-    currency: "INR",
-    amounts: {
-      "starter-bloom": 9900,
-      "grove-pack": 19900,
-      "ancient-pack": 49900,
-      "mythic-grove-pack": 99900,
-    },
-  },
-  US: {
-    currency: "USD",
-    amounts: {
-      "starter-bloom": 299,
-      "grove-pack": 599,
-      "ancient-pack": 1299,
-      "mythic-grove-pack": 2499,
-    },
-  },
-  GB: {
-    currency: "GBP",
-    amounts: {
-      "starter-bloom": 249,
-      "grove-pack": 499,
-      "ancient-pack": 1099,
-      "mythic-grove-pack": 2199,
-    },
-  },
-};
 
-function normalizeClientRegion(region) {
-  const value = String(region || "").trim().toUpperCase();
-
-  if (value === "IN") return "IN";
-  if (value === "US") return "US";
-  if (value === "GB" || value === "UK") return "GB";
-
-  return "";
-}
-
-function parseCloudflareTraceRegion(traceText) {
-  const lines = String(traceText || "").split("\n");
-  const locLine = lines.find((line) => line.startsWith("loc="));
-  if (!locLine) return "";
-
-  return normalizeClientRegion(locLine.replace("loc=", ""));
-}
-
-function getRegionFromBrowserHints() {
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-  const locale = navigator.language || "";
-  const normalizedLocale = String(locale).replace("_", "-").toLowerCase();
-  const localeRegionMatch = normalizedLocale.match(/-([a-z]{2})$/i);
-  const localeRegion = normalizeClientRegion(localeRegionMatch?.[1] || "");
-
-  if (timeZone.includes("Asia/Kolkata") || timeZone.includes("Asia/Calcutta")) {
-    return "IN";
-  }
-  if (localeRegion === "IN") return "IN";
-
-  if (normalizedLocale.includes("en-gb") || timeZone.includes("Europe/London")) {
-    return "GB";
-  }
-  if (localeRegion === "GB") return "GB";
-
-  if (normalizedLocale.includes("en-us") || timeZone.includes("America/")) {
-    return "US";
-  }
-  if (localeRegion === "US") return "US";
-
-  return "";
-}
-
-function formatCurrencyMinor(amountMinor, currency) {
+function formatCurrencyMinor(amountMinor, currency, exponent = 2) {
   const numeric = Number(amountMinor);
   const safeAmountMinor = Number.isFinite(numeric) ? numeric : 0;
   const currencyCode = String(currency || "INR").toUpperCase();
-  const locale = CURRENCY_LOCALE_MAP[currencyCode] || "en-US";
+  const safeExponent = Number.isFinite(Number(exponent)) ? Number(exponent) : 2;
+  const amount = safeAmountMinor / Math.pow(10, safeExponent);
 
   try {
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(undefined, {
       style: "currency",
       currency: currencyCode,
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 0,
-    }).format(safeAmountMinor / 100);
+      maximumFractionDigits: safeExponent,
+      minimumFractionDigits: safeExponent === 0 ? 0 : 0,
+    }).format(amount);
   } catch {
-    return `${safeAmountMinor / 100} ${currencyCode}`;
+    return `${amount} ${currencyCode}`;
   }
-}
-
-function buildGuestSeedPackPreviews(region) {
-  const normalizedRegion = normalizeClientRegion(region) || DEFAULT_PAYMENT_REGION;
-  const pricing = GUEST_REGION_PRICING[normalizedRegion] || GUEST_REGION_PRICING.IN;
-
-  return Object.entries(GUEST_SEED_PACKS)
-    .map(([id, pack]) => {
-      const amountMinor = pricing.amounts[id];
-      if (!amountMinor) return null;
-
-      return {
-        id,
-        ...pack,
-        amountMinor,
-        currency: pricing.currency,
-        region: normalizedRegion,
-        bonusPercentPreview: 0,
-        bonusSeedsPreview: 0,
-        totalSeedsPreview: pack.baseSeeds,
-      };
-    })
-    .filter(Boolean);
 }
 
 async function readJsonSafe(response) {
@@ -216,17 +89,23 @@ function BuySeeds() {
   const navigate = useNavigate();
   const { user, token, refreshUser, updateUser } = useAuth();
 
-  const [paymentRegion, setPaymentRegion] = useState(DEFAULT_PAYMENT_REGION);
-  const [isRegionDetecting, setIsRegionDetecting] = useState(true);
-  const [regionDetectionSource, setRegionDetectionSource] = useState("loading");
-  const [hasRegionForFetch, setHasRegionForFetch] = useState(false);
   const [seedPacks, setSeedPacks] = useState([]);
   const [seedPackLoading, setSeedPackLoading] = useState(false);
   const [seedPackBusyId, setSeedPackBusyId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [localSeeds, setLocalSeeds] = useState(user?.seeds || 0);
-  const [seedPackMeta, setSeedPackMeta] = useState({
+  const [paymentMeta, setPaymentMeta] = useState({
+    location: {
+      countryCode: "",
+      countryName: "Detecting...",
+      currency: "",
+      paymentsSupported: false,
+      source: "loading",
+      unavailableReason: "",
+    },
+    paymentsSupported: false,
+    unavailableReason: "",
     successfulSeedPurchaseCount: 0,
     nextPurchaseNumber: 1,
     bonusPercentForNextPurchase: 0,
@@ -238,100 +117,47 @@ function BuySeeds() {
     setLocalSeeds(user?.seeds || 0);
   }, [user]);
 
-  useEffect(() => {
-    let isActive = true;
+  const loadSeedPacks = useCallback(async () => {
+    try {
+      setSeedPackLoading(true);
+      setError("");
 
-    const detectRegion = async () => {
-      const hintRegion = getRegionFromBrowserHints();
-      const initialRegion = hintRegion || DEFAULT_PAYMENT_REGION;
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await fetch(`${API_BASE}/api/payments/seed-packs`, {
+        headers,
+        cache: "no-store",
+      });
+      const data = await readJsonSafe(res);
 
-      if (!isActive) return;
-
-      setPaymentRegion(initialRegion);
-      setRegionDetectionSource(hintRegion ? "hint" : "default");
-      setHasRegionForFetch(true);
-
-      try {
-        const traceResponse = await fetch("/cdn-cgi/trace", {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        if (!isActive) return;
-
-        if (traceResponse.ok) {
-          const traceText = await traceResponse.text();
-          const traceRegion = parseCloudflareTraceRegion(traceText);
-
-          if (traceRegion) {
-            setPaymentRegion((prev) => (prev === traceRegion ? prev : traceRegion));
-            setRegionDetectionSource("trace");
-          }
-        }
-      } catch {
-        // In local development this endpoint is usually unavailable.
-      } finally {
-        if (isActive) {
-          setIsRegionDetecting(false);
-        }
-      }
-    };
-
-    detectRegion();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  const loadSeedPacks = useCallback(
-    async (region) => {
-      if (!token) {
-        setSeedPackLoading(false);
-        setSeedPacks(buildGuestSeedPackPreviews(region));
-        setSeedPackMeta({
-          successfulSeedPurchaseCount: 0,
-          nextPurchaseNumber: 1,
-          bonusPercentForNextPurchase: 0,
-        });
-        return;
+      if (!res.ok) {
+        throw new Error(data.message || "Could not load Seed packs right now.");
       }
 
-      try {
-        setSeedPackLoading(true);
-
-        const res = await fetch(
-          `${API_BASE}/api/payments/seed-packs?region=${encodeURIComponent(region)}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const data = await readJsonSafe(res);
-
-        if (!res.ok) {
-          throw new Error(data.message || "Could not load Seed packs right now.");
-        }
-
-        setSeedPacks(Array.isArray(data.packs) ? data.packs : []);
-        setSeedPackMeta({
-          successfulSeedPurchaseCount: Number(data.successfulSeedPurchaseCount || 0),
-          nextPurchaseNumber: Number(data.nextPurchaseNumber || 1),
-          bonusPercentForNextPurchase: Number(data.bonusPercentForNextPurchase || 0),
-        });
-      } catch (err) {
-        setSeedPacks([]);
-        setError(err.message || "Could not load Seed packs right now.");
-      } finally {
-        setSeedPackLoading(false);
-      }
-    },
-    [token]
-  );
+      setSeedPacks(Array.isArray(data.packs) ? data.packs : []);
+      setPaymentMeta({
+        location: data.location || {},
+        paymentsSupported: Boolean(data.paymentsSupported),
+        unavailableReason: data.unavailableReason || "",
+        successfulSeedPurchaseCount: Number(data.successfulSeedPurchaseCount || 0),
+        nextPurchaseNumber: Number(data.nextPurchaseNumber || 1),
+        bonusPercentForNextPurchase: Number(data.bonusPercentForNextPurchase || 0),
+      });
+    } catch (err) {
+      setSeedPacks([]);
+      setPaymentMeta((prev) => ({
+        ...prev,
+        paymentsSupported: false,
+        unavailableReason: err.message || "Could not load Seed packs right now.",
+      }));
+      setError(err.message || "Could not load Seed packs right now.");
+    } finally {
+      setSeedPackLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    if (!hasRegionForFetch) return;
-    loadSeedPacks(paymentRegion);
-  }, [paymentRegion, loadSeedPacks, hasRegionForFetch]);
+    loadSeedPacks();
+  }, [loadSeedPacks]);
 
   const verifySeedPackPayment = useCallback(
     async (payload) => {
@@ -376,7 +202,7 @@ function BuySeeds() {
           console.warn("Could not refresh user after payment verify:", refreshErr);
         }
 
-        await loadSeedPacks(paymentRegion);
+        await loadSeedPacks();
 
         setMessage(
           data.alreadyCredited
@@ -389,7 +215,7 @@ function BuySeeds() {
         setSeedPackBusyId("");
       }
     },
-    [token, refreshUser, loadSeedPacks, paymentRegion, updateUser]
+    [token, refreshUser, loadSeedPacks, updateUser]
   );
 
   const handleSeedPackBuy = async (pack) => {
@@ -398,6 +224,12 @@ function BuySeeds() {
     if (!isLoggedIn) {
       setError("");
       setMessage("Log in or create an account to buy Seed packs.");
+      return;
+    }
+
+    if (!paymentMeta.paymentsSupported) {
+      setMessage("");
+      setError(paymentMeta.unavailableReason || "Seed purchases are not available in your country yet.");
       return;
     }
 
@@ -412,8 +244,7 @@ function BuySeeds() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        // TODO: Region sent by client is only a UX hint; enforce strict geo rules server-side.
-        body: JSON.stringify({ packId: pack.id, region: paymentRegion }),
+        body: JSON.stringify({ packId: pack.id }),
       });
       const orderData = await readJsonSafe(orderRes);
 
@@ -459,7 +290,8 @@ function BuySeeds() {
         },
         notes: {
           packId: pack.id,
-          region: paymentRegion,
+          country: orderData.location?.countryCode || paymentMeta.location?.countryCode || "",
+          currency: orderData.currency,
         },
         theme: {
           color: "#5fbf52",
@@ -480,20 +312,21 @@ function BuySeeds() {
   };
 
   const bonusLabel = useMemo(() => {
-    if (seedPackMeta.bonusPercentForNextPurchase > 0) {
-      return `${seedPackMeta.bonusPercentForNextPurchase}% bonus on next purchase`;
+    if (paymentMeta.bonusPercentForNextPurchase > 0) {
+      return `${paymentMeta.bonusPercentForNextPurchase}% bonus on next purchase`;
     }
     return "No bonus for next purchase";
-  }, [seedPackMeta.bonusPercentForNextPurchase]);
+  }, [paymentMeta.bonusPercentForNextPurchase]);
 
-  const regionLabel = REGION_LABELS[paymentRegion] || REGION_LABELS[DEFAULT_PAYMENT_REGION];
-  const regionStatusLabel = isRegionDetecting
-    ? "Detecting your region..."
-    : regionDetectionSource === "default"
-      ? "Showing default prices"
-      : `Prices shown for ${regionLabel}`;
-  const showAutoDetectedNote =
-    !isRegionDetecting && regionDetectionSource !== "default";
+  const location = paymentMeta.location || {};
+  const regionStatusLabel = seedPackLoading
+    ? "Detecting payment location..."
+    : location.countryName && location.currency
+      ? `${location.countryName} · ${location.currency}`
+      : "Payment location unavailable";
+  const showAutoDetectedNote = Boolean(location.source && location.source !== "default");
+  const disabledPaymentMessage = paymentMeta.unavailableReason ||
+    "Seed purchases are not available in your country yet.";
 
   return (
     <main className="buy-seeds-page">
@@ -518,8 +351,15 @@ function BuySeeds() {
 
       <div className="buy-seeds-region-status" aria-live="polite">
         <span className="buy-seeds-region-pill">{regionStatusLabel}</span>
+        {paymentMeta.paymentsSupported ? (
+          <span className="buy-seeds-region-note">
+            Prices are decided securely by the server.
+          </span>
+        ) : (
+          <span className="buy-seeds-region-note warning">{disabledPaymentMessage}</span>
+        )}
         {showAutoDetectedNote && (
-          <span className="buy-seeds-region-note">Region detected automatically</span>
+          <span className="buy-seeds-region-note">Country detected automatically</span>
         )}
       </div>
 
@@ -554,8 +394,8 @@ function BuySeeds() {
         <div className="buy-seeds-meta">
           {isLoggedIn ? (
             <>
-              <span>Successful purchases: {seedPackMeta.successfulSeedPurchaseCount}</span>
-              <span>Next purchase number: {seedPackMeta.nextPurchaseNumber}</span>
+              <span>Successful purchases: {paymentMeta.successfulSeedPurchaseCount}</span>
+              <span>Next purchase number: {paymentMeta.nextPurchaseNumber}</span>
               <span>{bonusLabel}</span>
             </>
           ) : (
@@ -567,7 +407,9 @@ function BuySeeds() {
           <div className="buy-seeds-loading">Loading Seed packs...</div>
         ) : seedPacks.length === 0 ? (
           <div className="buy-seeds-empty">
-            Seed packs are unavailable for this region right now.
+            {paymentMeta.paymentsSupported
+              ? "Seed packs are unavailable right now."
+              : disabledPaymentMessage}
           </div>
         ) : (
           <div className="buy-seeds-grid">
@@ -580,7 +422,11 @@ function BuySeeds() {
                   <div className="buy-seeds-card-top">
                     <h3>{pack.name}</h3>
                     <div className="buy-seeds-price">
-                      {formatCurrencyMinor(pack.amountMinor, pack.currency)}
+                      {formatCurrencyMinor(
+                        pack.amountMinor,
+                        pack.currency,
+                        pack.currencyExponent
+                      )}
                     </div>
                   </div>
 
@@ -603,7 +449,7 @@ function BuySeeds() {
                     type="button"
                     className="buy-seeds-buy-btn"
                     onClick={() => handleSeedPackBuy(pack)}
-                    disabled={Boolean(seedPackBusyId)}
+                    disabled={Boolean(seedPackBusyId) || !paymentMeta.paymentsSupported}
                   >
                     {isBusy ? "Opening..." : isLoggedIn ? "Buy" : "Log in to buy"}
                   </button>
