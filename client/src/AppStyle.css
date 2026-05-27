@@ -10889,3 +10889,57 @@ button.confession-image-scroller__item {
     margin-bottom: 8px !important;
   }
 }
+
+
+/* Public profile hero avatar frame fit: keep the decorative frame big while the photo sits neatly inside. */
+.cw-user-profile-hero .cw-public-profile-hero-avatar {
+  margin: 0 auto;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-grove-butterfly {
+  --cw-grove-butterfly-scale: 0.58;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-demon-thorn {
+  --cw-demon-thorn-scale: 0.58;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-lotus-aura {
+  --cw-lotus-aura-scale: 0.32;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.52;
+  --cw-ice-monarch-glow-inset: -18%;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar > img {
+  width: 84% !important;
+  height: 84% !important;
+}
+
+@media (max-width: 640px) {
+  .cw-user-profile-hero .cw-public-profile-hero-avatar {
+    --cw-avatar-size: 128px;
+    width: 128px !important;
+    height: 128px !important;
+    min-width: 128px !important;
+    min-height: 128px !important;
+  }
+
+  .cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-grove-butterfly {
+    --cw-grove-butterfly-scale: 0.52;
+  }
+
+  .cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-demon-thorn {
+    --cw-demon-thorn-scale: 0.52;
+  }
+
+  .cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-lotus-aura {
+    --cw-lotus-aura-scale: 0.29;
+  }
+
+  .cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-ice-monarch {
+    --cw-ice-monarch-scale: 0.48;
+  }
+}

@@ -131,7 +131,8 @@ export default function UserProfile() {
               username={profile.username}
               frameId={equipped.frame}
               effectId={equipped.visualEffect}
-              size={124}
+              size={142}
+              className="cw-public-profile-hero-avatar"
               placeholder={profile.username?.[0]?.toUpperCase() || "?"}
             />
 
