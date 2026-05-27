@@ -10017,3 +10017,138 @@ button.confession-image-scroller__item {
     height: 242px;
   }
 }
+
+/* Settings profile constellation: center Avatar Frames under the profile core and slightly enlarge cards. */
+@media (min-width: 981px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 330px;
+    --hub-branch-length: 76px;
+    width: min(480px, 100%);
+    min-height: 700px;
+    margin-bottom: 34px;
+  }
+
+  .cw-settings-profile-hero.cosmetic-hub-node--center {
+    min-height: 330px;
+    padding: 30px 34px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box {
+    min-height: 152px;
+    padding: 22px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-upper {
+    right: calc(100% + var(--hub-branch-length));
+    top: 12px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-lower {
+    right: calc(100% + var(--hub-branch-length));
+    top: 250px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-upper {
+    left: calc(100% + var(--hub-branch-length));
+    top: 12px;
+  }
+
+  /* Avatar Frames belongs to the avatar, so keep it directly below the main profile core. */
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    left: 50%;
+    top: 414px;
+    width: 360px;
+    transform: translateX(-50%);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-upper {
+    top: 132px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-upper {
+    top: 136px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower {
+    top: 286px;
+    height: 54px;
+  }
+
+  /* Replace the old lower-right branch with a short vertical branch from profile core to Avatar Frames. */
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    left: 50%;
+    top: 330px;
+    width: 0;
+    height: 84px;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(255, 222, 112, 0.84);
+    border-bottom: 0;
+    background: none;
+    box-shadow:
+      0 0 16px rgba(255, 213, 91, 0.44),
+      0 0 32px rgba(255, 188, 48, 0.16);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower::after {
+    top: 100%;
+    left: 50%;
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 1181px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 304px;
+    --hub-branch-length: 58px;
+    width: 450px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    width: 340px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 250px;
+    --hub-branch-length: 36px;
+    width: 390px;
+    min-height: 690px;
+  }
+
+  .cw-settings-profile-hero.cosmetic-hub-node--center {
+    min-height: 310px;
+    padding: 24px 26px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box {
+    min-height: 142px;
+    padding: 16px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-upper,
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-upper {
+    top: 10px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-lower {
+    top: 246px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    left: 50%;
+    top: 398px;
+    width: 320px;
+    transform: translateX(-50%);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    left: 50%;
+    top: 310px;
+    width: 0;
+    height: 88px;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(255, 222, 112, 0.84);
+    border-bottom: 0;
+    background: none;
+  }
+}
