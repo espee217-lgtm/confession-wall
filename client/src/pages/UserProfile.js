@@ -38,6 +38,96 @@ function CosmeticChip({ item, fallback }) {
   );
 }
 
+function FriendActionIcon({ variant = "add" }) {
+  const isAccepted = variant === "accepted";
+  const isCancel = variant === "cancel";
+  const isAccept = variant === "accept";
+
+  return (
+    <span style={friendIconWrapStyle} aria-hidden="true">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.8 11.1C10.62 11.1 12.1 9.62 12.1 7.8C12.1 5.98 10.62 4.5 8.8 4.5C6.98 4.5 5.5 5.98 5.5 7.8C5.5 9.62 6.98 11.1 8.8 11.1Z"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14.55 10.65C15.98 10.48 17.08 9.26 17.08 7.78C17.08 6.42 16.15 5.28 14.9 4.96"
+          stroke="currentColor"
+          strokeWidth="1.55"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.72"
+        />
+        <path
+          d="M3.9 18.75C4.55 15.92 6.38 14.45 8.8 14.45C11.22 14.45 13.05 15.92 13.7 18.75"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14.7 14.85C16.3 15.25 17.4 16.55 17.85 18.75"
+          stroke="currentColor"
+          strokeWidth="1.55"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.72"
+        />
+        <circle cx="17.8" cy="16.2" r="4" fill="rgba(6, 18, 10, 0.96)" />
+        <circle
+          cx="17.8"
+          cy="16.2"
+          r="3.45"
+          stroke="currentColor"
+          strokeWidth="1.25"
+          opacity="0.92"
+        />
+        {isAccepted ? (
+          <path
+            d="M16.15 16.25L17.35 17.45L19.65 14.95"
+            stroke="currentColor"
+            strokeWidth="1.55"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : isCancel ? (
+          <path
+            d="M16.35 16.2H19.25"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        ) : (
+          <>
+            <path
+              d="M17.8 14.72V17.68"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <path
+              d="M16.32 16.2H19.28"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+          </>
+        )}
+      </svg>
+      {isAccept && <span style={friendIconPingStyle} />}
+    </span>
+  );
+}
+
 export default function UserProfile() {
   const { id } = useParams();
   const { user, token } = useAuth();
@@ -196,6 +286,13 @@ export default function UserProfile() {
     return "Add Friend";
   };
 
+  const getFriendIconVariant = () => {
+    if (friendship.status === "pending" && friendship.direction === "incoming") return "accept";
+    if (friendship.status === "pending" && friendship.direction === "outgoing") return "cancel";
+    if (friendship.status === "accepted") return "accepted";
+    return "add";
+  };
+
 
   if (loading) {
     return (
@@ -306,8 +403,8 @@ export default function UserProfile() {
                 disabled={friendBusy}
                 style={friendButtonStyle}
               >
-                <span aria-hidden="true">👥</span>
-                {getFriendButtonLabel()}
+                <FriendActionIcon variant={getFriendIconVariant()} />
+                <span>{getFriendButtonLabel()}</span>
               </button>
             )}
           </div>
@@ -703,19 +800,46 @@ const friendButtonStyle = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: "8px",
-  padding: "9px 16px",
+  gap: "9px",
+  minHeight: "38px",
+  padding: "6px 13px 6px 8px",
   borderRadius: "999px",
-  border: "1px solid rgba(190,255,180,0.32)",
-  background: "linear-gradient(135deg, rgba(76,148,48,0.66), rgba(11,52,20,0.84))",
-  color: "rgba(244,255,235,0.96)",
+  border: "1px solid rgba(232, 214, 150, 0.34)",
+  background: "rgba(255, 244, 190, 0.035)",
+  color: "rgba(247, 238, 190, 0.96)",
   fontFamily: "'Cinzel', Georgia, serif",
-  fontSize: "12px",
+  fontSize: "11.5px",
   fontWeight: 800,
-  letterSpacing: "0.08em",
+  letterSpacing: "0.085em",
   textTransform: "uppercase",
   cursor: "pointer",
-  boxShadow: "0 0 18px rgba(120,255,150,0.16)",
+  boxShadow: "0 10px 28px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
+};
+
+const friendIconWrapStyle = {
+  position: "relative",
+  width: "28px",
+  height: "28px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "999px",
+  color: "rgba(245, 226, 145, 0.98)",
+  background: "radial-gradient(circle at 35% 25%, rgba(255,242,168,0.20), rgba(255,242,168,0.04) 48%, rgba(0,0,0,0.10))",
+  boxShadow: "0 0 14px rgba(245, 211, 97, 0.18)",
+  flexShrink: 0,
+};
+
+const friendIconPingStyle = {
+  position: "absolute",
+  right: "2px",
+  top: "2px",
+  width: "6px",
+  height: "6px",
+  borderRadius: "999px",
+  background: "rgba(255, 219, 92, 0.95)",
+  boxShadow: "0 0 10px rgba(255, 219, 92, 0.8)",
 };
 
 const equippedPanelStyle = {
