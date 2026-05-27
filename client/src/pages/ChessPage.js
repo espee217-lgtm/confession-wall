@@ -14,6 +14,7 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const pieceMap = {
   p: "♟",
   r: "♜",
@@ -30,27 +31,42 @@ const pieceMap = {
 };
 
 function parseFenBoard(fen) {
-  const boardPart = String(fen || "").split(" ")[0];
+  const safeFen = !fen || fen === "start" ? STARTING_FEN : String(fen);
+  const boardPart = safeFen.split(" ")[0];
   const ranks = boardPart.split("/");
   const board = [];
 
-  ranks.forEach((rank, rankIndex) => {
+  ranks.slice(0, 8).forEach((rank, rankIndex) => {
     let fileIndex = 0;
     rank.split("").forEach((char) => {
+      if (fileIndex >= 8) return;
+
       if (/\d/.test(char)) {
         const emptyCount = Number(char);
-        for (let i = 0; i < emptyCount; i += 1) {
+        for (let i = 0; i < emptyCount && fileIndex < 8; i += 1) {
           board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
           fileIndex += 1;
         }
-      } else {
+      } else if (pieceMap[char]) {
         board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: char });
         fileIndex += 1;
       }
     });
+
+    while (fileIndex < 8) {
+      board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
+      fileIndex += 1;
+    }
   });
 
-  return board;
+  while (board.length < 64) {
+    const index = board.length;
+    const rankIndex = Math.floor(index / 8);
+    const fileIndex = index % 8;
+    board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
+  }
+
+  return board.slice(0, 64);
 }
 
 function isWhitePiece(piece) {

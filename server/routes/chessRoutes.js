@@ -14,6 +14,11 @@ const PUBLIC_USER_SELECT =
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || ""));
 const sameId = (a, b) => String(a || "") === String(b || "");
+const STARTING_FEN = new Chess().fen();
+const normalizeFen = (fen) => {
+  const value = String(fen || "").trim();
+  return value && value !== "start" ? value : STARTING_FEN;
+};
 
 const publicUser = (user) => {
   if (!user) return null;
@@ -43,7 +48,7 @@ const serializeGame = (game, currentUserId) => ({
   _id: game._id,
   mode: game.mode,
   status: game.status,
-  fen: game.fen,
+  fen: normalizeFen(game.fen),
   pgn: game.pgn || "",
   turn: game.turn,
   moves: game.moves || [],
@@ -190,6 +195,7 @@ router.post("/challenge/:friendId", blockSuspended, async (req, res) => {
       players: [req.user._id, friendId],
       status: "invited",
       mode: "friend",
+      fen: STARTING_FEN,
       turn: "w",
     });
 
@@ -220,6 +226,7 @@ router.post("/invites/:gameId/accept", blockSuspended, async (req, res) => {
     if (!game) return res.status(404).json({ message: "Chess invite not found." });
 
     game.status = "active";
+    game.fen = normalizeFen(game.fen);
     game.acceptedAt = new Date();
     await game.save();
     game = await populateGame(ChessGame.findById(game._id));
@@ -281,7 +288,7 @@ router.post("/:gameId/move", blockSuspended, async (req, res) => {
     const mySide = sideFor(game, req.user._id);
     if (mySide !== game.turn) return res.status(403).json({ message: "It is not your turn." });
 
-    const chess = new Chess(game.fen);
+    const chess = new Chess(normalizeFen(game.fen));
     const moved = chess.move({ from, to, promotion });
 
     if (!moved) return res.status(400).json({ message: "Illegal chess move." });
