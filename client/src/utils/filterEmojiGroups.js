@@ -32,27 +32,64 @@ const EMOJI_GROUP_ALIASES = {
   confession: "confession secret vent whisper thought brain heart lock key diary note writing truth anonymous"
 };
 
+const POPULAR_EMOJIS = [
+  "😂", "🤣", "😭", "🥲", "🥹", "🥺", "😅", "😊", "😍", "😌", "😔", "😢", "😤", "😳", "😶", "😮‍💨", "😵‍💫", "🫠",
+  "❤️", "🩷", "🧡", "💛", "💚", "💙", "💜", "🤍", "🖤", "💔", "❤️‍🩹", "✨", "🔥", "💀", "👀", "🫶", "🫂", "🙏",
+  "👍", "👎", "👏", "🙌", "🤝", "🤌", "🫰", "💪", "🌱", "🌿", "🍃", "🌳", "🌸", "🌼", "🌻", "🪷", "🦋", "🐝",
+  "🌙", "⭐", "🌟", "🌧", "🌈", "☁", "🕊", "🕯", "🔮", "🪄", "🧿", "💌", "💭", "🗣", "🧠", "🫀", "🔒", "🗝",
+  "✅", "❌", "⚠", "❗", "❓", "💯", "🚩", "🎉", "🎮", "🎧", "🍕", "☕", "🍫", "🐶", "🐱", "🐦", "🐉", "🦄"
+];
+
+const MAX_VISIBLE_EMOJIS = 220;
+const MAX_SEARCH_RESULTS = 220;
+
 const normalizeSearchText = (value) =>
   String(value || "")
     .trim()
     .toLowerCase();
 
-export function filterEmojiGroups(groups, query) {
+const uniqueEmojis = (emojis) => Array.from(new Set(emojis.filter(Boolean)));
+
+const sliceVisible = (emojis, limit = MAX_VISIBLE_EMOJIS) => uniqueEmojis(emojis).slice(0, limit);
+
+export function getEmojiCategoryLabels(groups) {
+  return ["popular", ...groups.map((group) => group.label).filter(Boolean)];
+}
+
+export function filterEmojiGroups(groups, query, activeLabel = "popular") {
   const needle = normalizeSearchText(query);
-  if (!needle) return groups;
 
-  return groups
-    .map((group) => {
-      const label = String(group.label || "").toLowerCase();
-      const aliases = EMOJI_GROUP_ALIASES[label] || "";
-      const groupMatches = label.includes(needle) || aliases.includes(needle);
+  if (!needle) {
+    if (activeLabel === "popular") {
+      return [{ label: "popular", emojis: sliceVisible(POPULAR_EMOJIS, MAX_VISIBLE_EMOJIS) }];
+    }
 
-      if (groupMatches) {
-        return group;
-      }
+    const activeGroup = groups.find(
+      (group) => String(group.label || "").toLowerCase() === String(activeLabel || "").toLowerCase()
+    );
 
-      const emojis = group.emojis.filter((emoji) => String(emoji).includes(query.trim()));
-      return emojis.length ? { ...group, emojis } : null;
-    })
-    .filter(Boolean);
+    if (!activeGroup) {
+      return [{ label: "popular", emojis: sliceVisible(POPULAR_EMOJIS, MAX_VISIBLE_EMOJIS) }];
+    }
+
+    return [{ ...activeGroup, emojis: sliceVisible(activeGroup.emojis, MAX_VISIBLE_EMOJIS) }];
+  }
+
+  const matches = [];
+
+  for (const group of groups) {
+    const label = String(group.label || "").toLowerCase();
+    const aliases = EMOJI_GROUP_ALIASES[label] || "";
+    const groupMatches = label.includes(needle) || aliases.includes(needle);
+
+    if (groupMatches) {
+      matches.push(...group.emojis);
+    } else {
+      matches.push(...group.emojis.filter((emoji) => String(emoji).includes(query.trim())));
+    }
+
+    if (matches.length >= MAX_SEARCH_RESULTS) break;
+  }
+
+  return [{ label: "search results", emojis: sliceVisible(matches, MAX_SEARCH_RESULTS) }];
 }

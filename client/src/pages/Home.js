@@ -23,7 +23,7 @@ import {
 } from "../utils/engagement";
 import { CONTENT_WARNING_CATEGORIES } from "../utils/contentWarning";
 import { POST_EMOJI_GROUPS } from "../data/emojiGroups";
-import { filterEmojiGroups } from "../utils/filterEmojiGroups";
+import { filterEmojiGroups, getEmojiCategoryLabels } from "../utils/filterEmojiGroups";
 
 const API_BASE =
   window.location.hostname === "localhost"
@@ -212,15 +212,21 @@ function HomeBackgroundVideo() {
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
   const anchorRef = useRef(null);
   const [emojiQuery, setEmojiQuery] = useState("");
+  const [emojiCategory, setEmojiCategory] = useState("popular");
   const pickerId = compact ? "mobile-confession-emoji-picker" : "desktop-confession-emoji-picker";
+  const emojiCategoryLabels = useMemo(
+    () => getEmojiCategoryLabels(POST_EMOJI_GROUPS),
+    []
+  );
   const visibleEmojiGroups = useMemo(
-    () => filterEmojiGroups(POST_EMOJI_GROUPS, emojiQuery),
-    [emojiQuery]
+    () => filterEmojiGroups(POST_EMOJI_GROUPS, emojiQuery, emojiCategory),
+    [emojiQuery, emojiCategory]
   );
 
   useEffect(() => {
     if (!open) {
       setEmojiQuery("");
+      setEmojiCategory("popular");
       return;
     }
 
@@ -335,6 +341,27 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
               aria-label="Search emojis"
             />
           </div>
+
+          <div className="cw-emoji-category-tabs" role="tablist" aria-label="Emoji categories">
+            {emojiCategoryLabels.map((label) => (
+              <button
+                key={label}
+                type="button"
+                className={`cw-emoji-category-tab ${emojiCategory === label ? "is-active" : ""}`}
+                onClick={() => {
+                  setEmojiCategory(label);
+                  setEmojiQuery("");
+                }}
+                title={label}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {emojiQuery.trim() ? (
+            <div className="cw-emoji-result-note">Showing fastest matching results. Type more to narrow.</div>
+          ) : null}
 
           {visibleEmojiGroups.length === 0 ? (
             <div className="cw-emoji-search-empty">no matching emojis</div>

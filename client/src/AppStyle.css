@@ -11066,3 +11066,83 @@ button.confession-image-scroller__item {
   letter-spacing: 0.08em;
   text-transform: lowercase;
 }
+
+/* Emoji picker optimization: render one fast category at a time instead of thousands of buttons. */
+.cw-emoji-category-tabs {
+  position: sticky;
+  top: 47px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  margin: 0 0 10px;
+  padding: 3px 2px 8px;
+  border-bottom: 1px solid rgba(170, 255, 130, 0.08);
+  background: linear-gradient(180deg, rgba(4, 16, 9, 0.94), rgba(4, 16, 9, 0.78));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.cw-emoji-category-tabs--comment {
+  background: linear-gradient(180deg, rgba(6, 22, 13, 0.95), rgba(6, 22, 13, 0.78));
+}
+
+.cw-emoji-category-tab {
+  flex: 0 0 auto;
+  border: 1px solid rgba(170, 255, 130, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(222, 255, 196, 0.72);
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding: 7px 10px;
+  text-transform: capitalize;
+  white-space: nowrap;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.cw-emoji-category-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(238, 215, 116, 0.34);
+  background: rgba(238, 215, 116, 0.10);
+  color: rgba(255, 246, 184, 0.95);
+}
+
+.cw-emoji-category-tab.is-active {
+  border-color: rgba(238, 215, 116, 0.48);
+  background: linear-gradient(135deg, rgba(238, 215, 116, 0.26), rgba(114, 255, 149, 0.10));
+  color: rgba(255, 248, 197, 0.98);
+  box-shadow: 0 0 0 1px rgba(238, 215, 116, 0.08), 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.cw-emoji-result-note {
+  margin: -2px 0 9px;
+  color: rgba(220, 255, 195, 0.52);
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .cw-emoji-category-tabs {
+    top: 45px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+  }
+
+  .cw-emoji-category-tab {
+    font-size: 9px;
+    padding: 6px 9px;
+  }
+
+  .cw-emoji-result-note {
+    font-size: 9px;
+  }
+}

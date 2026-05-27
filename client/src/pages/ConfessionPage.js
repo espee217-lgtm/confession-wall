@@ -31,7 +31,7 @@ import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { COMMENT_EMOJI_GROUPS } from "../data/emojiGroups";
-import { filterEmojiGroups } from "../utils/filterEmojiGroups";
+import { filterEmojiGroups, getEmojiCategoryLabels } from "../utils/filterEmojiGroups";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -752,6 +752,7 @@ export default function ConfessionPage() {
   const replyInputRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiQuery, setEmojiQuery] = useState("");
+  const [emojiCategory, setEmojiCategory] = useState("popular");
   const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
   const [lightboxImage, setLightboxImage] = useState("");
   const [lightboxScale, setLightboxScale] = useState(1);
@@ -922,12 +923,18 @@ export default function ConfessionPage() {
   useEffect(() => {
     if (!showEmojiPicker) {
       setEmojiQuery("");
+      setEmojiCategory("popular");
     }
   }, [showEmojiPicker]);
 
+  const emojiCategoryLabels = useMemo(
+    () => getEmojiCategoryLabels(COMMENT_EMOJI_GROUPS),
+    []
+  );
+
   const visibleCommentEmojiGroups = useMemo(
-    () => filterEmojiGroups(COMMENT_EMOJI_GROUPS, emojiQuery),
-    [emojiQuery]
+    () => filterEmojiGroups(COMMENT_EMOJI_GROUPS, emojiQuery, emojiCategory),
+    [emojiQuery, emojiCategory]
   );
 
   const watered = confession?.wateredBy?.length || 0;
@@ -2666,6 +2673,27 @@ const activeCommentPinPosition = isPhoneLayout
                         aria-label="Search emojis"
                       />
                     </div>
+
+                    <div className="cw-emoji-category-tabs cw-emoji-category-tabs--comment" role="tablist" aria-label="Emoji categories">
+                      {emojiCategoryLabels.map((label) => (
+                        <button
+                          key={label}
+                          type="button"
+                          className={`cw-emoji-category-tab ${emojiCategory === label ? "is-active" : ""}`}
+                          onClick={() => {
+                            setEmojiCategory(label);
+                            setEmojiQuery("");
+                          }}
+                          title={label}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {emojiQuery.trim() ? (
+                      <div className="cw-emoji-result-note">Showing fastest matching results. Type more to narrow.</div>
+                    ) : null}
 
                     {visibleCommentEmojiGroups.length === 0 ? (
                       <div className="cw-emoji-search-empty">no matching emojis</div>
