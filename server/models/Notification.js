@@ -27,6 +27,8 @@ const notificationSchema = new mongoose.Schema(
         "title_unlocked",
         "friend_request",
         "friend_accept",
+        "chess_invite",
+        "chess_accept",
       ],
       required: true,
     },

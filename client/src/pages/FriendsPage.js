@@ -353,6 +353,20 @@ export default function FriendsPage() {
       message
     );
 
+  const challengeFriend = async (friendId) => {
+    try {
+      setBusyId(`chess-${friendId}`);
+      const data = await request(`/api/chess/challenge/${friendId}`, { method: "POST" });
+      window.cwToast?.("Chess challenge sent.", "success");
+      navigate(`/chess/${data.game?._id || ""}`);
+    } catch (err) {
+      console.error("Chess challenge error:", err);
+      window.cwToast?.(err.message || "Could not send chess challenge.", "error");
+    } finally {
+      setBusyId("");
+    }
+  };
+
   if (!user || !token) {
     return (
       <main className="cw-friends-page">
@@ -376,7 +390,7 @@ export default function FriendsPage() {
             <p className="cw-friends-kicker">forest companions</p>
             <h1>Friends</h1>
             <p>
-              Search users, manage requests, and build the friend base for future chess matches.
+              Search users, manage requests, and challenge accepted friends to chess.
             </p>
           </div>
           <span className="cw-friends-hero-icon" aria-hidden="true">👥</span>
@@ -412,8 +426,9 @@ export default function FriendsPage() {
                 <FriendCard
                   key={item.friendshipId}
                   item={item}
-                  actionLabel="Friends"
-                  busy={busyId === `remove-${item.friendshipId}`}
+                  actionLabel="Challenge ♟️"
+                  busy={busyId === `remove-${item.friendshipId}` || busyId === `chess-${item?.user?._id}`}
+                  onPrimary={() => challengeFriend(item?.user?._id)}
                   onSecondary={() => removeFriendship(item.friendshipId, "Friend removed.")}
                   secondaryLabel="Remove"
                   presence={presenceById[item?.user?._id]}

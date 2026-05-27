@@ -38,6 +38,7 @@ import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
 import FriendsPage from "./pages/FriendsPage";
+import ChessPage from "./pages/ChessPage";
 import TrendingPage from "./pages/TrendingPage";
 import * as ShopModule from "./pages/Shop";
 import TitleAchievements from "./pages/TitleAchievements";
@@ -135,6 +136,7 @@ const NOINDEX_PATHS = [
   "/settings",
   "/activity",
   "/friends",
+  "/chess",
   "/pressed-leaves",
   "/choose",
   "/reena",
@@ -564,6 +566,22 @@ function NotificationBell() {
         icon: "🌿",
         label: "Friend accepted",
         hint: "Open friends",
+      };
+    }
+
+    if (notification?.type === "chess_invite") {
+      return {
+        icon: "♟️",
+        label: "Chess invite",
+        hint: "Open chess",
+      };
+    }
+
+    if (notification?.type === "chess_accept") {
+      return {
+        icon: "♞",
+        label: "Chess accepted",
+        hint: "Open board",
       };
     }
 
@@ -1272,6 +1290,8 @@ function AppContent() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/friends" element={<FriendsPage />} />
+        <Route path="/chess" element={<ChessPage />} />
+        <Route path="/chess/:gameId" element={<ChessPage />} />
         <Route path="/shop" element={<ShopRoute />} />
         <Route path="/titles" element={<TitleAchievements />} />
         <Route path="/buy-seeds" element={<BuySeeds />} />

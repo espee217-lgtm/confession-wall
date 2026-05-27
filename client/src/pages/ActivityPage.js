@@ -152,6 +152,15 @@ export default function ActivityPage() {
       return { icon: "🌿", label: "Friend accepted", hint: "Open friends" };
     }
 
+
+    if (notification?.type === "chess_invite") {
+      return { icon: "♟️", label: "Chess invite", hint: "Open chess" };
+    }
+
+    if (notification?.type === "chess_accept") {
+      return { icon: "♞", label: "Chess accepted", hint: "Open board" };
+    }
+
     return { icon: "🔔", label: "Notification", hint: "Open" };
   };
 
