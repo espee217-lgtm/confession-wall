@@ -628,7 +628,8 @@ export default function ChessPage() {
                 <ol className="cw-chess-moves">
                   {game.moves.map((move, index) => (
                     <li key={`${move.from}-${move.to}-${index}`}>
-                      <span>{index + 1}.</span> {move.san || `${move.from}-${move.to}`}
+                      <span className="cw-chess-move-number">{index + 1}.</span>
+                      <span className="cw-chess-move-notation">{move.san || `${move.from}-${move.to}`}</span>
                     </li>
                   ))}
                 </ol>

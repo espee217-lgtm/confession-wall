@@ -352,15 +352,31 @@
 }
 
 .cw-chess-moves {
+  list-style: none;
   max-height: 360px;
   overflow: auto;
   margin: 0;
-  padding: 0 0 0 1.2rem;
+  padding: 0;
   color: rgba(232, 255, 224, 0.82);
 }
 
 .cw-chess-moves li {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: baseline;
   margin: 0.35rem 0;
+}
+
+.cw-chess-move-number {
+  color: rgba(220, 255, 210, 0.7);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cw-chess-move-notation {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .cw-chess-log-actions {
