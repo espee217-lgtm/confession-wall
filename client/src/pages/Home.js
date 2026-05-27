@@ -23,6 +23,7 @@ import {
 } from "../utils/engagement";
 import { CONTENT_WARNING_CATEGORIES } from "../utils/contentWarning";
 import { POST_EMOJI_GROUPS } from "../data/emojiGroups";
+import { filterEmojiGroups } from "../utils/filterEmojiGroups";
 
 const API_BASE =
   window.location.hostname === "localhost"
@@ -210,10 +211,18 @@ function HomeBackgroundVideo() {
 
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
   const anchorRef = useRef(null);
+  const [emojiQuery, setEmojiQuery] = useState("");
   const pickerId = compact ? "mobile-confession-emoji-picker" : "desktop-confession-emoji-picker";
+  const visibleEmojiGroups = useMemo(
+    () => filterEmojiGroups(POST_EMOJI_GROUPS, emojiQuery),
+    [emojiQuery]
+  );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setEmojiQuery("");
+      return;
+    }
 
     const closeOnOutsidePress = (event) => {
       if (anchorRef.current?.contains(event.target)) return;
@@ -315,7 +324,21 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
             </button>
           </div>
 
-          {POST_EMOJI_GROUPS.map((group) => (
+          <div className="cw-emoji-search-wrap">
+            <span aria-hidden="true" className="cw-emoji-search-icon">⌕</span>
+            <input
+              type="search"
+              value={emojiQuery}
+              onChange={(event) => setEmojiQuery(event.target.value)}
+              placeholder="search emojis..."
+              className="cw-emoji-search-input"
+              aria-label="Search emojis"
+            />
+          </div>
+
+          {visibleEmojiGroups.length === 0 ? (
+            <div className="cw-emoji-search-empty">no matching emojis</div>
+          ) : visibleEmojiGroups.map((group) => (
             <div key={group.label} style={{ marginBottom: compact ? "9px" : "12px" }}>
               <div
                 style={{

@@ -26,11 +26,12 @@ import {
   getConfessionExcerpt,
   shareConfession,
 } from "../utils/shareConfession";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { COMMENT_EMOJI_GROUPS } from "../data/emojiGroups";
+import { filterEmojiGroups } from "../utils/filterEmojiGroups";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -750,6 +751,7 @@ export default function ConfessionPage() {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const replyInputRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiQuery, setEmojiQuery] = useState("");
   const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
   const [lightboxImage, setLightboxImage] = useState("");
   const [lightboxScale, setLightboxScale] = useState(1);
@@ -916,6 +918,17 @@ export default function ConfessionPage() {
     document.removeEventListener("touchstart", closeEmojiPickerOnOutsideClick);
   };
 }, [showEmojiPicker]);
+
+  useEffect(() => {
+    if (!showEmojiPicker) {
+      setEmojiQuery("");
+    }
+  }, [showEmojiPicker]);
+
+  const visibleCommentEmojiGroups = useMemo(
+    () => filterEmojiGroups(COMMENT_EMOJI_GROUPS, emojiQuery),
+    [emojiQuery]
+  );
 
   const watered = confession?.wateredBy?.length || 0;
   const burned = confession?.burnedBy?.length || 0;
@@ -2642,7 +2655,21 @@ const activeCommentPinPosition = isPhoneLayout
                       zIndex: 999999,
                     }}
                   >
-                    {COMMENT_EMOJI_GROUPS.map((group) => (
+                    <div className="cw-emoji-search-wrap cw-emoji-search-wrap--comment">
+                      <span aria-hidden="true" className="cw-emoji-search-icon">⌕</span>
+                      <input
+                        type="search"
+                        value={emojiQuery}
+                        onChange={(event) => setEmojiQuery(event.target.value)}
+                        placeholder="search emojis..."
+                        className="cw-emoji-search-input"
+                        aria-label="Search emojis"
+                      />
+                    </div>
+
+                    {visibleCommentEmojiGroups.length === 0 ? (
+                      <div className="cw-emoji-search-empty">no matching emojis</div>
+                    ) : visibleCommentEmojiGroups.map((group) => (
                       <div key={group.label} style={{ marginBottom: "9px" }}>
                         <div
                           style={{
