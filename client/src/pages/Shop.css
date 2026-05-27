@@ -1699,3 +1699,34 @@
     width: 100%;
   }
 }
+
+/* Shop modal frame preview fit: make only the decorative frame larger/centered. */
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-storm-hoodie {
+  --cw-storm-hoodie-scale: 0.62;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-grove-butterfly {
+  --cw-grove-butterfly-scale: 0.62;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-demon-thorn {
+  --cw-demon-thorn-scale: 0.62;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-lotus-aura {
+  --cw-lotus-aura-scale: 0.34;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar.cw-cosmetic-frame-ice-monarch {
+  --cw-ice-monarch-scale: 0.66;
+  --cw-ice-monarch-glow-inset: -30%;
+}
+
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar .cw-storm-hoodie-frame-sprite-shell,
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar .cw-grove-butterfly-frame-sprite-shell,
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar .cw-demon-thorn-frame-sprite-shell,
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar .cw-lotus-aura-frame-sprite-shell,
+.shop-preview-shell--modal.shop-preview-frame .shop-preview-avatar .cw-ice-monarch-frame-sprite-shell {
+  left: 50%;
+  top: 50%;
+}
