@@ -78,6 +78,122 @@ function isMyPiece(piece, side) {
   return side === "w" ? isWhitePiece(piece) : !isWhitePiece(piece);
 }
 
+
+function squareToCoords(square) {
+  const file = files.indexOf(String(square || "")[0]);
+  const rank = Number(String(square || "")[1]);
+  if (file < 0 || rank < 1 || rank > 8) return null;
+  return { file, rank };
+}
+
+function coordsToSquare(file, rank) {
+  if (file < 0 || file > 7 || rank < 1 || rank > 8) return "";
+  return `${files[file]}${rank}`;
+}
+
+function getBoardMap(fen) {
+  return parseFenBoard(fen).reduce((acc, cell) => {
+    acc[cell.square] = cell.piece || "";
+    return acc;
+  }, {});
+}
+
+function isOpponentPiece(piece, side) {
+  return Boolean(piece) && !isMyPiece(piece, side);
+}
+
+function collectSlidingMoves(boardMap, from, side, directions) {
+  const origin = squareToCoords(from);
+  if (!origin) return [];
+  const moves = [];
+
+  directions.forEach(([df, dr]) => {
+    let file = origin.file + df;
+    let rank = origin.rank + dr;
+
+    while (file >= 0 && file <= 7 && rank >= 1 && rank <= 8) {
+      const square = coordsToSquare(file, rank);
+      const occupant = boardMap[square];
+
+      if (!occupant) {
+        moves.push(square);
+      } else {
+        if (isOpponentPiece(occupant, side)) moves.push(square);
+        break;
+      }
+
+      file += df;
+      rank += dr;
+    }
+  });
+
+  return moves;
+}
+
+function getMoveHints(fen, from, side) {
+  if (!from || !["w", "b"].includes(side)) return [];
+
+  const boardMap = getBoardMap(fen);
+  const piece = boardMap[from];
+  const origin = squareToCoords(from);
+  if (!piece || !origin || !isMyPiece(piece, side)) return [];
+
+  const lower = piece.toLowerCase();
+  const moves = [];
+  const addQuiet = (file, rank) => {
+    const square = coordsToSquare(file, rank);
+    if (square && !boardMap[square]) moves.push(square);
+  };
+  const addCaptureOrEmpty = (file, rank) => {
+    const square = coordsToSquare(file, rank);
+    if (!square) return;
+    const occupant = boardMap[square];
+    if (!occupant || isOpponentPiece(occupant, side)) moves.push(square);
+  };
+  const addCaptureOnly = (file, rank) => {
+    const square = coordsToSquare(file, rank);
+    if (square && isOpponentPiece(boardMap[square], side)) moves.push(square);
+  };
+
+  if (lower === "p") {
+    const dir = side === "w" ? 1 : -1;
+    const startRank = side === "w" ? 2 : 7;
+    const oneRank = origin.rank + dir;
+    const oneSquare = coordsToSquare(origin.file, oneRank);
+
+    if (oneSquare && !boardMap[oneSquare]) {
+      moves.push(oneSquare);
+      if (origin.rank === startRank) {
+        addQuiet(origin.file, origin.rank + dir * 2);
+      }
+    }
+
+    addCaptureOnly(origin.file - 1, oneRank);
+    addCaptureOnly(origin.file + 1, oneRank);
+  } else if (lower === "n") {
+    [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]].forEach(([df, dr]) => {
+      addCaptureOrEmpty(origin.file + df, origin.rank + dr);
+    });
+  } else if (lower === "b") {
+    moves.push(...collectSlidingMoves(boardMap, from, side, [[1, 1], [1, -1], [-1, 1], [-1, -1]]));
+  } else if (lower === "r") {
+    moves.push(...collectSlidingMoves(boardMap, from, side, [[1, 0], [-1, 0], [0, 1], [0, -1]]));
+  } else if (lower === "q") {
+    moves.push(
+      ...collectSlidingMoves(boardMap, from, side, [
+        [1, 0], [-1, 0], [0, 1], [0, -1],
+        [1, 1], [1, -1], [-1, 1], [-1, -1],
+      ])
+    );
+  } else if (lower === "k") {
+    [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([df, dr]) => {
+      addCaptureOrEmpty(origin.file + df, origin.rank + dr);
+    });
+  }
+
+  return [...new Set(moves)];
+}
+
 function UserChip({ user, label }) {
   const cosmetics = getDisplayCosmetics(user || {});
 
@@ -137,27 +253,31 @@ function GameCard({ game, onAccept, onDecline, actionBusy }) {
   );
 }
 
-function ChessBoard({ game, selected, onSquareClick }) {
+function ChessBoard({ game, selected, legalTargets, onSquareClick }) {
   const mySide = game?.mySide || "w";
   const cells = parseFenBoard(game?.fen);
   const ordered = mySide === "b" ? [...cells].reverse() : cells;
+  const targetSet = new Set(legalTargets || []);
 
   return (
     <div className={`cw-chess-board ${mySide === "b" ? "is-black-view" : ""}`}>
       {ordered.map((cell) => {
         const isSelected = selected === cell.square;
         const ownPiece = isMyPiece(cell.piece, mySide);
+        const isTarget = targetSet.has(cell.square);
+        const isCapture = isTarget && Boolean(cell.piece);
         return (
           <button
             key={cell.square}
             type="button"
-            className={`cw-chess-square ${isSelected ? "is-selected" : ""} ${ownPiece ? "has-own-piece" : ""}`}
+            className={`cw-chess-square ${isSelected ? "is-selected" : ""} ${ownPiece ? "has-own-piece" : ""} ${isTarget ? "is-legal-target" : ""} ${isCapture ? "is-capture-target" : ""}`}
             onClick={() => onSquareClick(cell)}
             aria-label={`Square ${cell.square}`}
           >
             <span className={`cw-chess-piece ${isWhitePiece(cell.piece) ? "is-white" : "is-black"}`}>
               {pieceMap[cell.piece] || ""}
             </span>
+            {isTarget ? <i className="cw-chess-move-hint" aria-hidden="true" /> : null}
             <small>{cell.square}</small>
           </button>
         );
@@ -176,6 +296,11 @@ export default function ChessPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+
+  const legalTargets = useMemo(() => {
+    if (!game || game.status !== "active" || !game.isMyTurn || !selected) return [];
+    return getMoveHints(game.fen, selected, game.mySide);
+  }, [game, selected]);
 
   const authHeaders = useMemo(
     () => ({
@@ -350,6 +475,11 @@ export default function ChessPage() {
       return;
     }
 
+    if (!legalTargets.includes(cell.square)) {
+      setSelected("");
+      return;
+    }
+
     makeMove(selected, cell.square);
   };
 
@@ -435,7 +565,7 @@ export default function ChessPage() {
                 </div>
               ) : null}
 
-              <ChessBoard game={game} selected={selected} onSquareClick={onSquareClick} />
+              <ChessBoard game={game} selected={selected} legalTargets={legalTargets} onSquareClick={onSquareClick} />
 
               <div className="cw-chess-board-footer">
                 <span>You are {game.mySide === "w" ? "White" : game.mySide === "b" ? "Black" : "watching"}</span>
