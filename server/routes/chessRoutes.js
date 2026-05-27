@@ -14,10 +14,10 @@ const PUBLIC_USER_SELECT =
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || ""));
 const sameId = (a, b) => String(a || "") === String(b || "");
-const STARTING_FEN = new Chess().fen();
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const normalizeFen = (fen) => {
   const value = String(fen || "").trim();
-  return value && value !== "start" ? value : STARTING_FEN;
+  return value && value.toLowerCase() !== "start" ? value : START_FEN;
 };
 
 const publicUser = (user) => {
@@ -195,7 +195,7 @@ router.post("/challenge/:friendId", blockSuspended, async (req, res) => {
       players: [req.user._id, friendId],
       status: "invited",
       mode: "friend",
-      fen: STARTING_FEN,
+      fen: START_FEN,
       turn: "w",
     });
 

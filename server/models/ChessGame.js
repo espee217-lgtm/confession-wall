@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 const chessMoveSchema = new mongoose.Schema(
   {
     from: { type: String, default: "" },
@@ -46,7 +48,7 @@ const chessGameSchema = new mongoose.Schema(
 
     fen: {
       type: String,
-      default: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      default: START_FEN,
     },
 
     pgn: {

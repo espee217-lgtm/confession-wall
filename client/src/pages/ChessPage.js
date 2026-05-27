@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Chess } from "chess.js";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import FramedAvatar from "../components/FramedAvatar";
@@ -14,59 +15,75 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const pieceMap = {
-  p: "♟",
-  r: "♜",
-  n: "♞",
-  b: "♝",
-  q: "♛",
-  k: "♚",
-  P: "♙",
-  R: "♖",
-  N: "♘",
-  B: "♗",
-  Q: "♕",
-  K: "♔",
+  p: "\u265F",
+  r: "\u265C",
+  n: "\u265E",
+  b: "\u265D",
+  q: "\u265B",
+  k: "\u265A",
+  P: "\u2659",
+  R: "\u2656",
+  N: "\u2658",
+  B: "\u2657",
+  Q: "\u2655",
+  K: "\u2654",
 };
 
-function parseFenBoard(fen) {
-  const safeFen = !fen || fen === "start" ? STARTING_FEN : String(fen);
-  const boardPart = safeFen.split(" ")[0];
-  const ranks = boardPart.split("/");
+function normalizeFen(fen) {
+  const value = String(fen || "").trim();
+  return value && value.toLowerCase() !== "start" ? value : START_FEN;
+}
+
+function createEmptyBoard() {
   const board = [];
 
-  ranks.slice(0, 8).forEach((rank, rankIndex) => {
-    let fileIndex = 0;
-    rank.split("").forEach((char) => {
-      if (fileIndex >= 8) return;
-
-      if (/\d/.test(char)) {
-        const emptyCount = Number(char);
-        for (let i = 0; i < emptyCount && fileIndex < 8; i += 1) {
-          board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
-          fileIndex += 1;
-        }
-      } else if (pieceMap[char]) {
-        board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: char });
-        fileIndex += 1;
-      }
+  for (let rank = 8; rank >= 1; rank -= 1) {
+    files.forEach((file) => {
+      board.push({ square: `${file}${rank}`, piece: "" });
     });
-
-    while (fileIndex < 8) {
-      board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
-      fileIndex += 1;
-    }
-  });
-
-  while (board.length < 64) {
-    const index = board.length;
-    const rankIndex = Math.floor(index / 8);
-    const fileIndex = index % 8;
-    board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece: "" });
   }
 
-  return board.slice(0, 64);
+  return board;
+}
+
+function parseFenPlacement(fen) {
+  const placement = normalizeFen(fen).split(/\s+/)[0];
+  const ranks = placement.split("/");
+  const board = [];
+
+  if (ranks.length !== 8) return null;
+
+  for (let rankIndex = 0; rankIndex < 8; rankIndex += 1) {
+    const expandedRank = [];
+
+    for (const char of ranks[rankIndex]) {
+      if (/^[1-8]$/.test(char)) {
+        for (let i = 0; i < Number(char); i += 1) {
+          expandedRank.push("");
+        }
+      } else if (pieceMap[char]) {
+        expandedRank.push(char);
+      } else {
+        return null;
+      }
+
+      if (expandedRank.length > 8) return null;
+    }
+
+    if (expandedRank.length !== 8) return null;
+
+    expandedRank.forEach((piece, fileIndex) => {
+      board.push({ square: `${files[fileIndex]}${8 - rankIndex}`, piece });
+    });
+  }
+
+  return board.length === 64 ? board : null;
+}
+
+function parseFenBoard(fen) {
+  return parseFenPlacement(fen) || parseFenPlacement(START_FEN) || createEmptyBoard();
 }
 
 function isWhitePiece(piece) {
@@ -78,19 +95,6 @@ function isMyPiece(piece, side) {
   return side === "w" ? isWhitePiece(piece) : !isWhitePiece(piece);
 }
 
-
-function squareToCoords(square) {
-  const file = files.indexOf(String(square || "")[0]);
-  const rank = Number(String(square || "")[1]);
-  if (file < 0 || rank < 1 || rank > 8) return null;
-  return { file, rank };
-}
-
-function coordsToSquare(file, rank) {
-  if (file < 0 || file > 7 || rank < 1 || rank > 8) return "";
-  return `${files[file]}${rank}`;
-}
-
 function getBoardMap(fen) {
   return parseFenBoard(fen).reduce((acc, cell) => {
     acc[cell.square] = cell.piece || "";
@@ -98,36 +102,12 @@ function getBoardMap(fen) {
   }, {});
 }
 
-function isOpponentPiece(piece, side) {
-  return Boolean(piece) && !isMyPiece(piece, side);
-}
-
-function collectSlidingMoves(boardMap, from, side, directions) {
-  const origin = squareToCoords(from);
-  if (!origin) return [];
-  const moves = [];
-
-  directions.forEach(([df, dr]) => {
-    let file = origin.file + df;
-    let rank = origin.rank + dr;
-
-    while (file >= 0 && file <= 7 && rank >= 1 && rank <= 8) {
-      const square = coordsToSquare(file, rank);
-      const occupant = boardMap[square];
-
-      if (!occupant) {
-        moves.push(square);
-      } else {
-        if (isOpponentPiece(occupant, side)) moves.push(square);
-        break;
-      }
-
-      file += df;
-      rank += dr;
-    }
-  });
-
-  return moves;
+function createChess(fen) {
+  try {
+    return new Chess(normalizeFen(fen));
+  } catch {
+    return new Chess(START_FEN);
+  }
 }
 
 function getMoveHints(fen, from, side) {
@@ -135,63 +115,11 @@ function getMoveHints(fen, from, side) {
 
   const boardMap = getBoardMap(fen);
   const piece = boardMap[from];
-  const origin = squareToCoords(from);
-  if (!piece || !origin || !isMyPiece(piece, side)) return [];
+  if (!piece || !isMyPiece(piece, side)) return [];
 
-  const lower = piece.toLowerCase();
-  const moves = [];
-  const addQuiet = (file, rank) => {
-    const square = coordsToSquare(file, rank);
-    if (square && !boardMap[square]) moves.push(square);
-  };
-  const addCaptureOrEmpty = (file, rank) => {
-    const square = coordsToSquare(file, rank);
-    if (!square) return;
-    const occupant = boardMap[square];
-    if (!occupant || isOpponentPiece(occupant, side)) moves.push(square);
-  };
-  const addCaptureOnly = (file, rank) => {
-    const square = coordsToSquare(file, rank);
-    if (square && isOpponentPiece(boardMap[square], side)) moves.push(square);
-  };
-
-  if (lower === "p") {
-    const dir = side === "w" ? 1 : -1;
-    const startRank = side === "w" ? 2 : 7;
-    const oneRank = origin.rank + dir;
-    const oneSquare = coordsToSquare(origin.file, oneRank);
-
-    if (oneSquare && !boardMap[oneSquare]) {
-      moves.push(oneSquare);
-      if (origin.rank === startRank) {
-        addQuiet(origin.file, origin.rank + dir * 2);
-      }
-    }
-
-    addCaptureOnly(origin.file - 1, oneRank);
-    addCaptureOnly(origin.file + 1, oneRank);
-  } else if (lower === "n") {
-    [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]].forEach(([df, dr]) => {
-      addCaptureOrEmpty(origin.file + df, origin.rank + dr);
-    });
-  } else if (lower === "b") {
-    moves.push(...collectSlidingMoves(boardMap, from, side, [[1, 1], [1, -1], [-1, 1], [-1, -1]]));
-  } else if (lower === "r") {
-    moves.push(...collectSlidingMoves(boardMap, from, side, [[1, 0], [-1, 0], [0, 1], [0, -1]]));
-  } else if (lower === "q") {
-    moves.push(
-      ...collectSlidingMoves(boardMap, from, side, [
-        [1, 0], [-1, 0], [0, 1], [0, -1],
-        [1, 1], [1, -1], [-1, 1], [-1, -1],
-      ])
-    );
-  } else if (lower === "k") {
-    [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([df, dr]) => {
-      addCaptureOrEmpty(origin.file + df, origin.rank + dr);
-    });
-  }
-
-  return [...new Set(moves)];
+  const chess = createChess(fen);
+  if (chess.turn() !== side) return [];
+  return [...new Set(chess.moves({ square: from, verbose: true }).map((move) => move.to))];
 }
 
 function UserChip({ user, label }) {
@@ -458,7 +386,11 @@ export default function ChessPage() {
   };
 
   const onSquareClick = (cell) => {
-    if (!game || game.status !== "active" || !game.isMyTurn || busy) return;
+    if (!game || game.status !== "active" || !game.isMyTurn) {
+      setSelected("");
+      return;
+    }
+    if (busy) return;
 
     if (!selected) {
       if (isMyPiece(cell.piece, game.mySide)) setSelected(cell.square);
