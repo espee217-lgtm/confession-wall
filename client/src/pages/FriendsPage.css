@@ -165,6 +165,60 @@
   padding: 0.9rem;
 }
 
+
+.cw-friend-main {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.cw-friend-presence {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  margin-left: 64px;
+  padding: 0.24rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 255, 190, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(218, 240, 210, 0.68);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cw-friend-presence i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(185, 195, 178, 0.74);
+  box-shadow: 0 0 10px rgba(185, 195, 178, 0.18);
+}
+
+.cw-friend-presence.is-online {
+  color: rgba(205, 255, 194, 0.92);
+  border-color: rgba(120, 255, 135, 0.28);
+  background: rgba(45, 150, 64, 0.12);
+}
+
+.cw-friend-presence.is-online i {
+  background: #7dff8a;
+  box-shadow: 0 0 12px rgba(125, 255, 138, 0.85), 0 0 24px rgba(125, 255, 138, 0.22);
+}
+
+.cw-friend-presence.is-recent {
+  color: rgba(255, 232, 164, 0.88);
+  border-color: rgba(255, 214, 120, 0.24);
+  background: rgba(170, 126, 30, 0.12);
+}
+
+.cw-friend-presence.is-recent i {
+  background: #ffd76b;
+  box-shadow: 0 0 10px rgba(255, 215, 107, 0.65);
+}
+
 .cw-friend-identity {
   display: flex;
   align-items: center;
@@ -338,6 +392,14 @@
   .cw-friend-card {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .cw-friend-main {
+    width: 100%;
+  }
+
+  .cw-friend-presence {
+    margin-left: 0;
   }
 
   .cw-friend-actions {

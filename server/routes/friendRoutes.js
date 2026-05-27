@@ -5,6 +5,7 @@ const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { protect, blockSuspended } = require("../middleware/auth");
 const { friendRequestLimiter } = require("../middleware/rateLimiter");
+const { getPresenceForUserIds } = require("../socket");
 
 const router = express.Router();
 
@@ -126,6 +127,44 @@ router.get("/requests", async (req, res) => {
   } catch (err) {
     console.error("Get friend requests error:", err);
     res.status(500).json({ message: "Could not load friend requests." });
+  }
+});
+
+
+router.get("/presence", async (req, res) => {
+  try {
+    const rawIds = String(req.query.ids || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .slice(0, 80);
+
+    const validIds = Array.from(new Set(rawIds.filter(isValidObjectId)));
+
+    if (validIds.length === 0) {
+      return res.json({});
+    }
+
+    const acceptedFriendships = await Friendship.find({
+      status: "accepted",
+      $or: [
+        { requester: req.user._id, recipient: { $in: validIds } },
+        { requester: { $in: validIds }, recipient: req.user._id },
+      ],
+    })
+      .select("requester recipient")
+      .lean();
+
+    const allowedIds = acceptedFriendships.map((friendship) =>
+      sameId(friendship.requester, req.user._id)
+        ? String(friendship.recipient)
+        : String(friendship.requester)
+    );
+
+    res.json(getPresenceForUserIds(allowedIds));
+  } catch (err) {
+    console.error("Get friend presence error:", err);
+    res.status(500).json({ message: "Could not load friend presence." });
   }
 });
 

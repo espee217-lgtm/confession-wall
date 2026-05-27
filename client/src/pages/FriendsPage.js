@@ -4,6 +4,7 @@ import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import FramedAvatar from "../components/FramedAvatar";
 import { useAuth } from "../context/AuthContext";
+import { getSocket } from "../socket";
 import { getDisplayCosmetics } from "../utils/engagement";
 import "./FriendsPage.css";
 
@@ -26,6 +27,19 @@ function getActionLabel(friendship) {
   if (friendship.status === "pending" && friendship.direction === "incoming") return "Accept";
   if (friendship.status === "pending") return "Request Sent";
   return "Add Friend";
+}
+
+
+function getPresenceMeta(presence) {
+  if (!presence || presence.status === "offline") {
+    return { label: "Offline", className: "is-offline" };
+  }
+
+  if (presence.status === "online") {
+    return { label: "Online now", className: "is-online" };
+  }
+
+  return { label: "Recently active", className: "is-recent" };
 }
 
 function EmptyState({ title, text }) {
@@ -63,12 +77,19 @@ function FriendIdentity({ user }) {
   );
 }
 
-function FriendCard({ item, actionLabel, onPrimary, onSecondary, secondaryLabel, busy }) {
+function FriendCard({ item, actionLabel, onPrimary, onSecondary, secondaryLabel, busy, presence }) {
   const user = item?.user || item;
+  const presenceMeta = getPresenceMeta(presence);
 
   return (
     <article className="cw-friend-card">
-      <FriendIdentity user={user} />
+      <div className="cw-friend-main">
+        <FriendIdentity user={user} />
+        <span className={`cw-friend-presence ${presenceMeta.className}`}>
+          <i aria-hidden="true" />
+          {presenceMeta.label}
+        </span>
+      </div>
       <div className="cw-friend-actions">
         {onPrimary && (
           <button
@@ -107,6 +128,7 @@ export default function FriendsPage() {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [busyId, setBusyId] = useState("");
+  const [presenceById, setPresenceById] = useState({});
   const [error, setError] = useState("");
 
   const authHeaders = useMemo(
@@ -119,6 +141,17 @@ export default function FriendsPage() {
         : { "Content-Type": "application/json" },
     [token]
   );
+
+  const visibleUserIds = useMemo(() => {
+    const ids = [
+      ...friends.map((item) => item?.user?._id),
+      ...incoming.map((item) => item?.user?._id),
+      ...outgoing.map((item) => item?.user?._id),
+      ...results.map((item) => item?._id),
+    ].filter(Boolean);
+
+    return Array.from(new Set(ids.map(String)));
+  }, [friends, incoming, outgoing, results]);
 
   const request = useCallback(
     async (path, options = {}) => {
@@ -137,6 +170,20 @@ export default function FriendsPage() {
       return data;
     },
     [authHeaders]
+  );
+
+  const loadPresence = useCallback(
+    async (ids = visibleUserIds) => {
+      if (!token || !Array.isArray(ids) || ids.length === 0) return;
+
+      try {
+        const data = await request(`/api/friends/presence?ids=${encodeURIComponent(ids.join(","))}`);
+        setPresenceById((prev) => ({ ...prev, ...(data || {}) }));
+      } catch (err) {
+        console.error("Friend presence error:", err);
+      }
+    },
+    [request, token, visibleUserIds]
   );
 
   const loadFriends = useCallback(async () => {
@@ -168,6 +215,58 @@ export default function FriendsPage() {
 
     loadFriends();
   }, [loadFriends, token, user]);
+
+  useEffect(() => {
+    if (!token || visibleUserIds.length === 0) return undefined;
+
+    loadPresence(visibleUserIds);
+
+    const timer = setInterval(() => {
+      loadPresence(visibleUserIds);
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, [loadPresence, token, visibleUserIds]);
+
+  useEffect(() => {
+    if (!token || visibleUserIds.length === 0) return undefined;
+
+    let socket = getSocket();
+    let cancelled = false;
+    let attached = false;
+    const trackedIds = new Set(visibleUserIds.map(String));
+
+    const handlePresenceChanged = (presence) => {
+      const userId = String(presence?.userId || "");
+      if (!userId || !trackedIds.has(userId)) return;
+
+      setPresenceById((prev) => ({ ...prev, [userId]: presence }));
+    };
+
+    const attach = () => {
+      if (cancelled || attached) return;
+      socket = getSocket();
+
+      if (!socket) return;
+
+      attached = true;
+      socket.on("presence:changed", handlePresenceChanged);
+      socket.emit("friends:presence:request", visibleUserIds, (presence) => {
+        if (!cancelled && presence) {
+          setPresenceById((prev) => ({ ...prev, ...presence }));
+        }
+      });
+    };
+
+    attach();
+    const retry = setTimeout(attach, 700);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(retry);
+      if (socket) socket.off("presence:changed", handlePresenceChanged);
+    };
+  }, [token, visibleUserIds]);
 
   useEffect(() => {
     if (!token || activeTab !== "find") return undefined;
@@ -317,6 +416,7 @@ export default function FriendsPage() {
                   busy={busyId === `remove-${item.friendshipId}`}
                   onSecondary={() => removeFriendship(item.friendshipId, "Friend removed.")}
                   secondaryLabel="Remove"
+                  presence={presenceById[item?.user?._id]}
                 />
               ))
             )}
@@ -336,6 +436,7 @@ export default function FriendsPage() {
                   onPrimary={() => acceptRequest(item.friendshipId)}
                   onSecondary={() => declineRequest(item.friendshipId)}
                   secondaryLabel="Decline"
+                  presence={presenceById[item?.user?._id]}
                 />
               ))
             )}
@@ -354,6 +455,7 @@ export default function FriendsPage() {
                   busy={busyId === `remove-${item.friendshipId}`}
                   onSecondary={() => removeFriendship(item.friendshipId, "Friend request cancelled.")}
                   secondaryLabel="Cancel"
+                  presence={presenceById[item?.user?._id]}
                 />
               ))
             )}
@@ -412,6 +514,7 @@ export default function FriendsPage() {
                           ? "Remove"
                           : ""
                       }
+                      presence={presenceById[foundUser._id]}
                     />
                   );
                 })

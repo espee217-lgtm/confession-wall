@@ -3,18 +3,32 @@ const User = require("./models/User");
 const Admin = require("./models/Admin");
 
 const onlineUsers = new Map();
+const lastSeenUsers = new Map();
 
-const safeUserPayload = (user, socketId) => ({
-  socketId,
-  userId: String(user._id),
-  username: user.username,
-  email: user.email || "",
-  profilePicture: user.profilePicture || null,
-  isAdmin: Boolean(user.isAdmin),
-  role: user.role || (user.isAdmin ? "admin" : "user"),
-  connectedAt: user.connectedAt || new Date().toISOString(),
-  lastActiveAt: new Date().toISOString(),
-});
+const RECENTLY_ACTIVE_MS = 5 * 60 * 1000;
+
+const toId = (value) => String(value || "");
+
+const safeUserPayload = (user, socketId) => {
+  const now = new Date().toISOString();
+
+  return {
+    socketId,
+    userId: toId(user._id),
+    username: user.username,
+    email: user.email || "",
+    profilePicture: user.profilePicture || null,
+    isAdmin: Boolean(user.isAdmin),
+    role: user.role || (user.isAdmin ? "admin" : "user"),
+    connectedAt: user.connectedAt || now,
+    lastActiveAt: now,
+  };
+};
+
+const rememberLastSeen = (userId, lastActiveAt = new Date().toISOString()) => {
+  if (!userId) return;
+  lastSeenUsers.set(toId(userId), lastActiveAt);
+};
 
 const getOnlineUsersList = () => {
   const byUser = new Map();
@@ -32,8 +46,60 @@ const getOnlineUsersList = () => {
   );
 };
 
+const getOnlinePayloadByUserId = (userId) =>
+  getOnlineUsersList().find((item) => item.userId === toId(userId)) || null;
+
+const getPresenceForUserIds = (userIds = []) => {
+  const now = Date.now();
+  const uniqueIds = Array.from(new Set(userIds.map(toId).filter(Boolean)));
+
+  return uniqueIds.reduce((acc, userId) => {
+    const onlinePayload = getOnlinePayloadByUserId(userId);
+
+    if (onlinePayload) {
+      acc[userId] = {
+        userId,
+        status: "online",
+        isOnline: true,
+        lastActiveAt: onlinePayload.lastActiveAt,
+        connectedAt: onlinePayload.connectedAt,
+      };
+      return acc;
+    }
+
+    const lastActiveAt = lastSeenUsers.get(userId) || null;
+    const lastActiveMs = lastActiveAt ? new Date(lastActiveAt).getTime() : 0;
+    const isRecent = lastActiveMs && now - lastActiveMs <= RECENTLY_ACTIVE_MS;
+
+    acc[userId] = {
+      userId,
+      status: isRecent ? "recent" : "offline",
+      isOnline: false,
+      lastActiveAt,
+      connectedAt: null,
+    };
+
+    return acc;
+  }, {});
+};
+
+const getPresenceForUserId = (userId) =>
+  getPresenceForUserIds([userId])[toId(userId)] || {
+    userId: toId(userId),
+    status: "offline",
+    isOnline: false,
+    lastActiveAt: null,
+    connectedAt: null,
+  };
+
 const emitOnlineUsers = (io) => {
   io.to("admins").emit("online_users:update", getOnlineUsersList());
+};
+
+const emitPresenceChange = (io, userId) => {
+  if (!userId) return;
+
+  io.emit("presence:changed", getPresenceForUserId(userId));
 };
 
 const setupSocket = (io) => {
@@ -87,8 +153,11 @@ const setupSocket = (io) => {
 
   io.on("connection", (socket) => {
     const user = socket.user;
+    const userId = toId(user._id);
 
     onlineUsers.set(socket.id, safeUserPayload(user, socket.id));
+    rememberLastSeen(userId);
+    socket.join(`user:${userId}`);
 
     if (user.isAdmin) {
       socket.join("admins");
@@ -96,17 +165,33 @@ const setupSocket = (io) => {
     }
 
     emitOnlineUsers(io);
+    emitPresenceChange(io, userId);
 
     socket.on("user:active", () => {
       const existing = onlineUsers.get(socket.id);
 
       if (existing) {
+        const lastActiveAt = new Date().toISOString();
+
         onlineUsers.set(socket.id, {
           ...existing,
-          lastActiveAt: new Date().toISOString(),
+          lastActiveAt,
         });
+        rememberLastSeen(existing.userId, lastActiveAt);
 
         emitOnlineUsers(io);
+        emitPresenceChange(io, existing.userId);
+      }
+    });
+
+    socket.on("friends:presence:request", (ids = [], callback) => {
+      const requestedIds = Array.isArray(ids) ? ids : [];
+      const presence = getPresenceForUserIds(requestedIds);
+
+      if (typeof callback === "function") {
+        callback(presence);
+      } else {
+        socket.emit("friends:presence:update", presence);
       }
     });
 
@@ -117,8 +202,15 @@ const setupSocket = (io) => {
     });
 
     socket.on("disconnect", () => {
+      const existing = onlineUsers.get(socket.id);
+      const changedUserId = existing?.userId;
+      const lastActiveAt = existing?.lastActiveAt || new Date().toISOString();
+
       onlineUsers.delete(socket.id);
+      rememberLastSeen(changedUserId, lastActiveAt);
+
       emitOnlineUsers(io);
+      emitPresenceChange(io, changedUserId);
     });
   });
 };
@@ -126,4 +218,5 @@ const setupSocket = (io) => {
 module.exports = {
   setupSocket,
   getOnlineUsersList,
+  getPresenceForUserIds,
 };
