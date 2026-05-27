@@ -10243,3 +10243,156 @@ button.confession-image-scroller__item {
     background: linear-gradient(90deg, rgba(255, 222, 112, 0.9), rgba(255, 218, 96, 0.12));
   }
 }
+
+/* Settings profile hub polish: wider outer panel, shorter height, centered frame card, thin branches. */
+@media (min-width: 981px) {
+  .cw-settings-shell {
+    width: min(1500px, calc(100vw - 56px));
+    max-width: 1500px !important;
+  }
+
+  .cw-settings-profile-section {
+    padding-left: clamp(24px, 3.2vw, 54px) !important;
+    padding-right: clamp(24px, 3.2vw, 54px) !important;
+    padding-bottom: 34px !important;
+    margin-bottom: 34px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 300px;
+    --hub-branch-length: 86px;
+    width: min(520px, 100%);
+    min-height: 650px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .cw-settings-profile-hero.cosmetic-hub-node--center {
+    min-height: 300px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box {
+    min-height: 138px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-upper {
+    top: 18px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--left-lower {
+    top: 260px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-upper {
+    top: 18px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    left: 50% !important;
+    top: 420px !important;
+    width: 380px;
+    transform: translateX(-50%);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line {
+    height: 1px !important;
+    border: 0 !important;
+    background: linear-gradient(90deg, rgba(255, 218, 96, 0.08), rgba(255, 222, 112, 0.82)) !important;
+    box-shadow:
+      0 0 8px rgba(255, 213, 91, 0.34),
+      0 0 18px rgba(255, 188, 48, 0.12) !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-upper {
+    top: 112px !important;
+    right: 100% !important;
+    width: var(--hub-branch-length) !important;
+    background: linear-gradient(90deg, rgba(255, 222, 112, 0.82), rgba(255, 218, 96, 0.08)) !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower {
+    top: 315px !important;
+    right: 100% !important;
+    width: var(--hub-branch-length) !important;
+    height: 1px !important;
+    border: 0 !important;
+    background: linear-gradient(90deg, rgba(255, 222, 112, 0.82), rgba(255, 218, 96, 0.08)) !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-upper {
+    top: 116px !important;
+    left: 100% !important;
+    width: var(--hub-branch-length) !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    left: 50% !important;
+    top: 312px !important;
+    width: 0 !important;
+    height: 108px !important;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(255, 222, 112, 0.78) !important;
+    border-bottom: 0 !important;
+    background: none !important;
+    box-shadow:
+      0 0 10px rgba(255, 213, 91, 0.36),
+      0 0 18px rgba(255, 188, 48, 0.14) !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-upper::after,
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower::after,
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-upper::after {
+    top: 50% !important;
+    left: 50% !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower::after {
+    top: 100% !important;
+    left: 50% !important;
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 1181px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 288px;
+    --hub-branch-length: 58px;
+    width: 470px;
+    min-height: 640px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 410px !important;
+    width: 360px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    top: 306px !important;
+    height: 104px !important;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .cw-settings-shell {
+    width: min(1120px, calc(100vw - 36px));
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    --hub-box-width: 250px;
+    --hub-branch-length: 38px;
+    width: 390px;
+    min-height: 625px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 402px !important;
+    width: 328px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    top: 302px !important;
+    height: 100px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower {
+    top: 304px !important;
+  }
+}
