@@ -33,9 +33,10 @@ const API_BASE =
 const API_URL = `${API_BASE}/api/confessions`;
 const SCORCHED_URL = `${API_BASE}/api/confessions/realm/scorched`;
 const MOBILE_HOME_PAGE_LIMIT = 20;
+const MOBILE_EMOJI_SEARCH_LIMIT = 120;
 const MAX_CONFESSION_IMAGES = 6;
 const LOGIN_PROMPT_MESSAGE =
-  "Log in to join the garden - you can still browse freely.";
+  "Log in or create an account to confess, react, and receive activity updates.";
 
 function GuestLoginPrompt({ onClose, onLogin, onRegister }) {
   return (
@@ -80,11 +81,11 @@ function GuestLoginPrompt({ onClose, onLogin, onRegister }) {
             textTransform: "uppercase",
           }}
         >
-          Join the garden
+          guest grove
         </p>
-        <h2 style={{ margin: "0 0 8px", fontSize: "22px" }}>Log in to participate</h2>
+        <h2 style={{ margin: "0 0 8px", fontSize: "22px" }}>Join the forest first</h2>
         <p style={{ margin: "0 0 18px", lineHeight: 1.55, color: "rgba(230,255,220,0.72)" }}>
-          You can keep reading freely. Log in when you want to post, react, save, or report.
+          Log in or create an account to confess, react, and receive activity updates.
         </p>
         <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
           <button
@@ -131,7 +132,7 @@ function GuestLoginPrompt({ onClose, onLogin, onRegister }) {
               fontFamily: "Georgia, serif",
             }}
           >
-            Keep browsing
+            Maybe Later
           </button>
         </div>
       </section>
@@ -153,18 +154,6 @@ function normalizeConfessionResponse(data) {
     page: Number(data?.page || 1),
     hasMore: Boolean(data?.hasMore),
   };
-}
-
-function appendUniqueConfessions(existing, incoming) {
-  const seen = new Set(existing.map((post) => String(post?._id || "")));
-  const uniqueIncoming = incoming.filter((post) => {
-    const id = String(post?._id || "");
-    if (!id || seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
-
-  return [...existing, ...uniqueIncoming];
 }
 
 function HomeBackgroundVideo() {
@@ -211,21 +200,51 @@ function HomeBackgroundVideo() {
 
 function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
   const anchorRef = useRef(null);
-  const [emojiQuery, setEmojiQuery] = useState("");
+  const [emojiQueryInput, setEmojiQueryInput] = useState("");
+  const [debouncedEmojiQuery, setDebouncedEmojiQuery] = useState("");
   const [emojiCategory, setEmojiCategory] = useState("popular");
   const pickerId = compact ? "mobile-confession-emoji-picker" : "desktop-confession-emoji-picker";
   const emojiCategoryLabels = useMemo(
     () => getEmojiCategoryLabels(POST_EMOJI_GROUPS),
     []
   );
+  const effectiveEmojiQuery = compact ? debouncedEmojiQuery : emojiQueryInput;
   const visibleEmojiGroups = useMemo(
-    () => filterEmojiGroups(POST_EMOJI_GROUPS, emojiQuery, emojiCategory),
-    [emojiQuery, emojiCategory]
+    () => filterEmojiGroups(POST_EMOJI_GROUPS, effectiveEmojiQuery, emojiCategory),
+    [effectiveEmojiQuery, emojiCategory]
   );
+  const renderedEmojiGroups = useMemo(() => {
+    if (!compact || !effectiveEmojiQuery.trim()) {
+      return visibleEmojiGroups;
+    }
+
+    return visibleEmojiGroups.map((group) => ({
+      ...group,
+      emojis: group.emojis.slice(0, MOBILE_EMOJI_SEARCH_LIMIT),
+    }));
+  }, [compact, effectiveEmojiQuery, visibleEmojiGroups]);
+  const isSearchTrimmed =
+    compact &&
+    effectiveEmojiQuery.trim() &&
+    visibleEmojiGroups.some((group) => group.emojis.length > MOBILE_EMOJI_SEARCH_LIMIT);
+
+  useEffect(() => {
+    if (!compact) {
+      setDebouncedEmojiQuery(emojiQueryInput);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setDebouncedEmojiQuery(emojiQueryInput.trim().toLowerCase());
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [compact, emojiQueryInput]);
 
   useEffect(() => {
     if (!open) {
-      setEmojiQuery("");
+      setEmojiQueryInput("");
+      setDebouncedEmojiQuery("");
       setEmojiCategory("popular");
       return;
     }
@@ -264,6 +283,7 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
     <div
       ref={anchorRef}
       data-ui="true"
+      data-no-realm-swipe
       className={`composer-emoji-anchor ${compact ? "composer-emoji-anchor--compact" : "composer-emoji-anchor--desktop"}`}
     >
       <button
@@ -294,6 +314,8 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
         <div
           id={pickerId}
           data-ui="true"
+          data-no-realm-swipe
+          data-emoji-picker
           role="dialog"
           aria-label="Choose emoji"
           className={`composer-emoji-popover ${compact ? "composer-emoji-popover--compact" : "composer-emoji-popover--desktop"}`}
@@ -330,19 +352,25 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
             </button>
           </div>
 
-          <div className="cw-emoji-search-wrap">
+          <div className="cw-emoji-search-wrap" data-no-realm-swipe>
             <span aria-hidden="true" className="cw-emoji-search-icon">⌕</span>
             <input
               type="search"
-              value={emojiQuery}
-              onChange={(event) => setEmojiQuery(event.target.value)}
+              value={emojiQueryInput}
+              onChange={(event) => setEmojiQueryInput(event.target.value)}
               placeholder="search emojis..."
               className="cw-emoji-search-input"
               aria-label="Search emojis"
             />
           </div>
 
-          <div className="cw-emoji-category-tabs" role="tablist" aria-label="Emoji categories">
+          <div
+            className="cw-emoji-category-tabs"
+            data-no-realm-swipe
+            data-horizontal-scroll
+            role="tablist"
+            aria-label="Emoji categories"
+          >
             {emojiCategoryLabels.map((label) => (
               <button
                 key={label}
@@ -350,7 +378,8 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
                 className={`cw-emoji-category-tab ${emojiCategory === label ? "is-active" : ""}`}
                 onClick={() => {
                   setEmojiCategory(label);
-                  setEmojiQuery("");
+                  setEmojiQueryInput("");
+                  setDebouncedEmojiQuery("");
                 }}
                 title={label}
               >
@@ -359,15 +388,22 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
             ))}
           </div>
 
-          {emojiQuery.trim() ? (
+          {effectiveEmojiQuery.trim() ? (
             <div className="cw-emoji-result-note">Showing fastest matching results. Type more to narrow.</div>
           ) : null}
+          {isSearchTrimmed ? (
+            <div className="cw-emoji-result-note">
+              Showing first {MOBILE_EMOJI_SEARCH_LIMIT} results. Type more to narrow.
+            </div>
+          ) : null}
 
-          {visibleEmojiGroups.length === 0 ? (
+          {renderedEmojiGroups.length === 0 ? (
             <div className="cw-emoji-search-empty">no matching emojis</div>
-          ) : visibleEmojiGroups.map((group) => (
+          ) : renderedEmojiGroups.map((group) => (
             <div key={group.label} style={{ marginBottom: compact ? "9px" : "12px" }}>
               <div
+                className="composer-emoji-grid"
+                data-no-realm-swipe
                 style={{
                   marginBottom: "6px",
                   fontSize: "8.5px",
@@ -1166,9 +1202,10 @@ function ComposeEnhancements({
 function MobileHomePage({
   user,
   freshPosts,
+  currentPage,
   hasMorePosts,
   loadingMorePosts,
-  onLoadMorePosts,
+  onPageChange,
   navigate,
   showCompose,
   setShowCompose,
@@ -1280,7 +1317,7 @@ function MobileHomePage({
   };
 
   return (
-    <main className="mobile-home-shell" style={{ position: "relative", zIndex: 2 }}>
+    <main className="mobile-home-shell" style={{ position: "relative" }}>
       <HomeBackgroundVideo />
 
       <div className="mobile-home-top-tools" data-ui="true">
@@ -1298,25 +1335,6 @@ function MobileHomePage({
           className="mobile-home-hero-img"
           decoding="async"
         />
-      </section>
-
-      <section className="mobile-home-realms" aria-label="Realms">
-        <button type="button" onClick={() => navigate("/grove")} className="mobile-home-realm mobile-home-grove">
-          <strong>🌿 Grove</strong>
-          <span>Positive Vibes</span>
-        </button>
-        <button type="button" onClick={() => navigate("/budding")} className="mobile-home-realm mobile-home-budding">
-          <strong>🌱 Budding</strong>
-          <span>New Confessions</span>
-        </button>
-        <button type="button" onClick={() => navigate("/trending")} className="mobile-home-realm mobile-home-trending">
-          <strong>{"\uD83D\uDCC8"} Trending</strong>
-          <span>Top Confessions</span>
-        </button>
-        <button type="button" onClick={() => navigate("/scorched")} className="mobile-home-realm mobile-home-scorched">
-          <strong>🔥 Scorched</strong>
-          <span>Pain & Vent</span>
-        </button>
       </section>
 
       <section className="mobile-home-feed-head">
@@ -1338,22 +1356,32 @@ function MobileHomePage({
         )}
       </section>
 
-      {hasMorePosts && (
+      <nav className="mobile-home-pagination" aria-label="Budding confession pages">
         <button
           type="button"
-          className="mobile-home-load-more"
-          onClick={onLoadMorePosts}
-          disabled={loadingMorePosts}
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={loadingMorePosts || currentPage <= 1}
         >
-          {loadingMorePosts ? "Loading..." : "Load more"}
+          Previous
         </button>
-      )}
+        <span>{loadingMorePosts ? "Loading..." : `Page ${currentPage}`}</span>
+        <button
+          type="button"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={loadingMorePosts || !hasMorePosts}
+        >
+          Next
+        </button>
+      </nav>
 
       <MobileBottomNav onConfess={onOpenConfession} />
 
       {showCompose && (
         <div
           data-ui="true"
+          data-no-realm-swipe
+          data-compose-modal
+          data-no-realm-swipe-active="true"
           className="mobile-compose-backdrop"
           onClick={(e) => {
             e.stopPropagation();
@@ -1363,7 +1391,7 @@ function MobileHomePage({
             }
           }}
         >
-          <div className="mobile-compose-card">
+          <div className="mobile-compose-card" data-no-realm-swipe data-compose-modal>
             <button
               type="button"
               className="mobile-compose-close"
@@ -1708,6 +1736,16 @@ const [image, setImage] = useState([]);
     };
   }, []);
 
+  useEffect(() => {
+    if (!showCompose) return undefined;
+
+    document.body.classList.add("realm-swipe-disabled");
+
+    return () => {
+      document.body.classList.remove("realm-swipe-disabled");
+    };
+  }, [showCompose]);
+
 const openGuidebookAfterTutorial = useCallback((mode = "auto") => {
   if (typeof window === "undefined" || window.innerWidth < 920) return;
 
@@ -1883,16 +1921,22 @@ useEffect(() => {
     }
 
     setShowPostEmojiPicker(false);
-    setShowCompose(true);
+    setShowCompose((prev) => !prev);
   };
 
-  const handleMobileLoadMore = async () => {
-    if (mobileFeedLoadingMore || !mobileFeedHasMore) return;
+  const handleMobilePageChange = async (targetPage) => {
+    const nextPage = Math.max(1, Number(targetPage || 1));
+    if (
+      mobileFeedLoadingMore ||
+      nextPage === mobileFeedPage ||
+      (nextPage > mobileFeedPage && !mobileFeedHasMore)
+    ) {
+      return;
+    }
 
     setMobileFeedLoadingMore(true);
 
     try {
-      const nextPage = mobileFeedPage + 1;
       const res = await fetch(
         `${API_URL}?page=${nextPage}&limit=${MOBILE_HOME_PAGE_LIMIT}`
       );
@@ -1904,12 +1948,12 @@ useEffect(() => {
 
       const normalized = normalizeConfessionResponse(data);
 
-      setConfessions((prev) => appendUniqueConfessions(prev, normalized.items));
+      setConfessions(normalized.items);
       setMobileFeedPage(normalized.page || nextPage);
       setMobileFeedHasMore(normalized.hasMore);
     } catch (err) {
       console.error(err);
-      window.cwToast?.("Could not load more confessions.", "error");
+      window.cwToast?.("Could not load confessions.", "error");
     } finally {
       setMobileFeedLoadingMore(false);
     }
@@ -2021,14 +2065,15 @@ useEffect(() => {
     return (
       <>
         <MobileHomePage
-  user={user}
-  freshPosts={freshPosts}
-  hasMorePosts={mobileFeedHasMore}
-  loadingMorePosts={mobileFeedLoadingMore}
-  onLoadMorePosts={handleMobileLoadMore}
-  navigate={navigate}
-  showCompose={showCompose}
-  setShowCompose={setShowCompose}
+          user={user}
+          freshPosts={freshPosts}
+          currentPage={mobileFeedPage}
+          hasMorePosts={mobileFeedHasMore}
+          loadingMorePosts={mobileFeedLoadingMore}
+          onPageChange={handleMobilePageChange}
+          navigate={navigate}
+          showCompose={showCompose}
+          setShowCompose={setShowCompose}
   message={message}
   setMessage={setMessage}
   imagePreview={imagePreview}
@@ -2235,6 +2280,9 @@ useEffect(() => {
       {showCompose && (
   <div
     data-ui="true"   // ✅ ADD THIS LINE
+    data-no-realm-swipe
+    data-compose-modal
+    data-no-realm-swipe-active="true"
     className="confession-composer-backdrop"
     onClick={(e) => {
            e.stopPropagation();  
@@ -2256,6 +2304,8 @@ useEffect(() => {
         >
           <div
             className="confession-composer-shell"
+            data-no-realm-swipe
+            data-compose-modal
             style={{
               background: "rgba(8,22,6,0.97)",
               border: "1px solid rgba(255,238,136,0.2)",

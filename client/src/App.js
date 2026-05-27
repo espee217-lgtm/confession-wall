@@ -46,6 +46,7 @@ import BuySeeds from "./pages/BuySeeds";
 import ChoicePage from "./pages/ChoicePage";
 import ReenaPage from "./pages/ReenaPage";
 import WeeklyEventsPage from "./pages/WeeklyEventsPage";
+import MobileRealmSwipeNav from "./components/MobileRealmSwipeNav";
 
 import { useAuth } from "./context/AuthContext";
 import FramedAvatar from "./components/FramedAvatar";
@@ -968,7 +969,7 @@ function Navbar() {
 
   return (
     <header
-      className="navbar"
+      className={`navbar ${user ? "navbar--auth" : "navbar--guest"}`}
       style={{
         position: "relative",
         zIndex: 4500,
@@ -1008,6 +1009,7 @@ function Navbar() {
           {user && <SeedCounter />}
 
           <Link
+            className="navbar-brand"
             to="/"
             style={{
               display: "flex",
@@ -1082,7 +1084,7 @@ function Navbar() {
         </div>
 
         <div
-            className="nav-actions"
+            className={`nav-actions ${user ? "nav-actions--auth" : "nav-actions--guest"}`}
             style={{
               justifySelf: "end",
               display: "flex",
@@ -1130,10 +1132,10 @@ function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" style={authLinkStyle(false)}>
+                <Link className="navbar-login-btn" to="/login" style={authLinkStyle(false)}>
                   Login
                 </Link>
-                <Link to="/register" style={authLinkStyle(true)}>
+                <Link className="navbar-register-btn" to="/register" style={authLinkStyle(true)}>
                   Register
                 </Link>
               </>
@@ -1310,6 +1312,8 @@ function AppContent() {
         <Route path="/reena-apology" element={<ReenaApologyPage />} />
         <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
       </Routes>
+
+      <MobileRealmSwipeNav />
 
       {!hideFooter && <Footer />}
 

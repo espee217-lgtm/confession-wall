@@ -37,6 +37,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
 const PRESSED_LEAVES_URL = `${API_BASE}/api/auth/pressed-leaves`;
+const MOBILE_EMOJI_SEARCH_LIMIT = 120;
 
 const realmThemes = {
   grove: {
@@ -751,7 +752,8 @@ export default function ConfessionPage() {
   const [replySubmitting, setReplySubmitting] = useState(false);
   const replyInputRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [emojiQuery, setEmojiQuery] = useState("");
+  const [emojiQueryInput, setEmojiQueryInput] = useState("");
+  const [debouncedEmojiQuery, setDebouncedEmojiQuery] = useState("");
   const [emojiCategory, setEmojiCategory] = useState("popular");
   const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
   const [lightboxImage, setLightboxImage] = useState("");
@@ -922,20 +924,49 @@ export default function ConfessionPage() {
 
   useEffect(() => {
     if (!showEmojiPicker) {
-      setEmojiQuery("");
+      setEmojiQueryInput("");
+      setDebouncedEmojiQuery("");
       setEmojiCategory("popular");
     }
   }, [showEmojiPicker]);
+
+  useEffect(() => {
+    if (!isPhoneLayout) {
+      setDebouncedEmojiQuery(emojiQueryInput);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setDebouncedEmojiQuery(emojiQueryInput.trim().toLowerCase());
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [emojiQueryInput, isPhoneLayout]);
 
   const emojiCategoryLabels = useMemo(
     () => getEmojiCategoryLabels(COMMENT_EMOJI_GROUPS),
     []
   );
 
+  const effectiveEmojiQuery = isPhoneLayout ? debouncedEmojiQuery : emojiQueryInput;
   const visibleCommentEmojiGroups = useMemo(
-    () => filterEmojiGroups(COMMENT_EMOJI_GROUPS, emojiQuery, emojiCategory),
-    [emojiQuery, emojiCategory]
+    () => filterEmojiGroups(COMMENT_EMOJI_GROUPS, effectiveEmojiQuery, emojiCategory),
+    [effectiveEmojiQuery, emojiCategory]
   );
+  const renderedCommentEmojiGroups = useMemo(() => {
+    if (!isPhoneLayout || !effectiveEmojiQuery.trim()) {
+      return visibleCommentEmojiGroups;
+    }
+
+    return visibleCommentEmojiGroups.map((group) => ({
+      ...group,
+      emojis: group.emojis.slice(0, MOBILE_EMOJI_SEARCH_LIMIT),
+    }));
+  }, [effectiveEmojiQuery, isPhoneLayout, visibleCommentEmojiGroups]);
+  const isCommentSearchTrimmed =
+    isPhoneLayout &&
+    effectiveEmojiQuery.trim() &&
+    visibleCommentEmojiGroups.some((group) => group.emojis.length > MOBILE_EMOJI_SEARCH_LIMIT);
 
   const watered = confession?.wateredBy?.length || 0;
   const burned = confession?.burnedBy?.length || 0;
@@ -2625,6 +2656,8 @@ const activeCommentPinPosition = isPhoneLayout
                   const trayEl = (
                   <div
                     ref={emojiTrayRef}
+                    data-no-realm-swipe
+                    data-emoji-picker
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                     style={{
@@ -2662,19 +2695,28 @@ const activeCommentPinPosition = isPhoneLayout
                       zIndex: 999999,
                     }}
                   >
-                    <div className="cw-emoji-search-wrap cw-emoji-search-wrap--comment">
+                    <div
+                      className="cw-emoji-search-wrap cw-emoji-search-wrap--comment"
+                      data-no-realm-swipe
+                    >
                       <span aria-hidden="true" className="cw-emoji-search-icon">⌕</span>
                       <input
                         type="search"
-                        value={emojiQuery}
-                        onChange={(event) => setEmojiQuery(event.target.value)}
+                        value={emojiQueryInput}
+                        onChange={(event) => setEmojiQueryInput(event.target.value)}
                         placeholder="search emojis..."
                         className="cw-emoji-search-input"
                         aria-label="Search emojis"
                       />
                     </div>
 
-                    <div className="cw-emoji-category-tabs cw-emoji-category-tabs--comment" role="tablist" aria-label="Emoji categories">
+                    <div
+                      className="cw-emoji-category-tabs cw-emoji-category-tabs--comment"
+                      data-no-realm-swipe
+                      data-horizontal-scroll
+                      role="tablist"
+                      aria-label="Emoji categories"
+                    >
                       {emojiCategoryLabels.map((label) => (
                         <button
                           key={label}
@@ -2682,7 +2724,8 @@ const activeCommentPinPosition = isPhoneLayout
                           className={`cw-emoji-category-tab ${emojiCategory === label ? "is-active" : ""}`}
                           onClick={() => {
                             setEmojiCategory(label);
-                            setEmojiQuery("");
+                            setEmojiQueryInput("");
+                            setDebouncedEmojiQuery("");
                           }}
                           title={label}
                         >
@@ -2691,13 +2734,18 @@ const activeCommentPinPosition = isPhoneLayout
                       ))}
                     </div>
 
-                    {emojiQuery.trim() ? (
+                    {effectiveEmojiQuery.trim() ? (
                       <div className="cw-emoji-result-note">Showing fastest matching results. Type more to narrow.</div>
                     ) : null}
+                    {isCommentSearchTrimmed ? (
+                      <div className="cw-emoji-result-note">
+                        Showing first {MOBILE_EMOJI_SEARCH_LIMIT} results. Type more to narrow.
+                      </div>
+                    ) : null}
 
-                    {visibleCommentEmojiGroups.length === 0 ? (
+                    {renderedCommentEmojiGroups.length === 0 ? (
                       <div className="cw-emoji-search-empty">no matching emojis</div>
-                    ) : visibleCommentEmojiGroups.map((group) => (
+                    ) : renderedCommentEmojiGroups.map((group) => (
                       <div key={group.label} style={{ marginBottom: "9px" }}>
                         <div
                           style={{
@@ -2713,16 +2761,18 @@ const activeCommentPinPosition = isPhoneLayout
                         </div>
 
                        <div
-  style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: isPhoneLayout ? "7px" : "8px",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    margin: "0 auto",
-  }}
->
+                         className="composer-emoji-grid"
+                         data-no-realm-swipe
+                         style={{
+                           display: "flex",
+                           flexWrap: "wrap",
+                           gap: isPhoneLayout ? "7px" : "8px",
+                           justifyContent: "center",
+                           alignItems: "center",
+                           width: "100%",
+                           margin: "0 auto",
+                         }}
+                       >
                           {group.emojis.map((emoji) => (
                             <button
                               key={`${group.label}-${emoji}`}
