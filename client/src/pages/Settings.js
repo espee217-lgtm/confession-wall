@@ -113,7 +113,7 @@ function Msg({ text, type, palette }) {
   );
 }
 
-function Section({ title, children, defaultOpen = false, palette, openSignal = 0 }) {
+function Section({ title, children, defaultOpen = false, palette, openSignal = 0, className = "" }) {
   const [open, setOpen] = useState(defaultOpen);
 
   useEffect(() => {
@@ -123,7 +123,7 @@ function Section({ title, children, defaultOpen = false, palette, openSignal = 0
   }, [openSignal]);
 
   return (
-    <div style={{ marginBottom: "1rem" }}>
+    <div className={className} style={{ marginBottom: "1rem" }}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -967,7 +967,7 @@ export default function Settings() {
 
       <div
         className="cw-settings-shell"
-        style={{ maxWidth: "520px", margin: "0 auto", position: "relative" }}
+        style={{ maxWidth: "1220px", margin: "0 auto", position: "relative" }}
       >
         <div
           className="cw-settings-panel"
@@ -1005,7 +1005,7 @@ export default function Settings() {
             tune your forest presence
           </p>
 
-          <Section title="theme" defaultOpen={true} palette={palette}>
+          <Section title="theme" defaultOpen={true} palette={palette} className="cw-settings-theme-section">
             <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
               {["light", "system", "dark"].map((t) => (
                 <button
@@ -1035,7 +1035,7 @@ export default function Settings() {
             </div>
           </Section>
 
-          <Section title="profile" defaultOpen={true} palette={palette}>
+          <Section title="profile" defaultOpen={true} palette={palette} className="cw-settings-profile-section">
             <Msg {...profileMsg} palette={palette} />
 
             <form onSubmit={handleProfileSubmit}>
@@ -1190,63 +1190,78 @@ export default function Settings() {
                 </CosmeticHubBox>
               </div>
 
-              <p
-                style={{
-                  textAlign: "center",
-                  fontSize: "12px",
-                  color: palette.muted,
-                  marginBottom: "14px",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                {postCount === null ? "..." : postCount} confession
-                {postCount !== 1 ? "s" : ""} posted
-              </p>
+              <div className="cw-profile-control-card">
+                <div className="cw-profile-control-head">
+                  <span>Account Grove</span>
+                  <small>profile controls</small>
+                </div>
 
-              <input
-                type="text"
-                placeholder="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                style={inputStyle}
-              />
+                <p
+                  style={{
+                    textAlign: "center",
+                    fontSize: "12px",
+                    color: palette.muted,
+                    marginBottom: "14px",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {postCount === null ? "..." : postCount} confession
+                  {postCount !== 1 ? "s" : ""} posted
+                </p>
 
-              <button type="submit" style={btnGreen} disabled={profileLoading}>
-                {profileLoading ? "saving..." : "save profile"}
-              </button>
+                <input
+                  type="text"
+                  placeholder="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
 
-              <button
-                type="button"
-                onClick={() => navigate(`/user/${user._id}`)}
-                style={{
-                  ...btnGreen,
-                  marginTop: "8px",
-                  background: "rgba(120, 180, 90, 0.18)",
-                  border: `1px solid ${palette.border}`,
-                  color: palette.text,
-                }}
-              >
-                view public profile
-              </button>
+                <div className="cw-profile-action-grid">
+                  <button type="submit" style={btnGreen} disabled={profileLoading}>
+                    {profileLoading ? "saving..." : "save profile"}
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => navigate("/pressed-leaves")}
-                style={{
-                  ...btnGreen,
-                  marginTop: "8px",
-                  background: "rgba(214, 186, 120, 0.14)",
-                  border: `1px solid ${palette.border}`,
-                  color: palette.text,
-                }}
-              >
-                view pressed leaves
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/user/${user._id}`)}
+                    style={{
+                      ...btnGreen,
+                      marginTop: 0,
+                      background: "rgba(120, 180, 90, 0.18)",
+                      border: `1px solid ${palette.border}`,
+                      color: palette.text,
+                    }}
+                  >
+                    view public profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/pressed-leaves")}
+                    style={{
+                      ...btnGreen,
+                      marginTop: 0,
+                      background: "rgba(214, 186, 120, 0.14)",
+                      border: `1px solid ${palette.border}`,
+                      color: palette.text,
+                    }}
+                  >
+                    view pressed leaves
+                  </button>
+                </div>
+              </div>
             </form>
           </Section>
 
-          <Section title="profile visibility" palette={palette}>
+          <div className="cw-settings-account-grove-card">
+            <div className="cw-settings-account-grove-head">
+              <span>Keeper Settings</span>
+              <small>visibility, inventory, bio, security, contact, and account safety</small>
+            </div>
+
+          <Section title="profile visibility" palette={palette} className="cw-account-grove-section">
             <div
               className="cw-settings-seed-row"
               style={{
@@ -1303,6 +1318,7 @@ export default function Settings() {
             title="cosmetic inventory"
             palette={palette}
             openSignal={inventoryOpenSignal}
+            className="cw-account-grove-section"
           >
             <div id="settings-cosmetic-inventory" tabIndex="-1" />
             <Msg {...cosmeticMsg} palette={palette} />
@@ -1399,7 +1415,7 @@ export default function Settings() {
             )}
           </Section>
 
-          <Section title="bio" palette={palette}>
+          <Section title="bio" palette={palette} className="cw-account-grove-section">
             <Msg {...bioMsg} palette={palette} />
 
             <form onSubmit={handleBioSubmit}>
@@ -1429,7 +1445,7 @@ export default function Settings() {
             </form>
           </Section>
 
-          <Section title="change password" palette={palette}>
+          <Section title="change password" palette={palette} className="cw-account-grove-section">
             <Msg {...passwordMsg} palette={palette} />
 
             <form onSubmit={handlePasswordSubmit}>
@@ -1489,7 +1505,7 @@ export default function Settings() {
             </form>
           </Section>
 
-          <Section title="contact us" palette={palette}>
+          <Section title="contact us" palette={palette} className="cw-account-grove-section">
             <p
               style={{
                 fontSize: "13px",
@@ -1550,7 +1566,7 @@ export default function Settings() {
             </a>
           </Section>
 
-          <Section title="danger zone" palette={palette}>
+          <Section title="danger zone" palette={palette} className="cw-account-grove-section">
             <Msg {...deleteMsg} palette={palette} />
 
             <button
@@ -1668,6 +1684,7 @@ export default function Settings() {
               </div>
             )}
           </Section>
+          </div>
         </div>
       </div>
       <MobileBottomNav />
