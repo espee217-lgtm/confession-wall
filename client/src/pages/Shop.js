@@ -640,6 +640,156 @@ function CosmeticPreviewModal({
   );
 }
 
+function CosmeticPurchaseConfirmModal({
+  item,
+  onClose,
+  onConfirm,
+  previewUser,
+  equipped,
+  busy,
+  seedBalance,
+  now,
+}) {
+  if (!item) return null;
+
+  const price = Number(item.price) || 0;
+  const currentSeeds = Number(seedBalance) || 0;
+  const afterPurchaseSeeds = currentSeeds - price;
+  const canAfford = currentSeeds >= price;
+  const availabilityStatus = getAvailabilityStatus(item);
+  const unavailableForPurchase = availabilityStatus !== "available";
+  const dropBadges = getDropBadges(item, now);
+  const displayType = TYPE_LABELS[getDisplayType(item.type)] || item.type;
+
+  return (
+    <div className="shop-confirm-modal-backdrop" onClick={onClose}>
+      <div
+        className="shop-confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shop-confirm-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="shop-preview-close shop-confirm-close"
+          aria-label="Close purchase confirmation"
+          onClick={onClose}
+          disabled={busy}
+        >
+          {"\u00D7"}
+        </button>
+
+        <div className="shop-confirm-header">
+          <span className={`shop-rarity ${getRarityClass(item.rarity)}`}>
+            {item.rarity || "Common"}
+          </span>
+          <span className="shop-item-type">{displayType}</span>
+        </div>
+
+        <div className="shop-confirm-copy">
+          <p className="shop-confirm-kicker">Confirm Seed Purchase</p>
+          <h2 id="shop-confirm-modal-title">
+            <span>{item.icon}</span>
+            Spend Seeds on {item.name}?
+          </h2>
+          <p>
+            This will unlock the cosmetic and auto-equip it. Please confirm before spending your Seeds.
+          </p>
+        </div>
+
+        {dropBadges.length > 0 && (
+          <div className="shop-drop-badges shop-drop-badges--confirm">
+            {dropBadges.map((badge) => (
+              <span className={badge.className} key={badge.key}>
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="shop-confirm-content">
+          <div className="shop-confirm-stage">
+            <ShopPreview
+              item={item}
+              mode="modal"
+              isAnimating
+              previewUser={previewUser}
+              equipped={equipped}
+            />
+          </div>
+
+          <div className="shop-confirm-details" aria-label="Purchase summary">
+            <div className="shop-confirm-detail-row">
+              <span>Item</span>
+              <strong>{item.name}</strong>
+            </div>
+            <div className="shop-confirm-detail-row">
+              <span>Type</span>
+              <strong>{displayType}</strong>
+            </div>
+            <div className="shop-confirm-detail-row shop-confirm-detail-row--price">
+              <span>Cost</span>
+              <strong>{SEED_ICON} {price}</strong>
+            </div>
+            <div className="shop-confirm-detail-row">
+              <span>Your Seeds</span>
+              <strong>{SEED_ICON} {currentSeeds}</strong>
+            </div>
+            <div className={`shop-confirm-detail-row ${afterPurchaseSeeds < 0 ? "shop-confirm-detail-row--danger" : ""}`}>
+              <span>After Purchase</span>
+              <strong>{afterPurchaseSeeds >= 0 ? `${SEED_ICON} ${afterPurchaseSeeds}` : `Need ${SEED_ICON} ${Math.abs(afterPurchaseSeeds)} more`}</strong>
+            </div>
+
+            {!canAfford && (
+              <p className="shop-confirm-warning">
+                You do not have enough Seeds for this cosmetic yet.
+              </p>
+            )}
+            {unavailableForPurchase && (
+              <p className="shop-confirm-warning">
+                This limited drop is not available to buy right now.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="shop-confirm-actions">
+          <button
+            type="button"
+            className="shop-confirm-cancel-btn"
+            onClick={onClose}
+            disabled={busy}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="shop-buy-btn shop-confirm-spend-btn"
+            onClick={onConfirm}
+            disabled={busy || !canAfford || unavailableForPurchase}
+            title={
+              unavailableForPurchase
+                ? "This limited drop is not available to buy."
+                : !canAfford
+                  ? "Not enough Seeds"
+                  : "Confirm Seed purchase"
+            }
+          >
+            {busy
+              ? "Spending..."
+              : unavailableForPurchase
+                ? getUnavailableActionLabel(item)
+                : canAfford
+                  ? `Spend ${SEED_ICON} ${price}`
+                  : "Need Seeds"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function normalizeOwnedCosmetics(ownedCosmetics) {
   if (!Array.isArray(ownedCosmetics)) return [];
 
@@ -664,6 +814,7 @@ function Shop() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selectedPreviewCosmetic, setSelectedPreviewCosmetic] = useState(null);
+  const [pendingPurchaseCosmetic, setPendingPurchaseCosmetic] = useState(null);
   const [now, setNow] = useState(() => new Date());
   const speedOverlayUrl = `${process.env.PUBLIC_URL}/assets/speed.png`;
   const blowOverlayUrl = `${process.env.PUBLIC_URL}/assets/blow.png`;
@@ -695,6 +846,7 @@ function Shop() {
   const equipped = localEquipped;
   const previewUser = user || {};
   const isPreviewOpen = Boolean(selectedPreviewCosmetic);
+  const isPurchaseConfirmOpen = Boolean(pendingPurchaseCosmetic);
 
   const ownedSet = useMemo(() => {
     return new Set(localOwned.map((item) => item.itemId));
@@ -803,17 +955,22 @@ function Shop() {
   }, [isLoggedIn, refreshUser]);
 
   useEffect(() => {
-    if (!isPreviewOpen) return undefined;
+    if (!isPreviewOpen && !isPurchaseConfirmOpen) return undefined;
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
+        if (isPurchaseConfirmOpen && !busyItemId) {
+          setPendingPurchaseCosmetic(null);
+          return;
+        }
+
         setSelectedPreviewCosmetic(null);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPreviewOpen]);
+  }, [isPreviewOpen, isPurchaseConfirmOpen, busyItemId]);
 
   const openCosmeticPreview = (item) => {
     setSelectedPreviewCosmetic(item);
@@ -823,13 +980,43 @@ function Shop() {
     setSelectedPreviewCosmetic(null);
   };
 
-  const handleBuy = async (item) => {
+  const openPurchaseConfirm = (item) => {
+    if (!item) return;
+
     if (!isLoggedIn) {
       showGuestShopPrompt();
       return;
     }
 
-    if (!token || busyItemId) return;
+    if (busyItemId) return;
+
+    setError("");
+    setMessage("");
+    setPendingPurchaseCosmetic(item);
+  };
+
+  const closePurchaseConfirm = () => {
+    if (busyItemId) return;
+    setPendingPurchaseCosmetic(null);
+  };
+
+  const confirmPendingPurchase = async () => {
+    if (!pendingPurchaseCosmetic) return;
+
+    const purchased = await handleBuy(pendingPurchaseCosmetic);
+
+    if (purchased) {
+      setPendingPurchaseCosmetic(null);
+    }
+  };
+
+  const handleBuy = async (item) => {
+    if (!isLoggedIn) {
+      showGuestShopPrompt();
+      return false;
+    }
+
+    if (!token || busyItemId) return false;
 
     setMessage("");
     setError("");
@@ -850,8 +1037,10 @@ function Shop() {
       await syncUserState(data.user);
 
       setMessage(data.message || `${item.name} unlocked!`);
+      return true;
     } catch (err) {
       setError(err.message || "Could not buy this cosmetic.");
+      return false;
     } finally {
       setBusyItemId("");
     }
@@ -987,7 +1176,7 @@ function Shop() {
         className="shop-buy-btn"
         onClick={(event) => {
           event.stopPropagation();
-          handleBuy(item);
+          openPurchaseConfirm(item);
         }}
         disabled={busy || Boolean(busyItemId) || !canAfford || unavailableForPurchase}
         title={
@@ -1342,9 +1531,22 @@ function Shop() {
           }
           busy={busyItemId === selectedPreviewCosmetic.id}
           canAfford={(localSeeds || 0) >= selectedPreviewCosmetic.price}
-          onBuy={handleBuy}
+          onBuy={openPurchaseConfirm}
           onEquip={handleEquip}
           isGuest={!isLoggedIn}
+          now={now}
+        />
+      )}
+
+      {pendingPurchaseCosmetic && (
+        <CosmeticPurchaseConfirmModal
+          item={pendingPurchaseCosmetic}
+          onClose={closePurchaseConfirm}
+          onConfirm={confirmPendingPurchase}
+          previewUser={previewUser}
+          equipped={equipped}
+          busy={busyItemId === pendingPurchaseCosmetic.id}
+          seedBalance={localSeeds || 0}
           now={now}
         />
       )}
