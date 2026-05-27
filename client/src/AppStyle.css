@@ -9727,7 +9727,7 @@ button.confession-image-scroller__item {
   --hub-box-width: 286px;
   --hub-branch-length: 82px;
   width: min(430px, 100%);
-  min-height: 510px;
+  min-height: 670px;
   margin: 0 auto 28px;
 }
 
@@ -9807,7 +9807,7 @@ button.confession-image-scroller__item {
 
 .cosmetic-hub-box--right-lower {
   left: calc(100% + var(--hub-branch-length));
-  top: 302px;
+  top: 438px;
 }
 
 .cosmetic-connector-line {
@@ -9832,8 +9832,8 @@ button.confession-image-scroller__item {
 }
 
 .cosmetic-connector-line--right-lower {
-  top: 262px;
-  height: 118px;
+  top: 272px;
+  height: 250px;
 }
 
 .cw-profile-control-card,
@@ -9906,6 +9906,7 @@ button.confession-image-scroller__item {
     --hub-box-width: 238px;
     --hub-branch-length: 44px;
     width: 390px;
+    min-height: 650px;
   }
 
   .cosmetic-hub-box {
@@ -9987,5 +9988,32 @@ button.confession-image-scroller__item {
 
   .cosmetic-hub-box {
     max-width: 100% !important;
+  }
+}
+
+
+@media (min-width: 981px) {
+  /* Keep Avatar Frames as a separate lower-right card below Title Progress. */
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    min-height: 670px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 438px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    top: 272px;
+    height: 250px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 430px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    height: 242px;
   }
 }
