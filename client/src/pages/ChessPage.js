@@ -443,7 +443,7 @@ export default function ChessPage() {
       <section className="cw-chess-shell">
         <div className="cw-chess-hero">
           <div>
-            <p className="cw-chess-kicker">phase 3</p>
+            <p className="cw-chess-kicker">live match</p>
             <h1>Forest Chess</h1>
             <p>Challenge accepted friends and play live matches inside Confession Wall.</p>
           </div>
@@ -526,7 +526,9 @@ export default function ChessPage() {
                   <span>{game.resultReason}</span>
                 </div>
               ) : null}
-              <Link to="/chess" className="cw-chess-back-link">Back to lobby</Link>
+              <div className="cw-chess-log-actions">
+                <Link to="/chess" className="cw-chess-back-link">Back to lobby</Link>
+              </div>
             </aside>
           </div>
         ) : null}
