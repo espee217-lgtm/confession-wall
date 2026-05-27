@@ -10690,3 +10690,66 @@ button.confession-image-scroller__item {
     gap: 8px;
   }
 }
+
+/* Settings modal safe-header fix: prevents the Edit Profile / Keeper Settings header from being clipped. */
+.cw-settings-modal-backdrop {
+  align-items: flex-start !important;
+  overflow-y: auto !important;
+  padding: clamp(28px, 6vh, 58px) 22px 22px !important;
+}
+
+.cw-settings-modal-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: calc(100vh - clamp(56px, 12vh, 116px)) !important;
+  overflow: hidden !important;
+  margin: 0 auto !important;
+}
+
+.cw-settings-modal-head {
+  flex: 0 0 auto !important;
+  min-height: 86px !important;
+  padding: 24px 24px 16px !important;
+  overflow: visible !important;
+}
+
+.cw-settings-modal-head span {
+  line-height: 1.18 !important;
+  margin: 0 !important;
+}
+
+.cw-settings-modal-head small {
+  line-height: 1.35 !important;
+}
+
+.cw-settings-modal-close {
+  flex: 0 0 38px !important;
+  margin-top: 0 !important;
+}
+
+.cw-settings-modal-tabs {
+  flex: 0 0 auto !important;
+}
+
+.cw-settings-modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+@media (max-width: 720px) {
+  .cw-settings-modal-backdrop {
+    align-items: flex-end !important;
+    padding: 10px !important;
+    overflow-y: hidden !important;
+  }
+
+  .cw-settings-modal-panel {
+    max-height: 88vh !important;
+  }
+
+  .cw-settings-modal-head {
+    min-height: 76px !important;
+    padding: 18px 16px 12px !important;
+  }
+}
