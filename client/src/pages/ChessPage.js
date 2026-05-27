@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DisplayTitlePill from "../components/DisplayTitlePill";
@@ -110,6 +110,21 @@ function createChess(fen) {
   }
 }
 
+function chessIsCheck(chess) {
+  if (!chess) return false;
+  if (typeof chess.isCheck === "function") return chess.isCheck();
+  if (typeof chess.inCheck === "function") return chess.inCheck();
+  return false;
+}
+
+function getCheckedKingSquare(fen) {
+  const chess = createChess(fen);
+  if (!chessIsCheck(chess)) return "";
+
+  const kingPiece = chess.turn() === "w" ? "K" : "k";
+  return parseFenBoard(fen).find((cell) => cell.piece === kingPiece)?.square || "";
+}
+
 function getMoveHints(fen, from, side) {
   if (!from || !["w", "b"].includes(side)) return [];
 
@@ -120,6 +135,40 @@ function getMoveHints(fen, from, side) {
   const chess = createChess(fen);
   if (chess.turn() !== side) return [];
   return [...new Set(chess.moves({ square: from, verbose: true }).map((move) => move.to))];
+}
+
+function buildOptimisticGame(game, from, to, promotion, currentUserId) {
+  if (!game) return null;
+
+  try {
+    const chess = createChess(game.fen);
+    const moved = chess.move({ from, to, promotion });
+    if (!moved) return null;
+
+    return {
+      ...game,
+      fen: chess.fen(),
+      pgn: chess.pgn(),
+      turn: chess.turn(),
+      isMyTurn: game.status === "active" && game.mySide === chess.turn(),
+      moves: [
+        ...(game.moves || []),
+        {
+          from: moved.from,
+          to: moved.to,
+          san: moved.san,
+          promotion: moved.promotion || "",
+          color: moved.color,
+          by: currentUserId || null,
+          fen: chess.fen(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      updatedAt: new Date().toISOString(),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function UserChip({ user, label }) {
@@ -181,11 +230,12 @@ function GameCard({ game, onAccept, onDecline, actionBusy }) {
   );
 }
 
-function ChessBoard({ game, selected, legalTargets, onSquareClick }) {
+function ChessBoard({ game, selected, legalTargets, onSquareClick, disabled }) {
   const mySide = game?.mySide || "w";
   const cells = parseFenBoard(game?.fen);
   const ordered = mySide === "b" ? [...cells].reverse() : cells;
   const targetSet = new Set(legalTargets || []);
+  const checkedKingSquare = getCheckedKingSquare(game?.fen);
 
   return (
     <div className={`cw-chess-board ${mySide === "b" ? "is-black-view" : ""}`}>
@@ -194,12 +244,14 @@ function ChessBoard({ game, selected, legalTargets, onSquareClick }) {
         const ownPiece = isMyPiece(cell.piece, mySide);
         const isTarget = targetSet.has(cell.square);
         const isCapture = isTarget && Boolean(cell.piece);
+        const isCheckedKing = checkedKingSquare === cell.square;
         return (
           <button
             key={cell.square}
             type="button"
-            className={`cw-chess-square ${isSelected ? "is-selected" : ""} ${ownPiece ? "has-own-piece" : ""} ${isTarget ? "is-legal-target" : ""} ${isCapture ? "is-capture-target" : ""}`}
+            className={`cw-chess-square ${isSelected ? "is-selected" : ""} ${ownPiece ? "has-own-piece" : ""} ${isTarget ? "is-legal-target" : ""} ${isCapture ? "is-capture-target" : ""} ${isCheckedKing ? "cw-chess-square--check" : ""}`}
             onClick={() => onSquareClick(cell)}
+            disabled={disabled}
             aria-label={`Square ${cell.square}`}
           >
             <span className={`cw-chess-piece ${isWhitePiece(cell.piece) ? "is-white" : "is-black"}`}>
@@ -224,6 +276,9 @@ export default function ChessPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const movePendingRef = useRef(false);
+  const suppressNextMoveSocketRef = useRef(false);
+  const suppressMoveSocketTimerRef = useRef(null);
 
   const legalTargets = useMemo(() => {
     if (!game || game.status !== "active" || !game.isMyTurn || !selected) return [];
@@ -286,6 +341,15 @@ export default function ChessPage() {
     else loadHome();
   }, [gameId, loadGame, loadHome]);
 
+  useEffect(
+    () => () => {
+      if (suppressMoveSocketTimerRef.current) {
+        clearTimeout(suppressMoveSocketTimerRef.current);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     if (!token) return undefined;
 
@@ -301,13 +365,28 @@ export default function ChessPage() {
       }
     };
 
+    const refreshAfterMove = (payload = {}) => {
+      if (cancelled) return;
+      if (gameId) {
+        if (!payload.gameId || String(payload.gameId) === String(gameId)) {
+          if (movePendingRef.current && suppressNextMoveSocketRef.current) {
+            suppressNextMoveSocketRef.current = false;
+            return;
+          }
+          loadGame();
+        }
+      } else {
+        loadHome();
+      }
+    };
+
     const attach = () => {
       socket = getSocket();
       if (!socket) return;
       socket.on("chess:invite:new", refresh);
       socket.on("chess:game:accepted", refresh);
       socket.on("chess:game:declined", refresh);
-      socket.on("chess:move", refresh);
+      socket.on("chess:move", refreshAfterMove);
       socket.on("chess:game:completed", refresh);
       socket.on("chess:game:update", refresh);
     };
@@ -322,7 +401,7 @@ export default function ChessPage() {
       socket.off("chess:invite:new", refresh);
       socket.off("chess:game:accepted", refresh);
       socket.off("chess:game:declined", refresh);
-      socket.off("chess:move", refresh);
+      socket.off("chess:move", refreshAfterMove);
       socket.off("chess:game:completed", refresh);
       socket.off("chess:game:update", refresh);
     };
@@ -355,18 +434,46 @@ export default function ChessPage() {
   };
 
   const makeMove = async (from, to) => {
+    if (movePendingRef.current || !game) return;
+
+    const previousGame = game;
+    const promotion = "q";
+    const optimisticGame = buildOptimisticGame(previousGame, from, to, promotion, user?._id);
+
+    if (!optimisticGame) {
+      setSelected("");
+      window.cwToast?.("Illegal move.", "error");
+      return;
+    }
+
     try {
+      movePendingRef.current = true;
+      suppressNextMoveSocketRef.current = true;
+      if (suppressMoveSocketTimerRef.current) {
+        clearTimeout(suppressMoveSocketTimerRef.current);
+      }
+      suppressMoveSocketTimerRef.current = setTimeout(() => {
+        suppressNextMoveSocketRef.current = false;
+      }, 4000);
       setBusy("move");
+      setSelected("");
+      setGame(optimisticGame);
       const data = await request(`/api/chess/${gameId}/move`, {
         method: "POST",
-        body: JSON.stringify({ from, to, promotion: "q" }),
+        body: JSON.stringify({ from, to, promotion }),
       });
       setGame(data.game);
-      setSelected("");
     } catch (err) {
+      setGame(previousGame);
       window.cwToast?.(err.message || "Illegal move.", "error");
       setSelected("");
     } finally {
+      movePendingRef.current = false;
+      suppressNextMoveSocketRef.current = false;
+      if (suppressMoveSocketTimerRef.current) {
+        clearTimeout(suppressMoveSocketTimerRef.current);
+        suppressMoveSocketTimerRef.current = null;
+      }
       setBusy("");
     }
   };
@@ -390,7 +497,7 @@ export default function ChessPage() {
       setSelected("");
       return;
     }
-    if (busy) return;
+    if (busy || movePendingRef.current) return;
 
     if (!selected) {
       if (isMyPiece(cell.piece, game.mySide)) setSelected(cell.square);
@@ -484,7 +591,7 @@ export default function ChessPage() {
               <div className="cw-chess-versus">
                 <UserChip user={game.black} label="Black" />
                 <span className="cw-chess-turn-pill">
-                  {game.status === "active" ? (game.isMyTurn ? "Your move" : "Waiting") : game.resultReason || game.status}
+                  {busy === "move" ? "Syncing" : game.status === "active" ? (game.isMyTurn ? "Your move" : "Waiting") : game.resultReason || game.status}
                 </span>
                 <UserChip user={game.white} label="White" />
               </div>
@@ -497,7 +604,13 @@ export default function ChessPage() {
                 </div>
               ) : null}
 
-              <ChessBoard game={game} selected={selected} legalTargets={legalTargets} onSquareClick={onSquareClick} />
+              <ChessBoard
+                game={game}
+                selected={selected}
+                legalTargets={legalTargets}
+                onSquareClick={onSquareClick}
+                disabled={busy === "move"}
+              />
 
               <div className="cw-chess-board-footer">
                 <span>You are {game.mySide === "w" ? "White" : game.mySide === "b" ? "Black" : "watching"}</span>
