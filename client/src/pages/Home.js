@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect, useMemo, useRef } from "react"
 import ForestEventBanner from "../components/ForestEventBanner";
 import DailyQuestDropdown from "../components/DailyQuestDropdown";
 import MobileBottomNav from "../components/MobileBottomNav";
+import EmojiIcon from "../components/EmojiIcon";
 import SplitBouquetHero from "../components/SplitBouquetHero";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -21,6 +22,7 @@ import {
   getOwnedPostThemeIds,
 } from "../utils/engagement";
 import { CONTENT_WARNING_CATEGORIES } from "../utils/contentWarning";
+import { POST_EMOJI_GROUPS } from "../data/emojiGroups";
 
 const API_BASE =
   window.location.hostname === "localhost"
@@ -163,29 +165,6 @@ function appendUniqueConfessions(existing, incoming) {
 
   return [...existing, ...uniqueIncoming];
 }
-
-const POST_EMOJI_GROUPS = [
-  {
-    label: "mood",
-    emojis: ["😭", "😂", "💀", "🥲", "😔", "🥹", "😳", "😤", "😩", "😌", "😎", "🤧", "😐", "😶", "😬", "🙄"],
-  },
-  {
-    label: "love",
-    emojis: ["❤️", "🫶", "💕", "💖", "💗", "💘", "💔", "🥰", "😘", "🤍", "🖤", "💚", "💛", "💜", "💙", "🩷"],
-  },
-  {
-    label: "chaos",
-    emojis: ["🔥", "✨", "👀", "🙏", "🙃", "🫠", "🤡", "😈", "😵‍💫", "🤭", "😮‍💨", "🫡", "💅", "🚩", "🫢", "😱"],
-  },
-  {
-    label: "forest",
-    emojis: ["🌱", "🌿", "🍃", "🌳", "🌸", "🌼", "🌙", "⭐", "🌧️", "🍂", "🪷", "🦋", "🌻", "🍀", "🌾", "🕊️"],
-  },
-  {
-    label: "hands",
-    emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵", "🙏", "💪", "🫱", "🫲"],
-  },
-];
 
 function HomeBackgroundVideo() {
   return (
@@ -382,7 +361,8 @@ function EmojiPickerButton({ open, setOpen, onPick, compact = false }) {
                       padding: 0,
                     }}
                   >
-                    {emoji}
+                    <EmojiIcon emoji={emoji} className="cw-noto-emoji--picker" size={compact ? 22 : 23} />
+                    <span className="cw-emoji-button-text-fallback" aria-hidden="true">{emoji}</span>
                   </button>
                 ))}
               </div>

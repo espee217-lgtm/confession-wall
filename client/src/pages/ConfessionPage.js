@@ -3,6 +3,7 @@ import ForestEventBanner from "../components/ForestEventBanner";
 import FramedAvatar from "../components/FramedAvatar";
 import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import MobileBottomNav from "../components/MobileBottomNav";
+import EmojiIcon from "../components/EmojiIcon";
 import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
@@ -29,6 +30,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { COMMENT_EMOJI_GROUPS } from "../data/emojiGroups";
 
 const API_URL = process.env.REACT_APP_API_URL;
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -137,28 +139,7 @@ const styles = {
     fontSize: "16px",
   },
 };
-const COMMENT_EMOJI_GROUPS = [
-  {
-    label: "mood",
-    emojis: ["😭", "😂", "💀", "🥲", "😔", "🥹", "😳", "😤", "😩", "😌", "😎", "🤧"],
-  },
-  {
-    label: "love",
-    emojis: ["❤️", "🫶", "💕", "💖", "💗", "💘", "💔", "🥰", "😘", "🤍", "🖤", "💚"],
-  },
-  {
-    label: "chaos",
-    emojis: ["🔥", "✨", "👀", "🙏", "🙃", "🫠", "🤡", "😈", "😵‍💫", "🤭", "😮‍💨", "🫡"],
-  },
-  {
-    label: "forest",
-    emojis: ["🌱", "🌿", "🍃", "🌳", "🌸", "🌼", "🌙", "⭐", "🌧️", "🍂", "🪷", "🦋"],
-  },
-  {
-    label: "hands",
-    emojis: ["👍", "👎", "👏", "🤝", "🙌", "🤌", "✌️", "🤞", "🫰", "☝️", "👋", "🫵"],
-  },
-];
+
 function realmStatus(wateredBy = [], burnedBy = []) {
   const total = wateredBy.length + burnedBy.length;
 
@@ -2723,7 +2704,8 @@ onMouseLeave={(e) => {
   e.currentTarget.style.transform = "translateY(0) scale(1)";
 }}
                             >
-                              {emoji}
+                              <EmojiIcon emoji={emoji} className="cw-noto-emoji--picker" size={isPhoneLayout ? 22 : 21} />
+                              <span className="cw-emoji-button-text-fallback" aria-hidden="true">{emoji}</span>
                             </button>
                           ))}
                         </div>
