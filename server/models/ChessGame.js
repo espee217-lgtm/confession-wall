@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const chessMoveSchema = new mongoose.Schema(
   {
@@ -24,8 +24,17 @@ const chessGameSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "active", "completed", "declined", "cancelled", "abandoned"],
-      default: "pending",
+      enum: [
+        "invited",
+        "pending",
+        "waiting",
+        "active",
+        "completed",
+        "declined",
+        "cancelled",
+        "abandoned",
+      ],
+      default: "invited",
       index: true,
     },
 
