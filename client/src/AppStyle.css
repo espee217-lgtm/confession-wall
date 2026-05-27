@@ -10152,3 +10152,94 @@ button.confession-image-scroller__item {
     background: none;
   }
 }
+
+/* Settings profile hub fine-tune: taller outer panel, longer avatar-frame branch, thinner left connectors. */
+@media (min-width: 981px) {
+  .cw-settings-profile-section {
+    padding-bottom: 92px !important;
+    margin-bottom: 44px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    min-height: 780px;
+    margin-bottom: 52px;
+  }
+
+  /* Give Avatar Frames more breathing room below the profile core. */
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 480px;
+    width: 372px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    top: 330px;
+    height: 150px;
+  }
+
+  /* Keep the left branches elegant and line-like, not like thick glowing strips. */
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-upper,
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-upper {
+    height: 1px;
+    border: 0;
+    box-shadow:
+      0 0 10px rgba(255, 213, 91, 0.34),
+      0 0 18px rgba(255, 188, 48, 0.12);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower {
+    top: 306px;
+    height: 1px;
+    border: 0;
+    background: linear-gradient(90deg, rgba(255, 222, 112, 0.9), rgba(255, 218, 96, 0.12));
+    box-shadow:
+      0 0 10px rgba(255, 213, 91, 0.34),
+      0 0 18px rgba(255, 188, 48, 0.12);
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower::after {
+    top: 50%;
+    left: 50%;
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 1181px) {
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    min-height: 760px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 464px;
+    width: 352px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    height: 134px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .cw-settings-profile-section {
+    padding-bottom: 76px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    min-height: 730px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-hub-box--right-lower {
+    top: 442px;
+    width: 328px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--right-lower {
+    top: 310px;
+    height: 132px;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch .cosmetic-connector-line--left-lower {
+    top: 300px;
+    height: 1px;
+    border: 0;
+    background: linear-gradient(90deg, rgba(255, 222, 112, 0.9), rgba(255, 218, 96, 0.12));
+  }
+}
