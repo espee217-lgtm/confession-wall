@@ -10943,3 +10943,21 @@ button.confession-image-scroller__item {
     --cw-ice-monarch-scale: 0.48;
   }
 }
+
+/* Public profile hero frame-only polish: enlarge and re-center the decorative frame without changing the avatar/photo size. */
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-grove-butterfly {
+  --cw-grove-butterfly-scale: 0.64;
+}
+
+.cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-grove-butterfly .cw-grove-butterfly-frame-sprite-shell {
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) scale(var(--cw-grove-butterfly-scale, 0.64)) !important;
+  transform-origin: center center !important;
+}
+
+@media (max-width: 640px) {
+  .cw-user-profile-hero .cw-public-profile-hero-avatar.cw-cosmetic-frame-grove-butterfly {
+    --cw-grove-butterfly-scale: 0.56;
+  }
+}
