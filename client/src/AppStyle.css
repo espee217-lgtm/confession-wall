@@ -10814,3 +10814,78 @@ button.confession-image-scroller__item {
     right: -7px !important;
   }
 }
+
+/* Mobile-only Keeper Settings modal compact fix.
+   Keeps desktop untouched and only makes the phone popup shorter, higher, and internally scrollable. */
+@media (max-width: 720px) {
+  .cw-settings-modal-backdrop {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 12px 10px 86px !important;
+    overflow: hidden !important;
+  }
+
+  .cw-settings-modal-panel {
+    width: calc(100vw - 20px) !important;
+    max-width: 520px !important;
+    max-height: min(68vh, 560px) !important;
+    border-radius: 20px !important;
+    transform: translateY(-4vh) !important;
+  }
+
+  .cw-settings-modal-head {
+    min-height: auto !important;
+    padding: 14px 14px 10px !important;
+    gap: 10px !important;
+  }
+
+  .cw-settings-modal-head span {
+    font-size: clamp(1rem, 5.4vw, 1.28rem) !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1.08 !important;
+  }
+
+  .cw-settings-modal-head small {
+    margin-top: 4px !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  .cw-settings-modal-close {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    flex-basis: 34px !important;
+    font-size: 21px !important;
+  }
+
+  .cw-settings-modal-tabs {
+    gap: 8px !important;
+    padding: 10px 12px 0 !important;
+  }
+
+  .cw-settings-modal-tabs button {
+    padding: 9px 8px !important;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .cw-settings-modal-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 12px 14px 14px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .cw-settings-modal-avatar-preview {
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .cw-settings-modal-body .cw-account-grove-section {
+    margin-bottom: 8px !important;
+  }
+}
