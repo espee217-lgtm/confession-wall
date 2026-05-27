@@ -10753,3 +10753,18 @@ button.confession-image-scroller__item {
     padding: 18px 16px 12px !important;
   }
 }
+
+
+/* Settings modal close button alignment fix: centers the X inside the circle. */
+.cw-settings-modal-close {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
+.cw-settings-modal-close > * {
+  transform: translate(-1px, -1px);
+}
