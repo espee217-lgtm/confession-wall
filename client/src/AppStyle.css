@@ -10768,3 +10768,49 @@ button.confession-image-scroller__item {
 .cw-settings-modal-close > * {
   transform: translate(-1px, -1px);
 }
+
+
+/* Settings profile avatar edit placement: pencil sits on the avatar frame corner. */
+.cw-profile-avatar-edit-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.cw-profile-avatar-edit-wrap .cw-profile-edit-pencil {
+  position: absolute !important;
+  top: -6px !important;
+  right: -8px !important;
+  z-index: 12 !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  font-size: 15px !important;
+  transform: none;
+}
+
+.cw-profile-avatar-edit-wrap .cw-profile-edit-pencil:hover {
+  transform: translateY(-1px) scale(1.04) !important;
+}
+
+.cw-profile-hero-actions {
+  margin-top: 8px !important;
+  min-height: 38px;
+  justify-content: center;
+}
+
+.cw-profile-hero-actions .cw-profile-keeper-gear {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+@media (max-width: 720px) {
+  .cw-profile-avatar-edit-wrap .cw-profile-edit-pencil {
+    top: -5px !important;
+    right: -7px !important;
+  }
+}

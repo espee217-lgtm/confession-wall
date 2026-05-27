@@ -1053,16 +1053,27 @@ export default function Settings() {
                     marginBottom: "16px",
                   }}
                 >
-                  <FramedAvatar
-                    src={preview || user?.profilePicture}
-                    username={username || user?.username}
-                    frameId={equipped.frame}
-                    effectId={equipped.visualEffect}
-                    size={92}
-                    placeholder={(username || user?.username || "U")
-                      ?.charAt(0)
-                      ?.toUpperCase()}
-                  />
+                  <div className="cw-profile-avatar-edit-wrap">
+                    <FramedAvatar
+                      src={preview || user?.profilePicture}
+                      username={username || user?.username}
+                      frameId={equipped.frame}
+                      effectId={equipped.visualEffect}
+                      size={92}
+                      placeholder={(username || user?.username || "U")
+                        ?.charAt(0)
+                        ?.toUpperCase()}
+                    />
+                    <button
+                      type="button"
+                      className="cw-profile-edit-pencil"
+                      onClick={() => setSettingsModalTab("edit")}
+                      aria-label="Edit profile"
+                      title="Edit profile"
+                    >
+                      ✎
+                    </button>
+                  </div>
 
                   <h3
                     style={{
@@ -1086,15 +1097,6 @@ export default function Settings() {
                   </div>
 
                   <div className="cw-profile-hero-actions">
-                    <button
-                      type="button"
-                      className="cw-profile-edit-pencil"
-                      onClick={() => setSettingsModalTab("edit")}
-                      aria-label="Edit profile"
-                      title="Edit profile"
-                    >
-                      ✎
-                    </button>
                     <button
                       type="button"
                       className="cw-profile-keeper-gear"
