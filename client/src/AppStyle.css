@@ -10444,3 +10444,34 @@ button.confession-image-scroller__item {
     border-radius: 0 !important;
   }
 }
+
+/* Settings cleanup: hide the Theme/Profile accordion headers so their cards stand independently. */
+.cw-settings-theme-section > button,
+.cw-settings-profile-section > button,
+.cw-settings-theme-section > hr,
+.cw-settings-profile-section > hr {
+  display: none !important;
+}
+
+.cw-settings-theme-section,
+.cw-settings-profile-section {
+  margin-top: 0 !important;
+}
+
+.cw-settings-theme-section > div {
+  margin-top: 0 !important;
+}
+
+.cw-settings-profile-section form {
+  margin-top: 0 !important;
+}
+
+@media (min-width: 981px) {
+  .cw-settings-theme-section {
+    margin-bottom: 58px !important;
+  }
+
+  .cw-settings-profile-section {
+    margin-top: 8px !important;
+  }
+}
