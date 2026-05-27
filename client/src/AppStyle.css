@@ -10396,3 +10396,51 @@ button.confession-image-scroller__item {
     top: 304px !important;
   }
 }
+
+/* Settings profile hub: remove the large outer theme/profile wrappers while keeping inner cards intact. */
+.cw-settings-theme-section,
+.cw-settings-profile-section {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.cw-settings-theme-section {
+  width: min(560px, 100%) !important;
+  margin: 0 auto 34px !important;
+  padding: 0 0 6px !important;
+}
+
+.cw-settings-profile-section {
+  padding: 0 clamp(20px, 3vw, 46px) 10px !important;
+  margin-bottom: 26px !important;
+  overflow: visible !important;
+}
+
+.cw-settings-theme-section > hr,
+.cw-settings-profile-section > hr {
+  opacity: 0.42 !important;
+}
+
+@media (min-width: 981px) {
+  .cw-settings-profile-section {
+    padding-left: clamp(18px, 2.7vw, 42px) !important;
+    padding-right: clamp(18px, 2.7vw, 42px) !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 26px !important;
+  }
+
+  .settings-cosmetic-hub.cw-settings-profile-title-branch {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .cw-settings-theme-section,
+  .cw-settings-profile-section {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-radius: 0 !important;
+  }
+}
