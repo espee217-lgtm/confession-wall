@@ -459,6 +459,7 @@ export default function Settings() {
   const [titleLoading, setTitleLoading] = useState(false);
   const [titleError, setTitleError] = useState("");
   const [inventoryOpenSignal, setInventoryOpenSignal] = useState(0);
+  const [settingsModalTab, setSettingsModalTab] = useState(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -502,6 +503,7 @@ export default function Settings() {
   }, [token]);
 
   const scrollToCosmeticInventory = useCallback((type) => {
+    setSettingsModalTab("keeper");
     setInventoryOpenSignal((value) => value + 1);
 
     window.setTimeout(() => {
@@ -513,7 +515,7 @@ export default function Settings() {
 
       element.scrollIntoView({ behavior: "smooth", block: "start" });
       element.focus?.({ preventScroll: true });
-    }, 80);
+    }, 160);
   }, []);
 
   useEffect(() => {
@@ -1036,9 +1038,6 @@ export default function Settings() {
           </Section>
 
           <Section title="profile" defaultOpen={true} palette={palette} className="cw-settings-profile-section">
-            <Msg {...profileMsg} palette={palette} />
-
-            <form onSubmit={handleProfileSubmit}>
               <div className="settings-cosmetic-hub cw-settings-profile-title-branch">
                 <div
                   className="cw-settings-profile-hero cosmetic-hub-node cosmetic-hub-node--center"
@@ -1086,25 +1085,26 @@ export default function Settings() {
                     <DisplayTitlePill titleId={equipped.title} size="big" />
                   </div>
 
-                  <label
-                    style={{
-                      color: palette.accent,
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      border: `1px solid ${palette.border}`,
-                      borderRadius: "20px",
-                      padding: "6px 16px",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    change photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImage}
-                      style={{ display: "none" }}
-                    />
-                  </label>
+                  <div className="cw-profile-hero-actions">
+                    <button
+                      type="button"
+                      className="cw-profile-edit-pencil"
+                      onClick={() => setSettingsModalTab("edit")}
+                      aria-label="Edit profile"
+                      title="Edit profile"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      type="button"
+                      className="cw-profile-keeper-gear"
+                      onClick={() => setSettingsModalTab("keeper")}
+                      aria-label="Open keeper settings"
+                      title="Keeper settings"
+                    >
+                      ⚙
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -1190,76 +1190,122 @@ export default function Settings() {
                 </CosmeticHubBox>
               </div>
 
-              <div className="cw-profile-control-card">
-                <div className="cw-profile-control-head">
-                  <span>Account Grove</span>
-                  <small>profile controls</small>
-                </div>
-
-                <p
-                  style={{
-                    textAlign: "center",
-                    fontSize: "12px",
-                    color: palette.muted,
-                    marginBottom: "14px",
-                    letterSpacing: "0.06em",
-                  }}
-                >
-                  {postCount === null ? "..." : postCount} confession
-                  {postCount !== 1 ? "s" : ""} posted
-                </p>
-
-                <input
-                  type="text"
-                  placeholder="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  style={inputStyle}
-                />
-
-                <div className="cw-profile-action-grid">
-                  <button type="submit" style={btnGreen} disabled={profileLoading}>
-                    {profileLoading ? "saving..." : "save profile"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/user/${user._id}`)}
-                    style={{
-                      ...btnGreen,
-                      marginTop: 0,
-                      background: "rgba(120, 180, 90, 0.18)",
-                      border: `1px solid ${palette.border}`,
-                      color: palette.text,
-                    }}
-                  >
-                    view public profile
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/pressed-leaves")}
-                    style={{
-                      ...btnGreen,
-                      marginTop: 0,
-                      background: "rgba(214, 186, 120, 0.14)",
-                      border: `1px solid ${palette.border}`,
-                      color: palette.text,
-                    }}
-                  >
-                    view pressed leaves
-                  </button>
-                </div>
-              </div>
-            </form>
           </Section>
 
-          <div className="cw-settings-account-grove-card">
-            <div className="cw-settings-account-grove-head">
-              <span>Keeper Settings</span>
-              <small>visibility, inventory, bio, security, contact, and account safety</small>
-            </div>
+          {settingsModalTab && (
+            <div
+              className="cw-settings-modal-backdrop"
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget) setSettingsModalTab(null);
+              }}
+            >
+              <div className="cw-settings-modal-panel" onMouseDown={(e) => e.stopPropagation()}>
+                <div className="cw-settings-modal-head">
+                  <div>
+                    <span>{settingsModalTab === "edit" ? "Edit Profile" : "Keeper Settings"}</span>
+                    <small>
+                      {settingsModalTab === "edit"
+                        ? "photo, username, public profile, visibility, and bio"
+                        : "inventory, security, contact, and account safety"}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="cw-settings-modal-close"
+                    onClick={() => setSettingsModalTab(null)}
+                    aria-label="Close settings popup"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="cw-settings-modal-tabs" role="tablist" aria-label="Settings popup tabs">
+                  <button
+                    type="button"
+                    className={settingsModalTab === "edit" ? "active" : ""}
+                    onClick={() => setSettingsModalTab("edit")}
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    type="button"
+                    className={settingsModalTab === "keeper" ? "active" : ""}
+                    onClick={() => setSettingsModalTab("keeper")}
+                  >
+                    Keeper Settings
+                  </button>
+                </div>
+
+                {settingsModalTab === "edit" ? (
+                  <div className="cw-settings-modal-body">
+                    <Msg {...profileMsg} palette={palette} />
+
+                    <form onSubmit={handleProfileSubmit}>
+                      <div className="cw-settings-modal-avatar-preview">
+                        <FramedAvatar
+                          src={preview || user?.profilePicture}
+                          username={username || user?.username}
+                          frameId={equipped.frame}
+                          effectId={equipped.visualEffect}
+                          size={96}
+                          placeholder={(username || user?.username || "U")
+                            ?.charAt(0)
+                            ?.toUpperCase()}
+                        />
+                        <label className="cw-settings-photo-upload">
+                          upload new photo / change photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImage}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        style={inputStyle}
+                      />
+
+                      <button type="submit" style={btnGreen} disabled={profileLoading}>
+                        {profileLoading ? "saving..." : "save profile"}
+                      </button>
+                    </form>
+
+                    <div className="cw-profile-action-grid cw-settings-modal-link-grid">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/user/${user._id}`)}
+                        style={{
+                          ...btnGreen,
+                          marginTop: 0,
+                          background: "rgba(120, 180, 90, 0.18)",
+                          border: `1px solid ${palette.border}`,
+                          color: palette.text,
+                        }}
+                      >
+                        view public profile
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate("/pressed-leaves")}
+                        style={{
+                          ...btnGreen,
+                          marginTop: 0,
+                          background: "rgba(214, 186, 120, 0.14)",
+                          border: `1px solid ${palette.border}`,
+                          color: palette.text,
+                        }}
+                      >
+                        view pressed leaves
+                      </button>
+                    </div>
 
           <Section title="profile visibility" palette={palette} className="cw-account-grove-section">
             <div
@@ -1314,6 +1360,39 @@ export default function Settings() {
             </div>
           </Section>
 
+          <Section title="bio" palette={palette} className="cw-account-grove-section">
+            <Msg {...bioMsg} palette={palette} />
+
+            <form onSubmit={handleBioSubmit}>
+              <textarea
+                placeholder="write a short bio..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                maxLength={200}
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical", minHeight: "80px" }}
+              />
+
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: bio.length > 180 ? "#ff6666" : palette.muted,
+                  textAlign: "right",
+                  margin: "-8px 0 12px",
+                }}
+              >
+                {bio.length}/200
+              </p>
+
+              <button type="submit" style={btnGreen} disabled={bioLoading}>
+                {bioLoading ? "saving..." : "save bio"}
+              </button>
+            </form>
+          </Section>
+
+                  </div>
+                ) : (
+                  <div className="cw-settings-modal-body">
           <Section
             title="cosmetic inventory"
             palette={palette}
@@ -1413,36 +1492,6 @@ export default function Settings() {
                 })}
               </>
             )}
-          </Section>
-
-          <Section title="bio" palette={palette} className="cw-account-grove-section">
-            <Msg {...bioMsg} palette={palette} />
-
-            <form onSubmit={handleBioSubmit}>
-              <textarea
-                placeholder="write a short bio..."
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                maxLength={200}
-                rows={3}
-                style={{ ...inputStyle, resize: "vertical", minHeight: "80px" }}
-              />
-
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: bio.length > 180 ? "#ff6666" : palette.muted,
-                  textAlign: "right",
-                  margin: "-8px 0 12px",
-                }}
-              >
-                {bio.length}/200
-              </p>
-
-              <button type="submit" style={btnGreen} disabled={bioLoading}>
-                {bioLoading ? "saving..." : "save bio"}
-              </button>
-            </form>
           </Section>
 
           <Section title="change password" palette={palette} className="cw-account-grove-section">
@@ -1684,7 +1733,11 @@ export default function Settings() {
               </div>
             )}
           </Section>
-          </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <MobileBottomNav />
