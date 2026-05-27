@@ -1099,6 +1099,17 @@ export default function Settings() {
                   <div className="cw-profile-hero-actions">
                     <button
                       type="button"
+                      className="cw-profile-friends-button"
+                      onClick={() => navigate("/friends")}
+                      aria-label="Open friends"
+                      title="Friends"
+                    >
+                      <span aria-hidden="true">👥</span>
+                      Friends
+                    </button>
+
+                    <button
+                      type="button"
                       className="cw-profile-keeper-gear"
                       onClick={() => setSettingsModalTab("keeper")}
                       aria-label="Open keeper settings"

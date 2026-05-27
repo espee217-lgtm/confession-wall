@@ -37,6 +37,7 @@ import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
 import SearchPage from "./pages/SearchPage";
 import ActivityPage from "./pages/ActivityPage";
+import FriendsPage from "./pages/FriendsPage";
 import TrendingPage from "./pages/TrendingPage";
 import * as ShopModule from "./pages/Shop";
 import TitleAchievements from "./pages/TitleAchievements";
@@ -133,6 +134,7 @@ const NOINDEX_PATHS = [
   "/reset-password",
   "/settings",
   "/activity",
+  "/friends",
   "/pressed-leaves",
   "/choose",
   "/reena",
@@ -549,6 +551,22 @@ function NotificationBell() {
       };
     }
 
+    if (notification?.type === "friend_request") {
+      return {
+        icon: "👥",
+        label: "Friend request",
+        hint: "Open friends",
+      };
+    }
+
+    if (notification?.type === "friend_accept") {
+      return {
+        icon: "🌿",
+        label: "Friend accepted",
+        hint: "Open friends",
+      };
+    }
+
     return {
       icon: "🔔",
       label: "Notification",
@@ -845,6 +863,33 @@ function NotificationBell() {
   );
 }
 
+function FriendsMobileIcon() {
+  const navigate = useNavigate();
+
+  return (
+    <button
+      type="button"
+      className="nav-friends-mobile-btn"
+      onClick={() => navigate("/friends")}
+      title="Friends"
+      aria-label="Open friends"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          d="M8.8 11.1a3.35 3.35 0 1 1 0-6.7 3.35 3.35 0 0 1 0 6.7Zm7.1-.6a2.75 2.75 0 1 1 0-5.5 2.75 2.75 0 0 1 0 5.5ZM3.4 19.2c0-3.15 2.42-5.45 5.4-5.45s5.4 2.3 5.4 5.45c0 .5-.4.9-.9.9h-9c-.5 0-.9-.4-.9-.9Zm10.85.9c.22-.26.35-.6.35-.98 0-1.92-.68-3.56-1.82-4.74.82-.48 1.8-.75 2.86-.75 2.78 0 4.96 2.02 4.96 4.78 0 .94-.76 1.69-1.69 1.69h-4.66Z"
+          fill="currentColor"
+        />
+      </svg>
+    </button>
+  );
+}
+
 function Navbar() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -1039,6 +1084,7 @@ function Navbar() {
 
             {user ? (
               <>
+                <FriendsMobileIcon />
                 <div
                   onClick={() => navigate("/settings")}
                   className="nav-profile-wrap"
@@ -1225,6 +1271,7 @@ function AppContent() {
         <Route path="/moods/:moodSlug" element={<TrendingPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/friends" element={<FriendsPage />} />
         <Route path="/shop" element={<ShopRoute />} />
         <Route path="/titles" element={<TitleAchievements />} />
         <Route path="/buy-seeds" element={<BuySeeds />} />

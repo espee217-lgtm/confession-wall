@@ -144,6 +144,14 @@ export default function ActivityPage() {
       return { icon: "💧", label: "Reaction", hint: "Open" };
     }
 
+    if (notification?.type === "friend_request") {
+      return { icon: "👥", label: "Friend request", hint: "Open friends" };
+    }
+
+    if (notification?.type === "friend_accept") {
+      return { icon: "🌿", label: "Friend accepted", hint: "Open friends" };
+    }
+
     return { icon: "🔔", label: "Notification", hint: "Open" };
   };
 

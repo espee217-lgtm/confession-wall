@@ -11146,3 +11146,58 @@ button.confession-image-scroller__item {
     font-size: 9px;
   }
 }
+
+/* Phase 1 Friends: mobile-only top navbar launcher */
+.nav-friends-mobile-btn {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .navbar .nav-friends-mobile-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 255, 190, 0.36);
+    background: radial-gradient(circle at top, rgba(215, 255, 166, 0.32), rgba(10, 42, 18, 0.92));
+    color: #f1ffe6;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 0 16px rgba(120, 255, 180, 0.22);
+    flex: 0 0 auto;
+  }
+
+  .navbar .nav-friends-mobile-btn:active {
+    transform: scale(0.96);
+  }
+}
+
+.cw-profile-friends-button {
+  min-width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(190, 255, 190, 0.32);
+  background: radial-gradient(circle at top, rgba(215, 255, 166, 0.28), rgba(10, 42, 18, 0.86));
+  color: rgba(244, 255, 235, 0.95);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 13px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 16px rgba(120, 255, 180, 0.14);
+}
+
+.cw-profile-friends-button:hover {
+  border-color: rgba(220, 255, 180, 0.5);
+  transform: translateY(-1px);
+}

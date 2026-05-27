@@ -25,6 +25,8 @@ const notificationSchema = new mongoose.Schema(
         "weekly_event_effect_expired",
         "weekly_event_tie_break",
         "title_unlocked",
+        "friend_request",
+        "friend_accept",
       ],
       required: true,
     },

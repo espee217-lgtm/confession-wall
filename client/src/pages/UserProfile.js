@@ -2,6 +2,7 @@ import { AnimatedBadge } from "../components/CosmeticFx";
 import DisplayTitlePill from "../components/DisplayTitlePill";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "../components/FramedAvatar";
 import {
   getCosmeticMeta,
@@ -39,10 +40,13 @@ function CosmeticChip({ item, fallback }) {
 
 export default function UserProfile() {
   const { id } = useParams();
+  const { user, token } = useAuth();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [revealedSensitiveByPost, setRevealedSensitiveByPost] = useState({});
+  const [friendship, setFriendship] = useState({ status: "none", direction: "none" });
+  const [friendBusy, setFriendBusy] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -84,6 +88,114 @@ export default function UserProfile() {
   useEffect(() => {
     setRevealedSensitiveByPost({});
   }, [id]);
+  useEffect(() => {
+    let alive = true;
+
+    const fetchFriendshipStatus = async () => {
+      if (!token || !user?._id || !id || user._id === id) {
+        setFriendship({ status: user?._id === id ? "self" : "none", direction: "none" });
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/friends/status/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        if (alive) setFriendship(data || { status: "none", direction: "none" });
+      } catch (err) {
+        console.error("Failed to load friendship status", err);
+      }
+    };
+
+    fetchFriendshipStatus();
+
+    return () => {
+      alive = false;
+    };
+  }, [id, token, user?._id]);
+
+  const refreshFriendshipStatus = async () => {
+    if (!token || !user?._id || !id || user._id === id) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/friends/status/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setFriendship(data || { status: "none", direction: "none" });
+    } catch (err) {
+      console.error("Failed to refresh friendship status", err);
+    }
+  };
+
+  const runFriendAction = async (path, method, successMessage) => {
+    if (!token) {
+      window.cwToast?.("Please log in to use friends.", "error");
+      return;
+    }
+
+    try {
+      setFriendBusy(true);
+      const res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Friend action failed.");
+
+      await refreshFriendshipStatus();
+      window.cwToast?.(successMessage, "success");
+    } catch (err) {
+      console.error("Friend action failed", err);
+      window.cwToast?.(err.message || "Could not update friend request.", "error");
+    } finally {
+      setFriendBusy(false);
+    }
+  };
+
+  const handleFriendAction = () => {
+    if (!profile?._id) return;
+
+    if (!token) {
+      window.cwToast?.("Please log in to send friend requests.", "error");
+      return;
+    }
+
+    if (friendship.status === "pending" && friendship.direction === "incoming") {
+      runFriendAction(`/api/friends/accept/${friendship.friendshipId}`, "POST", "Friend request accepted.");
+      return;
+    }
+
+    if (friendship.status === "accepted") {
+      runFriendAction(`/api/friends/${friendship.friendshipId}`, "DELETE", "Friend removed.");
+      return;
+    }
+
+    if (friendship.status === "pending" && friendship.direction === "outgoing") {
+      runFriendAction(`/api/friends/${friendship.friendshipId}`, "DELETE", "Friend request cancelled.");
+      return;
+    }
+
+    runFriendAction(`/api/friends/request/${profile._id}`, "POST", "Friend request sent.");
+  };
+
+  const getFriendButtonLabel = () => {
+    if (friendBusy) return "Working...";
+    if (!token) return "Login to Add Friend";
+    if (friendship.status === "pending" && friendship.direction === "incoming") return "Accept Request";
+    if (friendship.status === "pending") return "Cancel Request";
+    if (friendship.status === "accepted") return "Remove Friend";
+    return "Add Friend";
+  };
+
 
   if (loading) {
     return (
@@ -187,6 +299,17 @@ export default function UserProfile() {
     🌱 {profile.seeds} Seeds
   </div>
 )}
+            {user?._id !== profile._id && (
+              <button
+                type="button"
+                onClick={handleFriendAction}
+                disabled={friendBusy}
+                style={friendButtonStyle}
+              >
+                <span aria-hidden="true">👥</span>
+                {getFriendButtonLabel()}
+              </button>
+            )}
           </div>
         </section>
 
@@ -573,6 +696,26 @@ const joinedStyle = {
   fontSize: "0.82rem",
   margin: 0,
   letterSpacing: "0.04em",
+};
+
+const friendButtonStyle = {
+  margin: "14px auto 0",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  padding: "9px 16px",
+  borderRadius: "999px",
+  border: "1px solid rgba(190,255,180,0.32)",
+  background: "linear-gradient(135deg, rgba(76,148,48,0.66), rgba(11,52,20,0.84))",
+  color: "rgba(244,255,235,0.96)",
+  fontFamily: "'Cinzel', Georgia, serif",
+  fontSize: "12px",
+  fontWeight: 800,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  cursor: "pointer",
+  boxShadow: "0 0 18px rgba(120,255,150,0.16)",
 };
 
 const equippedPanelStyle = {

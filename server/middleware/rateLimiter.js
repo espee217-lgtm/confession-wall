@@ -84,6 +84,14 @@ const commentLimiter = makeLimiter({
   message: "Too many comments. Please wait a bit.",
 });
 
+// Friend request limiter.
+const friendRequestLimiter = makeLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  prefix: "friend-request",
+  message: "Too many friend requests. Please wait before sending more.",
+});
+
 // Fallback report limiter.
 // If your route already has its own limiter, this keeps compatibility.
 const reportLimiter = makeLimiter({
@@ -132,6 +140,8 @@ module.exports = {
   resetOtpLimiter,
 
   reactionLimiter,
+
+  friendRequestLimiter,
 
   postLimiter,
   confessionLimiter,

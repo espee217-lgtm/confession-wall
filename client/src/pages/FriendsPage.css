@@ -1,0 +1,351 @@
+.cw-friends-page {
+  min-height: 100vh;
+  padding: 2rem 1rem 5.5rem;
+  color: rgba(238, 255, 229, 0.94);
+  font-family: Georgia, serif;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(110, 255, 135, 0.15), transparent 30%),
+    radial-gradient(circle at 86% 16%, rgba(240, 210, 105, 0.1), transparent 28%),
+    linear-gradient(180deg, #020703 0%, #061406 52%, #020503 100%);
+}
+
+.cw-friends-shell {
+  width: min(920px, 100%);
+  margin: 0 auto;
+}
+
+.cw-friends-hero,
+.cw-friends-auth-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(142, 230, 145, 0.22);
+  border-radius: 28px;
+  padding: 1.4rem;
+  background: linear-gradient(145deg, rgba(10, 38, 16, 0.86), rgba(3, 14, 6, 0.94));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(215, 255, 210, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.cw-friends-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cw-friends-hero::before,
+.cw-friends-auth-card::before {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(130, 255, 160, 0.14), transparent 35%),
+    radial-gradient(circle at 14% 82%, rgba(255, 230, 120, 0.08), transparent 30%);
+  pointer-events: none;
+}
+
+.cw-friends-hero > *,
+.cw-friends-auth-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cw-friends-kicker {
+  margin: 0 0 0.4rem;
+  color: rgba(166, 245, 164, 0.6);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.cw-friends-hero h1,
+.cw-friends-auth-card h1 {
+  margin: 0;
+  color: rgba(247, 255, 238, 0.98);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(1.9rem, 7vw, 3rem);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 22px rgba(120, 255, 145, 0.18);
+}
+
+.cw-friends-hero p,
+.cw-friends-auth-card p {
+  max-width: 620px;
+  margin: 0.55rem 0 0;
+  color: rgba(220, 255, 210, 0.72);
+  line-height: 1.55;
+}
+
+.cw-friends-hero-icon,
+.cw-friends-orb {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(200, 255, 170, 0.26);
+  background: radial-gradient(circle at 35% 18%, rgba(220, 255, 180, 0.28), rgba(8, 32, 12, 0.72));
+  box-shadow: 0 0 26px rgba(120, 255, 140, 0.16);
+  font-size: 2rem;
+}
+
+.cw-friends-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.cw-friends-tabs button,
+.cw-friends-main-btn,
+.cw-friend-action {
+  border: 1px solid rgba(150, 230, 145, 0.24);
+  background: rgba(8, 32, 14, 0.72);
+  color: rgba(232, 255, 224, 0.88);
+  border-radius: 999px;
+  padding: 0.72rem 0.8rem;
+  cursor: pointer;
+  font-family: "Cinzel", Georgia, serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.cw-friends-tabs button {
+  position: relative;
+  font-size: 0.76rem;
+}
+
+.cw-friends-tabs button span {
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ff3b3b;
+  color: white;
+  font-size: 0.68rem;
+}
+
+.cw-friends-tabs button.is-active,
+.cw-friends-tabs button:hover,
+.cw-friends-main-btn:hover,
+.cw-friend-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(210, 255, 165, 0.5);
+  background: rgba(92, 150, 55, 0.26);
+}
+
+.cw-friends-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cw-friend-card,
+.cw-friends-empty,
+.cw-friends-error,
+.cw-friends-loading,
+.cw-friends-find {
+  border: 1px solid rgba(142, 230, 145, 0.18);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(7, 28, 13, 0.86), rgba(3, 13, 6, 0.92));
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.cw-friend-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+}
+
+.cw-friend-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.78rem;
+  min-width: 0;
+}
+
+.cw-friend-copy {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.cw-friend-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(245, 255, 236, 0.96);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.cw-friend-name:hover {
+  text-decoration: underline;
+}
+
+.cw-friend-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.cw-friend-action {
+  padding: 0.62rem 0.85rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.cw-friend-action:disabled {
+  cursor: default;
+  opacity: 0.68;
+}
+
+.cw-friend-action--primary {
+  background: linear-gradient(135deg, rgba(76, 148, 48, 0.72), rgba(18, 78, 28, 0.78));
+}
+
+.cw-friend-action--ghost {
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 220, 190, 0.9);
+  border-color: rgba(255, 190, 130, 0.26);
+}
+
+.cw-friends-empty,
+.cw-friends-loading,
+.cw-friends-error {
+  padding: 1.1rem;
+  text-align: center;
+  color: rgba(220, 255, 210, 0.7);
+}
+
+.cw-friends-empty span {
+  display: block;
+  color: rgba(190, 255, 170, 0.38);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.cw-friends-empty strong {
+  display: block;
+  color: rgba(242, 255, 232, 0.92);
+  margin-bottom: 0.25rem;
+}
+
+.cw-friends-empty p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.cw-friends-error {
+  margin-bottom: 0.8rem;
+  color: #ffd1c4;
+  border-color: rgba(255, 140, 105, 0.35);
+  background: rgba(120, 20, 12, 0.2);
+}
+
+.cw-friends-section-title {
+  margin: 0.35rem 0 0.1rem;
+  color: rgba(238, 255, 228, 0.92);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.cw-friends-section-title--spaced {
+  margin-top: 1.2rem;
+}
+
+.cw-friends-find {
+  padding: 1rem;
+}
+
+.cw-friends-search-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: rgba(180, 245, 170, 0.7);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.cw-friends-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.85rem;
+  padding: 0.88rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(150, 230, 145, 0.26);
+  outline: none;
+  background: rgba(255, 255, 255, 0.065);
+  color: rgba(245, 255, 238, 0.95);
+  font-family: Georgia, serif;
+  font-size: 1rem;
+}
+
+.cw-friends-search:focus {
+  border-color: rgba(210, 255, 165, 0.55);
+  box-shadow: 0 0 0 3px rgba(110, 255, 135, 0.08);
+}
+
+.cw-friends-auth-card {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.cw-friends-main-btn {
+  margin-top: 1rem;
+  min-width: 140px;
+}
+
+@media (max-width: 640px) {
+  .cw-friends-page {
+    padding: 1rem 0.75rem 6.25rem;
+  }
+
+  .cw-friends-hero {
+    align-items: flex-start;
+    padding: 1.1rem;
+  }
+
+  .cw-friends-hero-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    font-size: 1.45rem;
+  }
+
+  .cw-friends-tabs {
+    gap: 0.38rem;
+  }
+
+  .cw-friends-tabs button {
+    padding: 0.62rem 0.35rem;
+    font-size: 0.63rem;
+    letter-spacing: 0.04em;
+  }
+
+  .cw-friend-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cw-friend-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .cw-friend-action {
+    flex: 1;
+  }
+}
