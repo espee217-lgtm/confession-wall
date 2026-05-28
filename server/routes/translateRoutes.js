@@ -332,13 +332,22 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const textFallbackCached = await TranslationCache.findOne({
+    let textFallbackCached = await TranslationCache.findOne({
       sourceTextHash,
       sourceLang,
       targetLang,
-    })
-      .sort({ provider: "libretranslate" })
-      .lean();
+      provider: "libretranslate",
+    }).lean();
+
+    if (!textFallbackCached) {
+      textFallbackCached = await TranslationCache.findOne({
+        sourceTextHash,
+        sourceLang,
+        targetLang,
+      })
+        .sort({ lastUsedAt: -1, updatedAt: -1 })
+        .lean();
+    }
 
     if (textFallbackCached?.translatedText) {
       const provider = textFallbackCached.provider || "libretranslate";
