@@ -574,6 +574,8 @@ export default function UserProfile() {
                     <TranslatableText
                       text={p.message}
                       context="confession"
+                      targetType="confession"
+                      targetId={p._id || p.id}
                       compact
                       textStyle={{
                         ...postTextStyle,

@@ -11,9 +11,24 @@ export async function requestTranslation({
   targetLang,
   sourceLang = "auto",
   context = "confession",
+  targetType,
+  targetId,
+  commentId,
+  replyId,
 }) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), TRANSLATION_TIMEOUT_MS);
+  const body = {
+    text,
+    targetLang,
+    sourceLang,
+    context,
+  };
+
+  if (targetType) body.targetType = targetType;
+  if (targetId) body.targetId = targetId;
+  if (commentId) body.commentId = commentId;
+  if (replyId) body.replyId = replyId;
 
   let response;
 
@@ -22,12 +37,7 @@ export async function requestTranslation({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: controller.signal,
-      body: JSON.stringify({
-        text,
-        targetLang,
-        sourceLang,
-        context,
-      }),
+      body: JSON.stringify(body),
     });
   } catch (err) {
     if (err?.name === "AbortError") {

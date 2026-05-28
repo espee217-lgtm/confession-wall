@@ -1758,6 +1758,8 @@ const activeCommentPinPosition = isPhoneLayout
               <TranslatableText
                 text={confession.message}
                 context="confession"
+                targetType="confession"
+                targetId={confession._id || id}
                 textStyle={{
                   fontSize: isPhoneLayout ? "15px" : "16px",
                   color: theme.text,
@@ -2171,6 +2173,9 @@ const activeCommentPinPosition = isPhoneLayout
                       <TranslatableText
                         text={c.text}
                         context="comment"
+                        targetType="comment"
+                        targetId={confession._id || id}
+                        commentId={c._id}
                         compact
                         textStyle={{
                           fontSize: isPhoneLayout ? "14px" : "15px",
@@ -2257,6 +2262,10 @@ const activeCommentPinPosition = isPhoneLayout
                             <TranslatableText
                               text={reply.text}
                               context="reply"
+                              targetType="reply"
+                              targetId={confession._id || id}
+                              commentId={selectedComment._id}
+                              replyId={reply._id}
                               compact
                               textStyle={{ margin: 0 }}
                             />
@@ -2418,6 +2427,9 @@ const activeCommentPinPosition = isPhoneLayout
                           <TranslatableText
                             text={c.text}
                             context="comment"
+                            targetType="comment"
+                            targetId={confession._id || id}
+                            commentId={c._id}
                             compact
                             textStyle={{
                               fontSize: isPhoneLayout ? "13px" : "14px",
@@ -2456,6 +2468,10 @@ const activeCommentPinPosition = isPhoneLayout
                                 <TranslatableText
                                   text={reply.text}
                                   context="reply"
+                                  targetType="reply"
+                                  targetId={confession._id || id}
+                                  commentId={c._id}
+                                  replyId={reply._id}
                                   compact
                                   textStyle={{ margin: 0 }}
                                 />

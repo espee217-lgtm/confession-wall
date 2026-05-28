@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const express = require("express");
+const TranslationCache = require("../models/TranslationCache");
 
 const router = express.Router();
 
@@ -31,10 +32,45 @@ const normalizeText = (value) =>
     .trim()
     .replace(/\s+/g, " ");
 
-const getCacheKey = ({ text, targetLang, sourceLang }) =>
+const normalizeCacheId = (value) => String(value || "").trim();
+
+const normalizeTargetType = (targetType, context) => {
+  const value = String(targetType || context || "").trim().toLowerCase();
+
+  if (value === "post") return "confession";
+  if (["confession", "comment", "reply"].includes(value)) return value;
+
+  return "unknown";
+};
+
+const getSourceTextHash = (normalizedText) =>
   crypto
     .createHash("sha256")
-    .update(`${targetLang}:${sourceLang}:${normalizeText(text)}`)
+    .update(normalizedText)
+    .digest("hex");
+
+const getCacheKey = ({
+  targetType,
+  targetId,
+  commentId,
+  replyId,
+  sourceLang,
+  targetLang,
+  sourceTextHash,
+}) =>
+  crypto
+    .createHash("sha256")
+    .update(
+      [
+        targetType,
+        targetId || "",
+        commentId || "",
+        replyId || "",
+        sourceLang,
+        targetLang,
+        sourceTextHash,
+      ].join(":")
+    )
     .digest("hex");
 
 const getClientIp = (req) =>
@@ -78,6 +114,32 @@ const sameLanguage = (detectedSourceLang, targetLang) => {
   const target = normalizeLang(targetLang).split("-")[0];
 
   return Boolean(source && target && source === target);
+};
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isRetryableTranslationError = (err) => {
+  if (["TRANSLATION_TIMEOUT", "TRANSLATION_UNAVAILABLE"].includes(err?.code)) {
+    return true;
+  }
+
+  return [502, 503, 504].includes(Number(err?.providerStatus));
+};
+
+const withTranslationRetry = async (operation) => {
+  const retryDelays = [1200, 2500];
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (err) {
+      if (attempt >= retryDelays.length || !isRetryableTranslationError(err)) {
+        throw err;
+      }
+
+      await wait(retryDelays[attempt]);
+    }
+  }
 };
 
 async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
@@ -144,6 +206,7 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
       const error = new Error(data?.error || data?.message || "Translation unavailable");
       error.status = 503;
       error.code = "TRANSLATION_PROVIDER_ERROR";
+      error.providerStatus = response.status;
       throw error;
     }
 
@@ -154,14 +217,14 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
   let data;
 
   try {
-    data = await requestTranslation(buildPayload(effectiveSourceLang));
+    data = await withTranslationRetry(() => requestTranslation(buildPayload(effectiveSourceLang)));
   } catch (err) {
-    if (effectiveSourceLang !== "auto" || err.code === "TRANSLATION_TIMEOUT") {
+    if (effectiveSourceLang !== "auto" || Number(err?.providerStatus) !== 400) {
       throw err;
     }
 
     effectiveSourceLang = "en";
-    data = await requestTranslation(buildPayload(effectiveSourceLang));
+    data = await withTranslationRetry(() => requestTranslation(buildPayload(effectiveSourceLang)));
   }
 
   return {
@@ -181,6 +244,10 @@ router.post("/", async (req, res) => {
   const targetLang = normalizeLang(req.body?.targetLang);
   const sourceLang = normalizeLang(req.body?.sourceLang || "auto") || "auto";
   const context = String(req.body?.context || "confession").trim();
+  const targetType = normalizeTargetType(req.body?.targetType, context);
+  const targetId = normalizeCacheId(req.body?.targetId);
+  const commentId = normalizeCacheId(req.body?.commentId);
+  const replyId = normalizeCacheId(req.body?.replyId);
 
   if (!text) {
     return res.status(400).json({ message: "Text is required" });
@@ -196,6 +263,9 @@ router.post("/", async (req, res) => {
     });
   }
 
+  const normalizedSourceText = normalizeText(text);
+  const sourceTextHash = getSourceTextHash(normalizedSourceText);
+
   if (sourceLang !== "auto" && sameLanguage(sourceLang, targetLang)) {
     return res.json({
       translatedText: text,
@@ -203,10 +273,19 @@ router.post("/", async (req, res) => {
       detectedSourceLang: sourceLang,
       provider: "local",
       cached: false,
+      cacheSource: "local",
     });
   }
 
-  const cacheKey = getCacheKey({ text, targetLang, sourceLang });
+  const cacheKey = getCacheKey({
+    targetType,
+    targetId,
+    commentId,
+    replyId,
+    sourceLang,
+    targetLang,
+    sourceTextHash,
+  });
   const cached = translationCache.get(cacheKey);
 
   if (cached && Date.now() - cached.timestamp <= CACHE_TTL_MS) {
@@ -216,7 +295,42 @@ router.post("/", async (req, res) => {
       detectedSourceLang: cached.detectedSourceLang,
       provider: cached.provider,
       cached: true,
+      cacheSource: "memory",
     });
+  }
+
+  try {
+    const mongoCached = await TranslationCache.findOne({ cacheKey }).lean();
+
+    if (mongoCached?.translatedText) {
+      const memoryEntry = {
+        translatedText: mongoCached.translatedText,
+        detectedSourceLang: mongoCached.sourceLang || sourceLang,
+        provider: mongoCached.provider || "libretranslate",
+        timestamp: Date.now(),
+        targetType,
+      };
+
+      translationCache.set(cacheKey, memoryEntry);
+
+      TranslationCache.updateOne(
+        { cacheKey },
+        { $set: { lastUsedAt: new Date() } }
+      ).catch((err) => {
+        console.warn("Translation cache lastUsedAt update failed:", err.message);
+      });
+
+      return res.json({
+        translatedText: mongoCached.translatedText,
+        targetLang,
+        detectedSourceLang: mongoCached.sourceLang || sourceLang,
+        provider: mongoCached.provider || "libretranslate",
+        cached: true,
+        cacheSource: "mongo",
+      });
+    }
+  } catch (err) {
+    console.warn("Translation cache lookup failed:", err.message);
   }
 
   try {
@@ -238,8 +352,33 @@ router.post("/", async (req, res) => {
       detectedSourceLang: result.detectedSourceLang,
       provider,
       timestamp: Date.now(),
-      context,
+      targetType,
     });
+
+    try {
+      await TranslationCache.findOneAndUpdate(
+        { cacheKey },
+        {
+          $set: {
+            cacheKey,
+            targetType,
+            targetId,
+            commentId,
+            replyId,
+            sourceLang,
+            targetLang,
+            sourceTextHash,
+            normalizedSourceText,
+            translatedText,
+            provider,
+            lastUsedAt: new Date(),
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    } catch (err) {
+      console.warn("Translation cache save failed:", err.message);
+    }
 
     return res.json({
       translatedText,
@@ -247,6 +386,7 @@ router.post("/", async (req, res) => {
       detectedSourceLang: result.detectedSourceLang,
       provider,
       cached: false,
+      cacheSource: "fresh",
     });
   } catch (err) {
     console.warn("Translation provider failed:", err.message);

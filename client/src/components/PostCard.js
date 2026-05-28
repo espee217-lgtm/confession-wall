@@ -377,6 +377,8 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         <TranslatableText
           text={localPost.message}
           context="confession"
+          targetType="confession"
+          targetId={localPost._id || localPost.id}
           compact
           textStyle={{
             fontSize: "14px",

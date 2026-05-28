@@ -118,6 +118,8 @@ function LeaderCard({ post, label, tone }) {
         <TranslatableText
           text={post.message}
           context="confession"
+          targetType="confession"
+          targetId={post._id || post.id}
           compact
           textStyle={{
             margin: "0 0 12px",

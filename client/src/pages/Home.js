@@ -599,6 +599,8 @@ function ConfessionCard({ conf, index, onClick }) {
       <TranslatableText
         text={conf.message}
         context="confession"
+        targetType="confession"
+        targetId={conf._id || conf.id}
         compact
         textStyle={{
           margin: 0,
@@ -744,6 +746,8 @@ function ScorchedCard({ conf, index, onClick }) {
       <TranslatableText
         text={conf.message}
         context="confession"
+        targetType="confession"
+        targetId={conf._id || conf.id}
         compact
         textStyle={{
           margin: 0,
@@ -1320,6 +1324,8 @@ function MobileHomePage({
         <TranslatableText
           text={conf.message}
           context="confession"
+          targetType="confession"
+          targetId={conf._id || conf.id}
           compact
           textClassName="mobile-home-card-message"
           className="mobile-home-card-translation"

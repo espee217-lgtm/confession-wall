@@ -13,6 +13,10 @@ export default function TranslatableText({
   textStyle,
   wrapperStyle,
   compact = false,
+  targetType,
+  targetId,
+  commentId,
+  replyId,
 }) {
   const target = useMemo(() => getPreferredTranslateTarget(), []);
   const [translatedText, setTranslatedText] = useState("");
@@ -62,6 +66,10 @@ export default function TranslatableText({
         targetLang: target.lang,
         sourceLang: "auto",
         context,
+        targetType,
+        targetId,
+        commentId,
+        replyId,
       });
 
       setTranslatedText(data.translatedText || cleanText);

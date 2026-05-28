@@ -256,6 +256,8 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
         <TranslatableText
           text={message}
           context="confession"
+          targetType="confession"
+          targetId={post._id || post.id}
           compact
           textClassName="trending-clean-message"
         />
@@ -450,6 +452,8 @@ function MobileTrendingCard({ post, rank, onOpen }) {
       <TranslatableText
         text={message}
         context="confession"
+        targetType="confession"
+        targetId={post._id || post.id}
         as="span"
         wrapperAs="span"
         compact
