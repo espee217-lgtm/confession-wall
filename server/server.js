@@ -28,6 +28,26 @@ const translateRoutes = require("./routes/translateRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
+app.get("/api/server-health", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    server: "confession-wall-backend",
+    route: "/api/server-health",
+    timestamp: new Date().toISOString()
+  });
+});
+
+console.log(" Server health route mounted at /api/server-health");
+
+app.get("/api/direct-translate-health", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    route: "/api/direct-translate-health",
+    provider: process.env.TRANSLATION_PROVIDER || "none",
+    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL)
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.set("trust proxy", 1);
@@ -93,15 +113,6 @@ app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {
   res.send("Confession Wall Server is running!");
-});
-
-app.get("/api/server-health", (req, res) => {
-  res.json({
-    ok: true,
-    server: "confession-wall-backend",
-    translateMounted: true,
-    commitHint: "translate-health-debug"
-  });
 });
 
 app.use((req, res) => {

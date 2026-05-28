@@ -4,11 +4,11 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/health", (req, res) => {
-  res.json({
+  res.status(200).json({
     ok: true,
-    route: "/api/translate",
+    route: "/api/translate/health",
     provider: process.env.TRANSLATION_PROVIDER || "none",
-    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL),
+    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL)
   });
 });
 
