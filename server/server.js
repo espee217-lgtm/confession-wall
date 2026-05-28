@@ -37,8 +37,6 @@ app.get("/debug-top", (req, res) => {
   });
 });
 
-console.log(" TOP DEBUG ROUTE ACTIVE: /debug-top");
-
 app.get("/api/server-health", (req, res) => {
   res.status(200).json({
     ok: true,
@@ -48,16 +46,7 @@ app.get("/api/server-health", (req, res) => {
   });
 });
 
-console.log(" Server health route mounted at /api/server-health");
-
-app.get("/api/direct-translate-health", (req, res) => {
-  res.status(200).json({
-    ok: true,
-    route: "/api/direct-translate-health",
-    provider: process.env.TRANSLATION_PROVIDER || "none",
-    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL)
-  });
-});
+console.log(" TOP DEBUG ROUTES ACTIVE");
 
 const PORT = process.env.PORT || 5000;
 
