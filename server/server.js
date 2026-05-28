@@ -31,58 +31,22 @@ const PORT = process.env.PORT || 5000;
 
 app.set("trust proxy", 1);
 
-const allowedOrigins = new Set(
-  [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "https://confession-wall-ooqkkrirq-espee217-lgtms-projects.vercel.app",
-    "https://confession-wall-325.pages.dev",
-    process.env.CLIENT_URL,
-    process.env.CORS_ORIGIN,
-  ].filter(Boolean)
-);
+const allowedOrigins = (process.env.CORS_ORIGIN || process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-const isAllowedVercelPreview = (origin) => {
-  try {
-    const url = new URL(origin);
+console.log("Allowed CORS origins:", allowedOrigins);
 
-    return (
-      url.protocol === "https:" &&
-      url.hostname.endsWith(".vercel.app") &&
-      url.hostname.startsWith("confession-wall")
-    );
-  } catch {
-    return false;
-  }
-};
-const isAllowedCloudflarePagesPreview = (origin) => {
-  try {
-    const url = new URL(origin);
-
-    return (
-      url.protocol === "https:" &&
-      url.hostname.endsWith(".pages.dev") &&
-      url.hostname.includes("confession-wall")
-    );
-  } catch {
-    return false;
-  }
-};
+const isAllowedOrigin = (origin) => !origin || allowedOrigins.includes(origin);
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (
-      allowedOrigins.has(origin) ||
-      isAllowedVercelPreview(origin) ||
-      isAllowedCloudflarePagesPreview(origin)
-    ) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 
+    console.warn("Blocked by CORS:", origin);
     return callback(new Error(`CORS blocked origin: ${origin}`));
   },
   credentials: true,
@@ -150,16 +114,11 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin(origin, callback) {
-      if (!origin) return callback(null, true);
-
-      if (
-        allowedOrigins.has(origin) ||
-        isAllowedVercelPreview(origin) ||
-        isAllowedCloudflarePagesPreview(origin)
-      ) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 
+      console.warn("Socket blocked by CORS:", origin);
       return callback(new Error(`Socket CORS blocked origin: ${origin}`));
     },
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
