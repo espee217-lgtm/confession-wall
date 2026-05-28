@@ -16,6 +16,7 @@ const MAX_TEXT_LENGTH = 3000;
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 60;
+const LIBRE_TRANSLATE_TIMEOUT_MS = 20000;
 
 const translationCache = new Map();
 const rateLimitBuckets = new Map();
@@ -113,17 +114,28 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
 
   const requestTranslation = async (payload) => {
     let response;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), LIBRE_TRANSLATE_TIMEOUT_MS);
 
     try {
       response = await fetch(translateUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
-    } catch {
-      const error = new Error("Translation unavailable");
+    } catch (err) {
+      const isTimeout = err?.name === "AbortError";
+      const error = new Error(
+        isTimeout
+          ? "Translation service is warming up. Please try again in a few seconds."
+          : "Translation unavailable"
+      );
       error.status = 503;
+      error.code = isTimeout ? "TRANSLATION_TIMEOUT" : "TRANSLATION_UNAVAILABLE";
       throw error;
+    } finally {
+      clearTimeout(timeout);
     }
 
     const data = await response.json().catch(() => ({}));
@@ -131,6 +143,7 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
     if (!response.ok) {
       const error = new Error(data?.error || data?.message || "Translation unavailable");
       error.status = 503;
+      error.code = "TRANSLATION_PROVIDER_ERROR";
       throw error;
     }
 
@@ -143,7 +156,7 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
   try {
     data = await requestTranslation(buildPayload(effectiveSourceLang));
   } catch (err) {
-    if (effectiveSourceLang !== "auto") {
+    if (effectiveSourceLang !== "auto" || err.code === "TRANSLATION_TIMEOUT") {
       throw err;
     }
 
@@ -237,11 +250,18 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.warn("Translation provider failed:", err.message);
+    const message =
+      err.message === "Translation service is not configured"
+        ? "Translation service is not configured"
+        : err.code === "TRANSLATION_TIMEOUT"
+        ? "Translation service is warming up. Please try again in a few seconds."
+        : err.code === "TRANSLATION_PROVIDER_ERROR"
+        ? err.message || "Translation unavailable"
+        : "Translation unavailable";
+
     return res.status(err.status || 502).json({
-      message:
-        err.message === "Translation service is not configured"
-          ? "Translation service is not configured"
-          : "Translation unavailable",
+      message,
+      code: err.code || "TRANSLATION_PROVIDER_ERROR",
     });
   }
 });

@@ -94,6 +94,15 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: "confession-wall-backend",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use("/api/confessions", confessionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);

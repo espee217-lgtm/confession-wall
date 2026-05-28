@@ -66,8 +66,8 @@ export default function TranslatableText({
 
       setTranslatedText(data.translatedText || cleanText);
       setIsTranslated(true);
-    } catch {
-      setError("Translation unavailable");
+    } catch (err) {
+      setError(err?.message || "Translation unavailable");
       setIsTranslated(false);
     } finally {
       setLoading(false);
