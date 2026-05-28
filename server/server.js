@@ -88,6 +88,7 @@ app.use("/api/titles", titleRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/chess", chessRoutes);
 app.use("/api/translate", translateRoutes);
+console.log(" Translate route mounted at /api/translate");
 app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {

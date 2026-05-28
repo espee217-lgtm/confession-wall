@@ -148,6 +148,15 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
   };
 }
 
+router.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    route: "/api/translate",
+    provider: process.env.TRANSLATION_PROVIDER || "none",
+    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL),
+  });
+});
+
 router.post("/", async (req, res) => {
   pruneExpiredEntries();
 
