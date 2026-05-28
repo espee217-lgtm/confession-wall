@@ -24,6 +24,7 @@ const shopRoutes = require("./routes/shopRoutes");
 const titleRoutes = require("./routes/titleRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const chessRoutes = require("./routes/chessRoutes");
+const translateRoutes = require("./routes/translateRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
@@ -86,6 +87,7 @@ app.use("/api/shop", shopRoutes);
 app.use("/api/titles", titleRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/chess", chessRoutes);
+app.use("/api/translate", translateRoutes);
 app.use("/api/special", specialRoutes);
 
 app.get("/", (req, res) => {

@@ -19,6 +19,7 @@ import {
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
 import { getConfessionImages } from "../utils/confessionImages";
+import TranslatableText from "../components/TranslatableText";
 
 const API_BASE =
   process.env.REACT_APP_API_BASE ||
@@ -570,17 +571,18 @@ export default function UserProfile() {
                   )}
 
                   <div style={{ position: "relative", marginBottom: "0.75rem" }}>
-                    <p
-                      style={{
+                    <TranslatableText
+                      text={p.message}
+                      context="confession"
+                      compact
+                      textStyle={{
                         ...postTextStyle,
                         margin: 0,
                         filter: hideSensitiveContent ? "blur(8px)" : "none",
                         userSelect: hideSensitiveContent ? "none" : "text",
                         transition: "filter 0.18s ease",
                       }}
-                    >
-                      {p.message}
-                    </p>
+                    />
                     {hideSensitiveContent && (
                       <div
                         style={{

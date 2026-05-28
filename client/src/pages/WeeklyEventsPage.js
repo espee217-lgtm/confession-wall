@@ -5,6 +5,7 @@ import ForestEventBanner from "../components/ForestEventBanner";
 import FramedAvatar from "../components/FramedAvatar";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { AnimatedBadge } from "../components/CosmeticFx";
+import TranslatableText from "../components/TranslatableText";
 import { getPostThemeStyle } from "../utils/cosmetics";
 import {
   getConfessionThemeId,
@@ -114,15 +115,16 @@ function LeaderCard({ post, label, tone }) {
           </div>
         </div>
 
-        <p
-          style={{
+        <TranslatableText
+          text={post.message}
+          context="confession"
+          compact
+          textStyle={{
             margin: "0 0 12px",
             color: "#efffe8",
             lineHeight: 1.65,
           }}
-        >
-          {post.message}
-        </p>
+        />
 
         <div
           style={{

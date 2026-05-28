@@ -4,6 +4,7 @@ import DailyQuestDropdown from "../components/DailyQuestDropdown";
 import MobileBottomNav from "../components/MobileBottomNav";
 import EmojiIcon from "../components/EmojiIcon";
 import SplitBouquetHero from "../components/SplitBouquetHero";
+import TranslatableText from "../components/TranslatableText";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import FramedAvatar from "../components/FramedAvatar";
@@ -595,8 +596,11 @@ function ConfessionCard({ conf, index, onClick }) {
         @{conf.userId?.username || "anon"}
       </p>
 
-      <p
-        style={{
+      <TranslatableText
+        text={conf.message}
+        context="confession"
+        compact
+        textStyle={{
           margin: 0,
           fontSize: "11.5px",
           color: "rgba(215,255,205,0.85)",
@@ -609,9 +613,7 @@ function ConfessionCard({ conf, index, onClick }) {
           overflow: "hidden",
           textOverflow: "ellipsis",
         }}
-      >
-        {conf.message}
-      </p>
+      />
     </div>
   );
 }
@@ -739,8 +741,11 @@ function ScorchedCard({ conf, index, onClick }) {
         @{conf.userId?.username || "anon"}
       </p>
 
-      <p
-        style={{
+      <TranslatableText
+        text={conf.message}
+        context="confession"
+        compact
+        textStyle={{
           margin: 0,
           fontSize: "11.5px",
           color: "rgba(255,210,190,0.85)",
@@ -753,9 +758,7 @@ function ScorchedCard({ conf, index, onClick }) {
           overflow: "hidden",
           textOverflow: "ellipsis",
         }}
-      >
-        {conf.message}
-      </p>
+      />
     </div>
   );
 }
@@ -1265,11 +1268,20 @@ function MobileHomePage({
     const postThemeClass = getCosmeticAnimationClass(postThemeId);
     const postThemeStyle = getPostThemeStyle(postThemeId, "budding");
     const moodStyle = getMoodChipStyle(conf.mood);
+    const openCard = () => navigate(`/confession/${conf._id}`);
+    const handleCardKeyDown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openCard();
+      }
+    };
 
     return (
-      <button
-        type="button"
-        onClick={() => navigate(`/confession/${conf._id}`)}
+      <article
+        role="button"
+        tabIndex={0}
+        onClick={openCard}
+        onKeyDown={handleCardKeyDown}
         className={["mobile-home-card", postThemeClass].filter(Boolean).join(" ")}
         style={postThemeStyle}
       >
@@ -1305,14 +1317,20 @@ function MobileHomePage({
           <span className="mobile-home-card-menu">⋮</span>
         </div>
 
-        <p className="mobile-home-card-message">{conf.message}</p>
+        <TranslatableText
+          text={conf.message}
+          context="confession"
+          compact
+          textClassName="mobile-home-card-message"
+          className="mobile-home-card-translation"
+        />
 
         <div className="mobile-home-card-actions">
           <span>🌱 {waterCount}</span>
           <span>🔥 {burnCount}</span>
           <span className="mobile-home-report">Report</span>
         </div>
-      </button>
+      </article>
     );
   };
 

@@ -20,6 +20,7 @@ import {
   shouldBlurSensitiveContent,
 } from "../utils/contentWarning";
 import { getConfessionImages } from "../utils/confessionImages";
+import TranslatableText from "./TranslatableText";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
@@ -373,8 +374,11 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       )}
 
       <div style={{ position: "relative", marginBottom: "12px" }}>
-        <p
-          style={{
+        <TranslatableText
+          text={localPost.message}
+          context="confession"
+          compact
+          textStyle={{
             fontSize: "14px",
             color: readableTextColor,
             lineHeight: 1.65,
@@ -388,9 +392,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             userSelect: hideSensitiveContent ? "none" : "text",
             transition: "filter 0.18s ease",
           }}
-        >
-          {localPost.message}
-        </p>
+        />
 
         {hideSensitiveContent && (
           <div

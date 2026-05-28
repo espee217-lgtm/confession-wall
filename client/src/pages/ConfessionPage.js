@@ -4,6 +4,7 @@ import FramedAvatar from "../components/FramedAvatar";
 import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import MobileBottomNav from "../components/MobileBottomNav";
 import EmojiIcon from "../components/EmojiIcon";
+import TranslatableText from "../components/TranslatableText";
 import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
@@ -1754,8 +1755,10 @@ const activeCommentPinPosition = isPhoneLayout
             )}
 
             <div style={{ position: "relative", marginBottom: "12px" }}>
-              <p
-                style={{
+              <TranslatableText
+                text={confession.message}
+                context="confession"
+                textStyle={{
                   fontSize: isPhoneLayout ? "15px" : "16px",
                   color: theme.text,
                   lineHeight: isPhoneLayout ? 1.62 : 1.7,
@@ -1764,9 +1767,7 @@ const activeCommentPinPosition = isPhoneLayout
                   userSelect: hideSensitiveContent ? "none" : "text",
                   transition: "filter 0.18s ease",
                 }}
-              >
-                {confession.message}
-              </p>
+              />
 
               {hideSensitiveContent && (
                 <div
@@ -2167,16 +2168,17 @@ const activeCommentPinPosition = isPhoneLayout
                     </div>
 
                     {c.text && (
-                      <p
-                        style={{
+                      <TranslatableText
+                        text={c.text}
+                        context="comment"
+                        compact
+                        textStyle={{
                           fontSize: isPhoneLayout ? "14px" : "15px",
                           color: commentTextColor,
                           lineHeight: isPhoneLayout ? 1.6 : 1.72,
                           margin: "10px 0 0",
                         }}
-                      >
-                        {c.text}
-                      </p>
+                      />
                     )}
 
                     {c.image && (
@@ -2252,7 +2254,12 @@ const activeCommentPinPosition = isPhoneLayout
                               </Link>
                               <span>#{replyIndex + 1}</span>
                             </div>
-                            <p>{reply.text}</p>
+                            <TranslatableText
+                              text={reply.text}
+                              context="reply"
+                              compact
+                              textStyle={{ margin: 0 }}
+                            />
                           </div>
                         </div>
                       );
@@ -2408,16 +2415,17 @@ const activeCommentPinPosition = isPhoneLayout
                         </div>
 
                         {c.text && (
-                          <p
-                            style={{
+                          <TranslatableText
+                            text={c.text}
+                            context="comment"
+                            compact
+                            textStyle={{
                               fontSize: isPhoneLayout ? "13px" : "14px",
                               color: commentTextColor,
                               lineHeight: isPhoneLayout ? 1.58 : 1.65,
                               margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
                             }}
-                          >
-                            {c.text}
-                          </p>
+                          />
                         )}
 
                         {c.image && (
@@ -2445,7 +2453,12 @@ const activeCommentPinPosition = isPhoneLayout
                             {previewReplies.map((reply, replyIndex) => (
                               <div key={reply._id || replyIndex} className="echo-root-reply-preview-row">
                                 <span>@{reply.userId?.username || "anon"}</span>
-                                <p>{reply.text}</p>
+                                <TranslatableText
+                                  text={reply.text}
+                                  context="reply"
+                                  compact
+                                  textStyle={{ margin: 0 }}
+                                />
                               </div>
                             ))}
                             {hiddenReplyCount > 0 && (

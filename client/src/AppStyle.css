@@ -123,6 +123,54 @@ button:hover {
   }
 }
 
+.cw-translatable-text {
+  display: block;
+}
+
+.cw-translated-text {
+  white-space: pre-wrap;
+}
+
+.cw-translate-btn {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 7px;
+  border: 1px solid rgba(190, 255, 150, 0.22);
+  border-radius: 999px;
+  background: rgba(7, 28, 12, 0.54);
+  color: rgba(236, 255, 221, 0.86);
+  font: inherit;
+  font-size: 0.76rem;
+  line-height: 1;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+
+.cw-translate-btn:hover {
+  background: rgba(120, 255, 95, 0.12);
+  border-color: rgba(220, 255, 170, 0.34);
+}
+
+.cw-translate-btn:disabled,
+.cw-translate-btn.is-loading {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.cw-translate-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: rgba(255, 190, 160, 0.85);
+}
+
+.cw-translatable-text--compact .cw-translate-btn {
+  margin-top: 5px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+}
+
 .confession-text {
   color: var(--text);
   text-decoration: none;

@@ -3,6 +3,7 @@ import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate, useParams } from "react-router-dom";
 import FramedAvatar from "../components/FramedAvatar";
 import { PostThemeFxLayers } from "../components/CosmeticFx";
+import TranslatableText from "../components/TranslatableText";
 import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
@@ -220,10 +221,17 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
   const confessionImages = getConfessionImages(post);
 
   const themeId = getTrendingPostThemeId(post);
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpen();
+    }
+  };
 
   return (
-    <button
-      type="button"
+    <article
+      role="button"
+      tabIndex={0}
       className={[
         "trending-clean-main",
         themeId ? "trending-clean-main--with-theme" : "",
@@ -232,6 +240,7 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
         .filter(Boolean)
         .join(" ")}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
     >
       <TrendingThemeStage themeId={themeId} realm={realm} />
       <div className="trending-clean-copy">
@@ -244,7 +253,12 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
           <span className="trending-clean-realm">{realm}</span>
         </div>
 
-        <p className="trending-clean-message">{message}</p>
+        <TranslatableText
+          text={message}
+          context="confession"
+          compact
+          textClassName="trending-clean-message"
+        />
 
         {comfortCards.length > 0 && (
           <div className="trending-clean-comforts" aria-label="Comfort cards">
@@ -264,7 +278,7 @@ function TrendingPostPreview({ post, realm, stats, onOpen }) {
           <span>{formatTrendingDate(post?.createdAt)}</span>
         </div>
       </div>
-    </button>
+    </article>
   );
 }
 
@@ -406,13 +420,21 @@ function MobileTrendingCard({ post, rank, onOpen }) {
   const message = getPostMessage(post);
   const comfortCards = Array.isArray(post?.comfortCards) ? post.comfortCards.slice(0, 3) : [];
   const skinAsset = getMobileSkinAsset(post, realm, rank);
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onOpen();
+    }
+  };
 
   return (
-    <button
-      type="button"
+    <article
+      role="button"
+      tabIndex={0}
       className={`trending-mobile-card trending-mobile-card--${realm} trending-mobile-card--${getRankTier(rank)}`}
       style={{ "--trending-mobile-card-skin": `url(${skinAsset})` }}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
       aria-label={`Open rank ${rank} confession by ${username}`}
     >
       <span className="trending-mobile-card-rank" aria-hidden="true">
@@ -425,7 +447,15 @@ function MobileTrendingCard({ post, rank, onOpen }) {
         <em>{realm}</em>
       </span>
 
-      <span className="trending-mobile-card-message">{message}</span>
+      <TranslatableText
+        text={message}
+        context="confession"
+        as="span"
+        wrapperAs="span"
+        compact
+        className="trending-mobile-card-translation"
+        textClassName="trending-mobile-card-message"
+      />
 
       {comfortCards.length > 0 && (
         <span className="trending-mobile-card-comforts" aria-label="Comfort cards">
@@ -443,7 +473,7 @@ function MobileTrendingCard({ post, rank, onOpen }) {
         <span>🔥 {stats.burn}</span>
         <span>💬 {stats.echoes}</span>
       </span>
-    </button>
+    </article>
   );
 }
 
