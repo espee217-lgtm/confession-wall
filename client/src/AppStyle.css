@@ -682,6 +682,58 @@ a.chip {
     filter: saturate(1.06) contrast(1.02);
   }
 
+  .mobile-home-seo-intro {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 720px);
+    margin: 10px auto 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(188, 255, 154, 0.18);
+    border-radius: 20px;
+    background: rgba(5, 24, 10, 0.58);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+    color: rgba(238, 255, 224, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-sizing: border-box;
+  }
+
+  .mobile-home-seo-intro h1 {
+    margin: 0 0 7px;
+    font-size: 1.14rem;
+    line-height: 1.18;
+    color: #f0ffe2;
+  }
+
+  .mobile-home-seo-intro p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: rgba(231, 255, 220, 0.76);
+  }
+
+  .mobile-home-seo-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 10px;
+  }
+
+  .mobile-home-seo-links button {
+    border: 1px solid rgba(189, 255, 144, 0.22);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(138, 255, 83, 0.1);
+    color: rgba(237, 255, 220, 0.88);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .mobile-home-seo-links button:hover {
+    background: rgba(138, 255, 83, 0.18);
+  }
+
   .mobile-home-realm-map {
     display: none !important;
   }

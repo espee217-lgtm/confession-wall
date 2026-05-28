@@ -1,11 +1,11 @@
-export const SEO_ORIGIN = "https://d7fadd8.confession-wall-325.pages.dev";
+export const SEO_ORIGIN = "https://confessionorigins.com";
 
 const DEFAULT_TITLE =
-  "Confession Wall - Anonymous Confessions in a Forest Grove";
+  "Confession Wall - Share Anonymous Confessions & Real Feelings";
 const DEFAULT_DESCRIPTION =
-  "Share anonymous confessions, explore trending stories, and react with the Confession Wall community across Grove, Budding, and Scorched realms.";
+  "Confession Wall is an anonymous confession community where you can share secrets, vent real feelings, read anonymous stories, and react without judgment.";
 const DEFAULT_IMAGE =
-  "https://d7fadd8.confession-wall-325.pages.dev/brand/confession-wall-og-preview-1200x630.png";
+  "https://confessionorigins.com/brand/confession-wall-og-preview-1200x630.png?v=finalog7";
 const DEFAULT_IMAGE_ALT = "Confession Wall anonymous confession icon preview";
 const THEME_COLOR = "#0b1f12";
 

@@ -1331,10 +1331,26 @@ function MobileHomePage({
       <section className="mobile-home-hero-wrap">
         <img
           src="/assets/mobile/mobile-hero-banner.png"
-          alt="Confession Wall"
+          alt="Confession Wall anonymous confession community"
           className="mobile-home-hero-img"
           decoding="async"
         />
+      </section>
+
+      <section className="mobile-home-seo-intro" aria-label="About Confession Wall">
+        <h1>Share Anonymous Confessions in a No-Judgment Community</h1>
+        <p>
+          Confession Wall is a place to share anonymous confessions, vent real feelings,
+          and read honest stories from real people. Post a secret, react to confessions,
+          explore trending stories, or wander through Grove, Budding, and Scorched realms.
+        </p>
+        <div className="mobile-home-seo-links" aria-label="Explore Confession Wall">
+          <button type="button" onClick={() => navigate("/trending")}>Trending</button>
+          <button type="button" onClick={() => navigate("/grove")}>Grove</button>
+          <button type="button" onClick={() => navigate("/budding")}>Budding</button>
+          <button type="button" onClick={() => navigate("/scorched")}>Scorched</button>
+          <button type="button" onClick={() => navigate("/guidelines")}>Guidelines</button>
+        </div>
       </section>
 
       <section className="mobile-home-feed-head">

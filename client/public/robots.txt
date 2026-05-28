@@ -1,10 +1,19 @@
 User-agent: *
 Allow: /
+
 Disallow: /admin
+Disallow: /admin/
 Disallow: /settings
 Disallow: /activity
 Disallow: /pressed-leaves
 Disallow: /login
 Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /choose
+Disallow: /reena
+Disallow: /reena-kundali
+Disallow: /reena-trivia
+Disallow: /reena-apology
 
-Sitemap: https://confession-wall-325.pages.dev/sitemap.xml
+Sitemap: https://confessionorigins.com/sitemap.xml

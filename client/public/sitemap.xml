@@ -1,45 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://confession-wall-325.pages.dev/</loc>
+    <loc>https://confessionorigins.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/trending</loc>
+    <loc>https://confessionorigins.com/trending</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/grove</loc>
+    <loc>https://confessionorigins.com/grove</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/budding</loc>
+    <loc>https://confessionorigins.com/budding</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/scorched</loc>
+    <loc>https://confessionorigins.com/scorched</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/search</loc>
+    <loc>https://confessionorigins.com/search</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/guidelines</loc>
+    <loc>https://confessionorigins.com/guidelines</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/community-guidelines</loc>
+    <loc>https://confessionorigins.com/terms</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/terms</loc>
+    <loc>https://confessionorigins.com/privacy</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/privacy</loc>
+    <loc>https://confessionorigins.com/refund-cancellation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/refund-policy</loc>
+    <loc>https://confessionorigins.com/contact-support</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/contact-support</loc>
+    <loc>https://confessionorigins.com/moderation-report-policy</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://confession-wall-325.pages.dev/moderation-policy</loc>
-  </url>
-  <url>
-    <loc>https://confession-wall-325.pages.dev/weekly-events</loc>
+    <loc>https://confessionorigins.com/weekly-events</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset>

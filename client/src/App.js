@@ -66,63 +66,69 @@ const API_BASE =
 
 const ROUTE_SEO = {
   "/": {
-    title: defaultSeo.title,
-    description: defaultSeo.description,
+    title: "Confession Wall - Share Anonymous Confessions & Real Feelings",
+    description:
+      "Confession Wall is an anonymous confession community where you can share secrets, vent real feelings, read anonymous stories, and react without judgment.",
   },
   "/trending": {
-    title: "Trending Confessions - Confession Wall",
-    description: "Browse the most active anonymous confessions on Confession Wall.",
+    title: "Trending Anonymous Confessions - Confession Wall",
+    description:
+      "Read trending anonymous confessions from real people. Explore secrets, emotions, stories, and honest thoughts shared by the Confession Wall community.",
   },
   "/grove": {
-    title: "Grove Confessions - Confession Wall",
-    description: "Read confessions rising through the Grove with more comfort than fire.",
+    title: "Grove Confessions - Positive Anonymous Stories",
+    description:
+      "Explore Grove confessions: anonymous stories, hopeful thoughts, comforting reactions, and real feelings rising through the Confession Wall community.",
   },
   "/budding": {
-    title: "Budding Confessions - Confession Wall",
-    description: "Explore fresh and balanced confessions in the Budding realm.",
+    title: "New Anonymous Confessions - Budding Land",
+    description:
+      "Read fresh anonymous confessions in Budding Land. Discover new secrets, thoughts, and stories shared by the Confession Wall community.",
   },
   "/scorched": {
-    title: "Scorched Confessions - Confession Wall",
-    description: "Explore intense confessions from the Scorched realm.",
+    title: "Scorched Confessions - Dark Anonymous Venting",
+    description:
+      "Read intense anonymous confessions, difficult emotions, painful stories, and raw venting from the Scorched realm of Confession Wall.",
   },
   "/search": {
-    title: "Search Confessions - Confession Wall",
-    description: "Search public anonymous confessions across Confession Wall.",
-  },
-  "/titles": {
-    title: "Title Achievements - Confession Wall",
-    description: "Unlock and equip achievement-based display titles on Confession Wall.",
+    title: "Search Anonymous Confessions - Confession Wall",
+    description:
+      "Search anonymous confessions, real stories, secret thoughts, moods, and community posts across Confession Wall.",
   },
   "/weekly-events": {
-    title: "Weekly Events - Confession Wall",
-    description: "Follow weekly Confession Wall community events and realm activity.",
+    title: "Weekly Forest Events - Confession Wall",
+    description:
+      "Explore weekly Confession Wall events, community activities, realm challenges, and limited-time forest experiences.",
   },
   "/guidelines": {
     title: "Community Guidelines - Confession Wall",
-    description: "Read the community guidelines for posting and reacting on Confession Wall.",
+    description:
+      "Read Confession Wall community guidelines for anonymous confessions, respectful replies, reporting, moderation, and safe participation.",
   },
   "/terms": {
-    title: "Terms - Confession Wall",
-    description: "Read the Confession Wall terms of use.",
+    title: "Terms of Use - Confession Wall",
+    description:
+      "Read the Confession Wall terms of use for anonymous posting, user accounts, Seeds, digital items, moderation, and platform rules.",
   },
   "/privacy": {
     title: "Privacy Policy - Confession Wall",
-    description: "Read the Confession Wall privacy policy.",
+    description:
+      "Read how Confession Wall handles account data, anonymous confessions, uploads, payments through Razorpay, cookies, and support requests.",
   },
   "/refund-cancellation": {
     title: "Refund & Cancellation Policy - Confession Wall",
     description:
-      "Read the Confession Wall refund and cancellation policy for Seeds, digital credits, and payment issues.",
+      "Read the Confession Wall refund and cancellation policy for Seeds, digital credits, payment issues, failed transactions, and duplicate payments.",
   },
   "/moderation-report-policy": {
     title: "Moderation & Report Policy - Confession Wall",
     description:
-      "Read how Confession Wall reviews reports, moderation actions, appeals, and safety issues.",
+      "Learn how Confession Wall handles reports, moderation decisions, unsafe content, appeals, and community safety.",
   },
   "/contact-support": {
-    title: "Contact & Support - Confession Wall",
+    title: "Contact Support - Confession Wall",
     description:
-      "Contact Confession Wall support for account, payment, moderation, privacy, or safety questions.",
+      "Contact Confession Wall support for account help, payment issues, reports, privacy questions, moderation appeals, and business queries.",
   },
 };
 
@@ -138,9 +144,15 @@ const NOINDEX_PATHS = [
   "/activity",
   "/friends",
   "/chess",
+  "/shop",
+  "/titles",
+  "/buy-seeds",
   "/pressed-leaves",
   "/choose",
   "/reena",
+  "/reena-kundali",
+  "/reena-trivia",
+  "/reena-apology",
 ];
 
 const humanizeMoodSlug = (slug) =>
@@ -162,7 +174,7 @@ const getSeoForPath = (pathname) => {
     return {
       title: "Confession - Confession Wall",
       description: "Read an anonymous confession and join the Confession Wall community.",
-      robots: "index,follow",
+      robots: "noindex,follow",
     };
   }
 
@@ -170,7 +182,7 @@ const getSeoForPath = (pathname) => {
     return {
       title: "Profile - Confession Wall",
       description: "View a public Confession Wall profile and their shared confessions.",
-      robots: "index,follow",
+      robots: "noindex,follow",
     };
   }
 
@@ -181,7 +193,7 @@ const getSeoForPath = (pathname) => {
         ? `${mood} Confessions - Confession Wall`
         : "Mood Confessions - Confession Wall",
       description: "Browse anonymous confessions by mood on Confession Wall.",
-      robots: "index,follow",
+      robots: "noindex,follow",
     };
   }
 
