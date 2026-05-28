@@ -12137,6 +12137,19 @@ button.confession-image-scroller__item {
   }
 }
 
+@media (max-width: 768px) {
+  .mobile-home-bottom-nav {
+    transition: transform 180ms ease, opacity 180ms ease !important;
+    will-change: transform, opacity;
+  }
+
+  .mobile-home-bottom-nav.mobile-bottom-nav--hidden-at-footer {
+    transform: translateY(calc(100% + 18px)) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
 @keyframes confessConnectorNodePulse {
   0%, 100% {
     opacity: 0.78;

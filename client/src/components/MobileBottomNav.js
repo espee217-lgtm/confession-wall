@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DailyQuestDropdown from "./DailyQuestDropdown";
@@ -11,6 +11,8 @@ const EVENT_ICON = "\u2726";
 const ACTIVITY_ICON = "\uD83D\uDD14";
 const LOGIN_ICON = "\uD83C\uDF19";
 const CONFESS_LOGO_SRC = "/assets/eye_circle_transparent_48.png";
+const MOBILE_BREAKPOINT = 768;
+const MOBILE_NAV_HIDE_BOTTOM_THRESHOLD = 120;
 
 function GuestActionPrompt({ onClose, onLogin, onRegister }) {
   return (
@@ -40,9 +42,63 @@ export default function MobileBottomNav({ onConfess }) {
   const location = useLocation();
   const { user } = useAuth();
   const [guestPromptOpen, setGuestPromptOpen] = useState(false);
+  const [hideMobileBottomNav, setHideMobileBottomNav] = useState(false);
+  const previousScrollYRef = useRef(0);
+  const frameRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
   const shouldHideOnRoute = location.pathname === "/settings";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const updateHiddenState = () => {
+      frameRef.current = null;
+
+      const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+      if (!isMobile || shouldHideOnRoute) {
+        previousScrollYRef.current =
+          window.scrollY || document.documentElement.scrollTop || 0;
+        setHideMobileBottomNav(false);
+        return;
+      }
+
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const pageHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 0;
+      const distanceFromBottom = pageHeight - (scrollTop + viewportHeight);
+      const isScrollingUp = scrollTop < previousScrollYRef.current;
+
+      if (isScrollingUp) {
+        setHideMobileBottomNav(false);
+      } else {
+        setHideMobileBottomNav(
+          distanceFromBottom <= MOBILE_NAV_HIDE_BOTTOM_THRESHOLD
+        );
+      }
+
+      previousScrollYRef.current = scrollTop;
+    };
+
+    const scheduleUpdate = () => {
+      if (frameRef.current !== null) return;
+      frameRef.current = window.requestAnimationFrame(updateHiddenState);
+    };
+
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
+  }, [shouldHideOnRoute, location.pathname]);
 
   if (shouldHideOnRoute) {
     return null;
@@ -79,12 +135,15 @@ export default function MobileBottomNav({ onConfess }) {
   };
 
   const displayCosmetics = getDisplayCosmetics(user);
+  const footerAwareClass = hideMobileBottomNav
+    ? " mobile-bottom-nav--hidden-at-footer"
+    : "";
 
   if (!user) {
     return (
       <>
         <nav
-          className="mobile-home-bottom-nav mobile-home-bottom-nav--auth mobile-home-bottom-nav--public"
+          className={`mobile-home-bottom-nav mobile-home-bottom-nav--auth mobile-home-bottom-nav--public${footerAwareClass}`}
           aria-label="Mobile public navigation"
         >
           <button
@@ -161,7 +220,7 @@ export default function MobileBottomNav({ onConfess }) {
   }
 
   return (
-    <nav className="mobile-home-bottom-nav mobile-home-bottom-nav--auth" aria-label="Mobile bottom navigation">
+    <nav className={`mobile-home-bottom-nav mobile-home-bottom-nav--auth${footerAwareClass}`} aria-label="Mobile bottom navigation">
       <button
           type="button"
           onClick={openGuidebook}

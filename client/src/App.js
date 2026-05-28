@@ -95,6 +95,16 @@ const ROUTE_SEO = {
     description:
       "Search anonymous confessions, real stories, secret thoughts, moods, and community posts across Confession Wall.",
   },
+  "/shop": {
+    title: "Confession Wall Shop - Seeds, Badges, Frames & Themes",
+    description:
+      "Explore the Confession Wall shop for Seeds, profile badges, avatar frames, post themes, and cosmetic digital items for your anonymous confession profile.",
+  },
+  "/buy-seeds": {
+    title: "Buy Seeds - Confession Wall Digital Credits",
+    description:
+      "Buy Seeds on Confession Wall to unlock profile cosmetics, avatar frames, badges, post themes, and other digital items for your anonymous confession experience.",
+  },
   "/weekly-events": {
     title: "Weekly Forest Events - Confession Wall",
     description:
@@ -144,9 +154,7 @@ const NOINDEX_PATHS = [
   "/activity",
   "/friends",
   "/chess",
-  "/shop",
   "/titles",
-  "/buy-seeds",
   "/pressed-leaves",
   "/choose",
   "/reena",

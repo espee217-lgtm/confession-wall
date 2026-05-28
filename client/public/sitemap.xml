@@ -31,6 +31,16 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://confessionorigins.com/shop</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://confessionorigins.com/buy-seeds</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://confessionorigins.com/guidelines</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
