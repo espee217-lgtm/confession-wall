@@ -142,6 +142,14 @@ const withTranslationRetry = async (operation) => {
   }
 };
 
+const buildMemoryCacheEntry = (cacheDoc, fallbackSourceLang) => ({
+  translatedText: cacheDoc.translatedText,
+  detectedSourceLang: cacheDoc.sourceLang || fallbackSourceLang,
+  provider: cacheDoc.provider || "libretranslate",
+  timestamp: Date.now(),
+  targetType: cacheDoc.targetType || "unknown",
+});
+
 async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
   const libreTranslateUrl = String(process.env.LIBRETRANSLATE_URL || "").trim();
 
@@ -303,15 +311,7 @@ router.post("/", async (req, res) => {
     const mongoCached = await TranslationCache.findOne({ cacheKey }).lean();
 
     if (mongoCached?.translatedText) {
-      const memoryEntry = {
-        translatedText: mongoCached.translatedText,
-        detectedSourceLang: mongoCached.sourceLang || sourceLang,
-        provider: mongoCached.provider || "libretranslate",
-        timestamp: Date.now(),
-        targetType,
-      };
-
-      translationCache.set(cacheKey, memoryEntry);
+      translationCache.set(cacheKey, buildMemoryCacheEntry(mongoCached, sourceLang));
 
       TranslationCache.updateOne(
         { cacheKey },
@@ -327,6 +327,70 @@ router.post("/", async (req, res) => {
         provider: mongoCached.provider || "libretranslate",
         cached: true,
         cacheSource: "mongo",
+        targetType,
+        hasCommentId: Boolean(commentId),
+      });
+    }
+
+    const textFallbackCached = await TranslationCache.findOne({
+      sourceTextHash,
+      sourceLang,
+      targetLang,
+    })
+      .sort({ provider: "libretranslate" })
+      .lean();
+
+    if (textFallbackCached?.translatedText) {
+      const provider = textFallbackCached.provider || "libretranslate";
+      const detectedSourceLang = textFallbackCached.sourceLang || sourceLang;
+
+      translationCache.set(cacheKey, {
+        translatedText: textFallbackCached.translatedText,
+        detectedSourceLang,
+        provider,
+        timestamp: Date.now(),
+        targetType,
+      });
+
+      TranslationCache.updateOne(
+        { cacheKey: textFallbackCached.cacheKey },
+        { $set: { lastUsedAt: new Date() } }
+      ).catch((err) => {
+        console.warn("Translation fallback cache lastUsedAt update failed:", err.message);
+      });
+
+      TranslationCache.findOneAndUpdate(
+        { cacheKey },
+        {
+          $set: {
+            cacheKey,
+            targetType,
+            targetId,
+            commentId,
+            replyId,
+            sourceLang,
+            targetLang,
+            sourceTextHash,
+            normalizedSourceText,
+            translatedText: textFallbackCached.translatedText,
+            provider,
+            lastUsedAt: new Date(),
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).catch((err) => {
+        console.warn("Translation fallback cache repair failed:", err.message);
+      });
+
+      return res.json({
+        translatedText: textFallbackCached.translatedText,
+        targetLang,
+        detectedSourceLang,
+        provider,
+        cached: true,
+        cacheSource: "mongo-text-fallback",
+        targetType,
+        hasCommentId: Boolean(commentId),
       });
     }
   } catch (err) {
