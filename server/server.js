@@ -31,10 +31,17 @@ const PORT = process.env.PORT || 5000;
 
 app.set("trust proxy", 1);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || process.env.CLIENT_URL || "")
+const defaultDevOrigins = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const envOrigins = (process.env.CORS_ORIGIN || process.env.CLIENT_URL || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = Array.from(
+  new Set([
+    ...envOrigins,
+    ...(envOrigins.length === 0 ? defaultDevOrigins : []),
+  ])
+);
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
