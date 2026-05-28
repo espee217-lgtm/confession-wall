@@ -3,6 +3,15 @@ const express = require("express");
 
 const router = express.Router();
 
+router.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    route: "/api/translate",
+    provider: process.env.TRANSLATION_PROVIDER || "none",
+    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL),
+  });
+});
+
 const MAX_TEXT_LENGTH = 3000;
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -147,15 +156,6 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
     detectedSourceLang: data?.detectedLanguage?.language || effectiveSourceLang,
   };
 }
-
-router.get("/health", (req, res) => {
-  res.json({
-    ok: true,
-    route: "/api/translate",
-    provider: process.env.TRANSLATION_PROVIDER || "none",
-    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL),
-  });
-});
 
 router.post("/", async (req, res) => {
   pruneExpiredEntries();

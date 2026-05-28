@@ -95,6 +95,15 @@ app.get("/", (req, res) => {
   res.send("Confession Wall Server is running!");
 });
 
+app.get("/api/server-health", (req, res) => {
+  res.json({
+    ok: true,
+    server: "confession-wall-backend",
+    translateMounted: true,
+    commitHint: "translate-health-debug"
+  });
+});
+
 app.use((req, res) => {
   res.status(404).json({ message: "API route not found" });
 });
