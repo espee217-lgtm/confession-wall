@@ -28,6 +28,17 @@ const translateRoutes = require("./routes/translateRoutes");
 const { router: adminRoutes } = require("./routes/adminRoutes");
 
 const app = express();
+app.get("/debug-top", (req, res) => {
+  res.status(200).json({
+    ok: true,
+    route: "/debug-top",
+    message: "top route reached",
+    timestamp: new Date().toISOString()
+  });
+});
+
+console.log(" TOP DEBUG ROUTE ACTIVE: /debug-top");
+
 app.get("/api/server-health", (req, res) => {
   res.status(200).json({
     ok: true,
