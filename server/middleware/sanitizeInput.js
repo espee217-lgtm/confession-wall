@@ -26,7 +26,7 @@ const sanitizeText = (value, options = {}) => {
 
   text = text.trim();
 
-  if (text.length > maxLength) {
+  if (Number.isFinite(maxLength) && maxLength > 0 && text.length > maxLength) {
     text = text.slice(0, maxLength).trim();
   }
 

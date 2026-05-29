@@ -874,7 +874,7 @@ router.post(
       const imagePaths = uploadedFiles
         .map((file) => file?.path)
         .filter(Boolean);
-      const message = sanitizeText(req.body.message, { maxLength: 2000, allowNewLines: true });
+      const message = sanitizeText(req.body.message, { maxLength: Infinity, allowNewLines: true });
       const mood = sanitizeShortText(req.body.mood || "", 20);
       const moodValue = mood || undefined;
       const { value: postTheme = "", error: postThemeError } = buildSelectedPostTheme(
