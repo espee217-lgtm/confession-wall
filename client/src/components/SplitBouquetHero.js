@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import usePageVisibility from "../hooks/usePageVisibility";
 import "./SplitBouquetHero.css";
 
 const ASSET_BASE = "/assets/split-bouquet/";
@@ -261,7 +262,10 @@ function nudgeLayoutValue(previousLayout, spriteKey, property, delta) {
 
 export default function SplitBouquetHero({ posts = [], onHandClick }) {
   const navigate = useNavigate();
+  const isPageVisible = usePageVisibility();
+  const wrapRef = useRef(null);
   const stageRef = useRef(null);
+  const [isInViewport, setIsInViewport] = useState(true);
   const [bouquetLayout, setBouquetLayout] = useState(() => readStoredLayout());
   const [hoveredFlower, setHoveredFlower] = useState(null);
   const [selectedSprite, setSelectedSprite] = useState("hand");
@@ -311,6 +315,25 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
     if (!BOUQUET_DEBUG) {
       persistLayout(DEFAULT_BOUQUET_LAYOUT);
     }
+  }, []);
+
+  useEffect(() => {
+    const root = wrapRef.current;
+    if (!root || typeof IntersectionObserver !== "function") {
+      setIsInViewport(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setIsInViewport(Boolean(entry?.isIntersecting));
+      },
+      { root: null, threshold: 0.01, rootMargin: "120px 0px" }
+    );
+
+    observer.observe(root);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -556,11 +579,16 @@ export default function SplitBouquetHero({ posts = [], onHandClick }) {
 
   return (
     <div
+      ref={wrapRef}
       className="home-bouquet split-bouquet-wrap"
       style={buildContainerStyle(bouquetLayout.container)}
       aria-hidden="false"
     >
-      <div className="split-bouquet-shell">
+      <div
+        className={`split-bouquet-shell${
+          !isPageVisible || !isInViewport ? " cw-paused" : ""
+        }`}
+      >
         <div
           ref={stageRef}
           className={`split-bouquet-stage${BOUQUET_DEBUG ? " bouquet-debug-stage" : ""}`}

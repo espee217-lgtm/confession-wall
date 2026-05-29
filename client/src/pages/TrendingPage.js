@@ -362,7 +362,13 @@ function MobilePodiumSlot({ post, rank, page, onOpen }) {
       aria-label={`Open rank ${globalRank} confession by ${username}`}
     >
       <span className="trending-mobile-podium-badge" aria-hidden="true">
-        <img src={getRankBadgeAsset(rank)} alt="" loading="lazy" decoding="async" />
+        <img
+          src={getRankBadgeAsset(rank)}
+          alt=""
+          loading="eager"
+          fetchpriority={rank === 1 ? "high" : "auto"}
+          decoding="async"
+        />
         <strong>{String(globalRank).padStart(2, "0")}</strong>
       </span>
       <FramedAvatar
@@ -402,7 +408,8 @@ function MobileTrendingPodium({ posts, page, navigate }) {
           src={TRENDING_ASSETS.podium}
           alt=""
           className="trending-mobile-podium-base"
-          loading="lazy"
+          loading="eager"
+          fetchpriority="high"
           decoding="async"
           aria-hidden="true"
         />

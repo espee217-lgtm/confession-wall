@@ -9,6 +9,12 @@ import {
   getCosmeticMeta,
   getPostThemeStyle,
 } from "../utils/cosmetics";
+import {
+  applyPerformanceMode,
+  getSavedPerformanceMode,
+  resolvePerformanceMode,
+  setSavedPerformanceMode,
+} from "../utils/performanceMode";
 
 const API_URL = process.env.REACT_APP_API_BASE
   ? `${process.env.REACT_APP_API_BASE}/api/auth`
@@ -407,6 +413,12 @@ export default function Settings() {
       return "system";
     }
   });
+  const [performanceMode, setPerformanceMode] = useState(() =>
+    getSavedPerformanceMode()
+  );
+  const [resolvedPerformanceMode, setResolvedPerformanceMode] = useState(() =>
+    resolvePerformanceMode(getSavedPerformanceMode())
+  );
 
   const palette = getPalette(theme);
 
@@ -580,6 +592,18 @@ export default function Settings() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const syncMode = () => {
+      const saved = getSavedPerformanceMode();
+      setPerformanceMode(saved);
+      setResolvedPerformanceMode(resolvePerformanceMode(saved));
+    };
+
+    syncMode();
+    window.addEventListener("cw:performance-mode-change", syncMode);
+    return () => window.removeEventListener("cw:performance-mode-change", syncMode);
+  }, []);
+
   if (!user) return null;
 
   const equipped = user?.equippedCosmetics || {};
@@ -632,6 +656,13 @@ export default function Settings() {
     }
 
     window.dispatchEvent(new Event("themechange"));
+  };
+
+  const handlePerformanceMode = (mode) => {
+    const nextMode = mode === "full" || mode === "lite" ? mode : "auto";
+    setPerformanceMode(nextMode);
+    setSavedPerformanceMode(nextMode);
+    setResolvedPerformanceMode(applyPerformanceMode(nextMode));
   };
 
   const handleImage = (e) => {
@@ -1034,6 +1065,79 @@ export default function Settings() {
                   {t}
                 </button>
               ))}
+            </div>
+
+            <div
+              style={{
+                marginTop: "10px",
+                padding: "12px",
+                borderRadius: "12px",
+                border: `1px solid ${palette.border}`,
+                background: "rgba(255,255,255,0.045)",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 8px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color: palette.text,
+                  fontFamily: "Georgia, serif",
+                  textTransform: "uppercase",
+                }}
+              >
+                Performance Mode
+              </p>
+
+              <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                {[
+                  { id: "auto", label: "Auto Recommended" },
+                  { id: "full", label: "Full Fantasy" },
+                  { id: "lite", label: "Lite Performance" },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handlePerformanceMode(option.id)}
+                    style={{
+                      flex: 1,
+                      padding: "9px 8px",
+                      borderRadius: "10px",
+                      border:
+                        performanceMode === option.id
+                          ? `2px solid ${palette.accent}`
+                          : `1px solid ${palette.border}`,
+                      background:
+                        performanceMode === option.id
+                          ? "rgba(74,143,53,0.22)"
+                          : "transparent",
+                      color:
+                        performanceMode === option.id
+                          ? palette.accent
+                          : palette.muted,
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontFamily: "Georgia, serif",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: palette.muted,
+                  fontSize: "12px",
+                  lineHeight: 1.45,
+                  fontFamily: "Georgia, serif",
+                }}
+              >
+                Auto chooses smoother settings for weaker devices. Full keeps all visual effects. Lite reduces background visual work for smoother performance. Active: {resolvedPerformanceMode}.
+              </p>
             </div>
           </Section>
 

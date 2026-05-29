@@ -1357,6 +1357,8 @@ function MobileHomePage({
           src="/assets/mobile/mobile-hero-banner.png"
           alt="Confession Wall anonymous confession community"
           className="mobile-home-hero-img"
+          loading="eager"
+          fetchpriority="high"
           decoding="async"
         />
       </section>
@@ -1524,23 +1526,73 @@ function MobileHomePage({
   );
 }
 
-function clickedOpaquePixel(e) {
-  const img = e.currentTarget;
-  const rect = img.getBoundingClientRect();
+const SPIRIT_ALPHA_THRESHOLD = 20;
 
-  const x = ((e.clientX - rect.left) / rect.width) * img.naturalWidth;
-  const y = ((e.clientY - rect.top) / rect.height) * img.naturalHeight;
+function buildSpiritAlphaMask(img) {
+  if (!img || !img.complete || !img.naturalWidth || !img.naturalHeight) {
+    return null;
+  }
 
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalWidth;
   canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
 
-  const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-  const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+  return {
+    width: canvas.width,
+    height: canvas.height,
+    data,
+  };
+}
 
-  return pixel[3] > 20;
+function isOpaqueMaskPixel(mask, img, clientX, clientY) {
+  if (!mask || !img) return false;
+
+  const rect = img.getBoundingClientRect();
+  if (
+    clientX < rect.left ||
+    clientX > rect.right ||
+    clientY < rect.top ||
+    clientY > rect.bottom
+  ) {
+    return false;
+  }
+
+  if (!rect.width || !rect.height) return false;
+
+  const x = Math.floor(((clientX - rect.left) / rect.width) * mask.width);
+  const y = Math.floor(((clientY - rect.top) / rect.height) * mask.height);
+
+  if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
+
+  const alphaIndex = (y * mask.width + x) * 4 + 3;
+  return mask.data[alphaIndex] > SPIRIT_ALPHA_THRESHOLD;
+}
+
+function shouldBlockSpiritInteraction(target) {
+  if (typeof document === "undefined") return false;
+  if (document.body.classList.contains("cw-guidebook-open")) return true;
+  if (!(target instanceof Element)) return false;
+
+  return Boolean(
+    target.closest(
+      [
+        ".cw-guidebook-backdrop",
+        ".cw-guidebook",
+        ".cw-guidebook-launcher",
+        ".confession-composer-backdrop",
+        ".mobile-compose-backdrop",
+        ".mobile-compose-card",
+        ".cw-settings-modal-backdrop",
+        ".cw-settings-modal-panel",
+        "[data-ui=\"true\"]",
+      ].join(",")
+    )
+  );
 }
 
 function SpiritNavigation({ onLeftClick, onRightClick }) {
@@ -1549,72 +1601,109 @@ function SpiritNavigation({ onLeftClick, onRightClick }) {
 
   const leftImgRef = useRef(null);
   const rightImgRef = useRef(null);
-
-  const isOpaqueAt = (img, e) => {
-    if (!img || !img.complete || !img.naturalWidth) return false;
-
-    const rect = img.getBoundingClientRect();
-
-    if (
-      e.clientX < rect.left ||
-      e.clientX > rect.right ||
-      e.clientY < rect.top ||
-      e.clientY > rect.bottom
-    ) {
-      return false;
-    }
-
-    const x = ((e.clientX - rect.left) / rect.width) * img.naturalWidth;
-    const y = ((e.clientY - rect.top) / rect.height) * img.naturalHeight;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
-
-    const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-    return pixel[3] > 20;
-  };
+  const leftMaskRef = useRef(null);
+  const rightMaskRef = useRef(null);
+  const rafMoveRef = useRef(0);
+  const lastPointerRef = useRef({ x: 0, y: 0, target: null });
 
   useEffect(() => {
+    const leftImg = leftImgRef.current;
+    const rightImg = rightImgRef.current;
+    if (!leftImg || !rightImg) return undefined;
+
+    const updateLeftMask = () => {
+      leftMaskRef.current = buildSpiritAlphaMask(leftImg);
+    };
+    const updateRightMask = () => {
+      rightMaskRef.current = buildSpiritAlphaMask(rightImg);
+    };
+
+    if (leftImg.complete) updateLeftMask();
+    if (rightImg.complete) updateRightMask();
+
+    leftImg.addEventListener("load", updateLeftMask);
+    rightImg.addEventListener("load", updateRightMask);
+
+    return () => {
+      leftImg.removeEventListener("load", updateLeftMask);
+      rightImg.removeEventListener("load", updateRightMask);
+    };
+  }, []);
+
+  useEffect(() => {
+    const flushHoverMove = () => {
+      rafMoveRef.current = 0;
+      const { x, y, target } = lastPointerRef.current;
+
+      if (shouldBlockSpiritInteraction(target)) {
+        setLeftHover(false);
+        setRightHover(false);
+        return;
+      }
+
+      setLeftHover(
+        isOpaqueMaskPixel(leftMaskRef.current, leftImgRef.current, x, y)
+      );
+      setRightHover(
+        isOpaqueMaskPixel(rightMaskRef.current, rightImgRef.current, x, y)
+      );
+    };
+
     const handleSpiritClick = (e) => {
-      // Guidebook is a modal. While it is open, never let the desktop
-      // Krishna/Demon spirit raycast capture clicks behind the guide.
-      if (document.body.classList.contains("cw-guidebook-open")) return;
-      if (e.target?.closest?.(".cw-guidebook-backdrop, .cw-guidebook, .cw-guidebook-launcher")) return;
-      if (e.target.closest('[data-ui="true"]')) return;
-  
-      if (isOpaqueAt(leftImgRef.current, e)) {
+      if (shouldBlockSpiritInteraction(e.target)) return;
+
+      if (
+        isOpaqueMaskPixel(
+          leftMaskRef.current,
+          leftImgRef.current,
+          e.clientX,
+          e.clientY
+        )
+      ) {
         // Keep spirit-layer clicks from also hitting underlying page handlers.
         e.stopPropagation();
         onLeftClick();
         return;
       }
 
-      if (isOpaqueAt(rightImgRef.current, e)) {
+      if (
+        isOpaqueMaskPixel(
+          rightMaskRef.current,
+          rightImgRef.current,
+          e.clientX,
+          e.clientY
+        )
+      ) {
         e.stopPropagation();
         onRightClick();
       }
     };
+
     const handleMouseMove = (e) => {
-  if (document.body.classList.contains("cw-guidebook-open")) {
-    setLeftHover(false);
-    setRightHover(false);
-    return;
-  }
-  setLeftHover(isOpaqueAt(leftImgRef.current, e));
-  setRightHover(isOpaqueAt(rightImgRef.current, e));
-};
+      lastPointerRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        target: e.target,
+      };
+
+      if (!rafMoveRef.current) {
+        rafMoveRef.current = window.requestAnimationFrame(flushHoverMove);
+      }
+    };
+
     // Use click (capture) instead of pointerdown so we don't suppress
     // the normal click behavior on the rest of the page.
     window.addEventListener("click", handleSpiritClick, true);
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
     return () => {
-  window.removeEventListener("click", handleSpiritClick, true);
-  window.removeEventListener("mousemove", handleMouseMove);
-};
+      if (rafMoveRef.current) {
+        window.cancelAnimationFrame(rafMoveRef.current);
+        rafMoveRef.current = 0;
+      }
+      window.removeEventListener("click", handleSpiritClick, true);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
   }, [onLeftClick, onRightClick]);
 
   return (

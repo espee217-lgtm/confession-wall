@@ -1,7 +1,8 @@
-import React, { useEffect, useId, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import MobileBottomNav from "../components/MobileBottomNav";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import usePageVisibility from "../hooks/usePageVisibility";
 import "./Shop.css";
 import { getCosmeticAnimationClass } from "../utils/cosmetics";
 import { AnimatedBadge, CosmeticFxLayers } from "../components/CosmeticFx";
@@ -806,6 +807,7 @@ function Shop() {
   const navigate = useNavigate();
   const { user, token, updateUser, refreshUser } = useAuth();
   const isLoggedIn = Boolean(user?._id && token);
+  const isPageVisible = usePageVisibility();
 
   const [items, setItems] = useState([]);
   const [activeType, setActiveType] = useState("all");
@@ -816,6 +818,8 @@ function Shop() {
   const [selectedPreviewCosmetic, setSelectedPreviewCosmetic] = useState(null);
   const [pendingPurchaseCosmetic, setPendingPurchaseCosmetic] = useState(null);
   const [now, setNow] = useState(() => new Date());
+  const [loadEarnPanelOverlays, setLoadEarnPanelOverlays] = useState(false);
+  const earnPanelRef = useRef(null);
   const speedOverlayUrl = `${process.env.PUBLIC_URL}/assets/speed.png`;
   const blowOverlayUrl = `${process.env.PUBLIC_URL}/assets/blow.png`;
 
@@ -836,11 +840,38 @@ function Shop() {
   }, [user]);
 
   useEffect(() => {
+    if (!isPageVisible) return undefined;
+
+    setNow(new Date());
     const timer = window.setInterval(() => {
-      setNow(new Date());
+      if (!document.hidden) {
+        setNow(new Date());
+      }
     }, 60000);
 
     return () => window.clearInterval(timer);
+  }, [isPageVisible]);
+
+  useEffect(() => {
+    const panel = earnPanelRef.current;
+    if (!panel || typeof IntersectionObserver !== "function") {
+      setLoadEarnPanelOverlays(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          setLoadEarnPanelOverlays(true);
+          observer.disconnect();
+        }
+      },
+      { root: null, rootMargin: "280px 0px", threshold: 0.01 }
+    );
+
+    observer.observe(panel);
+    return () => observer.disconnect();
   }, []);
 
   const equipped = localEquipped;
@@ -1344,11 +1375,12 @@ function Shop() {
       </section>
       
       <section
+        ref={earnPanelRef}
         className="shop-earn-panel"
         aria-label="How to Earn Seeds"
         style={{
-          "--speed-overlay-url": `url(${speedOverlayUrl})`,
-          "--blow-overlay-url": `url(${blowOverlayUrl})`,
+          "--speed-overlay-url": loadEarnPanelOverlays ? `url(${speedOverlayUrl})` : "none",
+          "--blow-overlay-url": loadEarnPanelOverlays ? `url(${blowOverlayUrl})` : "none",
         }}
       >
         <div className="shop-earn-head">

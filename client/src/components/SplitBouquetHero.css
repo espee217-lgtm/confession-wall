@@ -16,6 +16,13 @@
   animation: splitBouquetFloat 4.5s ease-in-out infinite;
 }
 
+.split-bouquet-shell.cw-paused,
+.split-bouquet-shell.cw-paused *,
+html[data-tab-hidden="true"] .split-bouquet-shell,
+html[data-tab-hidden="true"] .split-bouquet-shell * {
+  animation-play-state: paused !important;
+}
+
 .split-bouquet-stage {
   position: relative;
   width: 100%;

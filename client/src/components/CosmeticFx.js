@@ -1,12 +1,4 @@
-import React from "react";
-import racerVisorFrameSprite from "../assets/cosmetics/racer-visor-frame-sprite.png";
-import lightningVioletFrameSprite from "../assets/cosmetics/lightning-violet-avatar-frame-sfx.png";
-import venomFrameSprite from "../assets/avatarFrames/venom-screen-record-spritesheet.png";
-import stormHoodieFrameSprite from "../assets/avatarFrames/storm-hoodie-greenkey-spritesheet.png";
-import groveButterflyFrameSprite from "../assets/avatarFrames/grove-butterfly-greenkey-spritesheet.png";
-import demonThornFrameSprite from "../assets/avatarFrames/demon-thorn-greenkey-fixed-spritesheet.png";
-import lotusAuraFrameSprite from "../assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_7x7.png";
-import iceMonarchFrameSheet from "../assets/cosmetics/ice-monarch-frame/ice_monarch_avatar_frame_spritesheet_72f_8x9.png";
+import React, { useEffect, useState } from "react";
 import {
   getCosmeticAnimationClass,
   getCosmeticIcon,
@@ -17,6 +9,93 @@ const BASIC_BADGE_CLASSES = {
   "badge-moon-whisper": "cw-cosmetic-badge-moon-whisper",
   "badge-forest-crown": "cw-cosmetic-badge-forest-crown",
 };
+
+const SPRITE_ASSET_LOADERS = {
+  "frame-victory-visor": () =>
+    import("../assets/cosmetics/racer-visor-frame-sprite.png"),
+  "frame-visor-lift-racer": () =>
+    import("../assets/cosmetics/racer-visor-frame-sprite.png"),
+  "visual-effect-cursed-violet-aura": () =>
+    import("../assets/cosmetics/lightning-violet-avatar-frame-sfx.png"),
+  "frame-storm-eye-rogue": () =>
+    import("../assets/avatarFrames/venom-screen-record-spritesheet.png"),
+  "frame-storm-hoodie": () =>
+    import("../assets/avatarFrames/storm-hoodie-greenkey-spritesheet.png"),
+  "frame-grove-butterfly": () =>
+    import("../assets/avatarFrames/grove-butterfly-greenkey-spritesheet.png"),
+  "frame-demon-thorn": () =>
+    import("../assets/avatarFrames/demon-thorn-greenkey-fixed-spritesheet.png"),
+  "frame-lotus-aura": () =>
+    import("../assets/cosmetics/lotus-avatar-frame/lotus_avatar_frame_spritesheet_49f_7x7.png"),
+  "frame-ice-monarch": () =>
+    import("../assets/cosmetics/ice-monarch-frame/ice_monarch_avatar_frame_spritesheet_72f_8x9.png"),
+};
+
+const spriteAssetCache = new Map();
+const spriteAssetPending = new Map();
+
+function loadSpriteAsset(cosmeticId) {
+  const load = SPRITE_ASSET_LOADERS[cosmeticId];
+  if (!load) return Promise.resolve(null);
+
+  if (spriteAssetCache.has(cosmeticId)) {
+    return Promise.resolve(spriteAssetCache.get(cosmeticId));
+  }
+
+  if (spriteAssetPending.has(cosmeticId)) {
+    return spriteAssetPending.get(cosmeticId);
+  }
+
+  const pending = load()
+    .then((mod) => (typeof mod?.default === "string" ? mod.default : null))
+    .catch(() => null)
+    .then((resolved) => {
+      spriteAssetCache.set(cosmeticId, resolved);
+      spriteAssetPending.delete(cosmeticId);
+      return resolved;
+    });
+
+  spriteAssetPending.set(cosmeticId, pending);
+  return pending;
+}
+
+function useCosmeticSpriteAsset(cosmeticId) {
+  const [assetUrl, setAssetUrl] = useState(() =>
+    cosmeticId && spriteAssetCache.has(cosmeticId)
+      ? spriteAssetCache.get(cosmeticId)
+      : null
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!cosmeticId || !SPRITE_ASSET_LOADERS[cosmeticId]) {
+      setAssetUrl(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (spriteAssetCache.has(cosmeticId)) {
+      setAssetUrl(spriteAssetCache.get(cosmeticId));
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    loadSpriteAsset(cosmeticId).then((resolved) => {
+      if (!cancelled) {
+        setAssetUrl(resolved);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cosmeticId]);
+
+  return assetUrl;
+}
 
 function getBadgeAnimationClass(badgeId) {
   return getCosmeticAnimationClass(badgeId) || BASIC_BADGE_CLASSES[badgeId] || "";
@@ -89,6 +168,7 @@ export function BadgeFace({ badgeId, icon }) {
 
 /** Particle / overlay layers for animated cosmetics (badge, frame, post theme, profile effect). */
 export function CosmeticFxLayers({ cosmeticId }) {
+  const spriteAssetUrl = useCosmeticSpriteAsset(cosmeticId);
   if (!cosmeticId) return null;
 
   if (cosmeticId === "badge-petal-storm") {
@@ -149,7 +229,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-venom-frame-sprite-shell"
         aria-hidden="true"
-        style={{ "--cw-venom-sprite-image": `url(${venomFrameSprite})` }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-venom-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-venom-frame-fallback-glow" />
         <span className="cw-venom-frame-sprite" />
@@ -162,7 +246,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-storm-hoodie-frame-sprite-shell"
         aria-hidden="true"
-        style={{ "--cw-storm-hoodie-sprite-image": `url(${stormHoodieFrameSprite})` }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-storm-hoodie-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-storm-hoodie-frame-sprite" />
       </div>
@@ -174,9 +262,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-grove-butterfly-frame-sprite-shell"
         aria-hidden="true"
-        style={{
-          "--cw-grove-butterfly-sprite-image": `url(${groveButterflyFrameSprite})`,
-        }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-grove-butterfly-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-grove-butterfly-frame-sprite" />
       </div>
@@ -188,9 +278,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-demon-thorn-frame-sprite-shell"
         aria-hidden="true"
-        style={{
-          "--cw-demon-thorn-sprite-image": `url(${demonThornFrameSprite})`,
-        }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-demon-thorn-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-demon-thorn-frame-sprite" />
       </div>
@@ -202,9 +294,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-lotus-aura-frame-sprite-shell"
         aria-hidden="true"
-        style={{
-          "--cw-lotus-aura-sprite-image": `url(${lotusAuraFrameSprite})`,
-        }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-lotus-aura-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-lotus-aura-frame-sprite" />
       </div>
@@ -216,9 +310,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-ice-monarch-frame-sprite-shell"
         aria-hidden="true"
-        style={{
-          "--cw-ice-monarch-sprite-image": `url(${iceMonarchFrameSheet})`,
-        }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-ice-monarch-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-ice-monarch-frame-sprite" />
       </div>
@@ -233,7 +329,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-visor-lift-sprite-shell"
         aria-hidden="true"
-        style={{ "--cw-visor-sprite-image": `url(${racerVisorFrameSprite})` }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-visor-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-visor-lift-sprite" />
       </div>
@@ -435,9 +535,11 @@ export function CosmeticFxLayers({ cosmeticId }) {
       <div
         className="cw-cosmetic-fx-layer cw-lightning-violet-sprite-shell"
         aria-hidden="true"
-        style={{
-          "--cw-lightning-violet-sprite-image": `url(${lightningVioletFrameSprite})`,
-        }}
+        style={
+          spriteAssetUrl
+            ? { "--cw-lightning-violet-sprite-image": `url(${spriteAssetUrl})` }
+            : undefined
+        }
       >
         <span className="cw-lightning-violet-fallback-ring" />
         <span className="cw-lightning-violet-sprite" />

@@ -1,9 +1,5 @@
-import ReenaKundaliPage from "./pages/ReenaKundaliPage";
-import ReenaApologyPage from "./pages/ReenaApologyPage";
-import ReenaTriviaPage from "./pages/ReenaTriviaPage";
 import { connectSocket, disconnectSocket } from "./socket";
-import React, { useEffect, useRef, useState } from "react";
-import SpecialLogsAdminPage from "./pages/SpecialLogsAdminPage";
+import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,20 +9,13 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import GuidebookPopup, { GUIDEBOOK_VERSION } from "./components/GuidebookPopup";
+import { GUIDEBOOK_VERSION } from "./data/guidebookContent";
 import Home from "./pages/Home";
-import ConfessionPage from "./pages/ConfessionPage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Settings from "./pages/Settings";
 import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import UserProfile from "./pages/UserProfile";
-import ThrivingGrove from "./pages/ThrivingGrove";
-import ScorchedLands from "./pages/ScorchedLands";
-import BuddingLand from "./pages/BuddingLand";
 import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -35,26 +24,39 @@ import ModerationReportPolicy from "./pages/ModerationReportPolicy";
 import ContactSupport from "./pages/ContactSupport";
 import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
-import SearchPage from "./pages/SearchPage";
-import ActivityPage from "./pages/ActivityPage";
-import FriendsPage from "./pages/FriendsPage";
-import ChessPage from "./pages/ChessPage";
-import TrendingPage from "./pages/TrendingPage";
-import * as ShopModule from "./pages/Shop";
-import TitleAchievements from "./pages/TitleAchievements";
-import BuySeeds from "./pages/BuySeeds";
-import ChoicePage from "./pages/ChoicePage";
-import ReenaPage from "./pages/ReenaPage";
-import WeeklyEventsPage from "./pages/WeeklyEventsPage";
 import MobileRealmSwipeNav from "./components/MobileRealmSwipeNav";
 
 import { useAuth } from "./context/AuthContext";
 import FramedAvatar from "./components/FramedAvatar";
 import { AnimatedBadge } from "./components/CosmeticFx";
+import usePageVisibility from "./hooks/usePageVisibility";
 import { getDisplayCosmetics } from "./utils/engagement";
 import { applySeo, defaultSeo } from "./utils/seo";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
-import "./AppStyle.css";
+
+const GuidebookPopup = lazy(() => import("./components/GuidebookPopup"));
+const ConfessionPage = lazy(() => import("./pages/ConfessionPage"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const ThrivingGrove = lazy(() => import("./pages/ThrivingGrove"));
+const ScorchedLands = lazy(() => import("./pages/ScorchedLands"));
+const BuddingLand = lazy(() => import("./pages/BuddingLand"));
+const SearchPage = lazy(() => import("./pages/SearchPage"));
+const ActivityPage = lazy(() => import("./pages/ActivityPage"));
+const FriendsPage = lazy(() => import("./pages/FriendsPage"));
+const ChessPage = lazy(() => import("./pages/ChessPage"));
+const TrendingPage = lazy(() => import("./pages/TrendingPage"));
+const ShopPage = lazy(() => import("./pages/Shop"));
+const TitleAchievements = lazy(() => import("./pages/TitleAchievements"));
+const BuySeeds = lazy(() => import("./pages/BuySeeds"));
+const ChoicePage = lazy(() => import("./pages/ChoicePage"));
+const ReenaPage = lazy(() => import("./pages/ReenaPage"));
+const WeeklyEventsPage = lazy(() => import("./pages/WeeklyEventsPage"));
+const ReenaKundaliPage = lazy(() => import("./pages/ReenaKundaliPage"));
+const ReenaApologyPage = lazy(() => import("./pages/ReenaApologyPage"));
+const ReenaTriviaPage = lazy(() => import("./pages/ReenaTriviaPage"));
+const SpecialLogsAdminPage = lazy(() => import("./pages/SpecialLogsAdminPage"));
 
 const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard", "/choose", "/reena"];
 const HIDE_FOOTER_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/admin", "/admin/dashboard", "/choose", "/reena"];
@@ -225,18 +227,35 @@ const getSeoForPath = (pathname) => {
 };
 
 function ShopRoute() {
-  const Component = ShopModule.default || ShopModule.Shop;
+  return <ShopPage />;
+}
 
-  if (!Component || typeof Component !== "function") {
-    console.error("Shop page import problem:", ShopModule);
-    return (
-      <main style={{ minHeight: "70vh", padding: "120px 24px", color: "#dfffd7" }}>
-        Shop page failed to load. Check client/src/pages/Shop.js export.
-      </main>
-    );
-  }
-
-  return <Component />;
+function RouteLoadingFallback() {
+  return (
+    <main
+      style={{
+        minHeight: "62vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "72px 20px",
+      }}
+    >
+      <div
+        style={{
+          borderRadius: "14px",
+          padding: "12px 16px",
+          background: "rgba(4, 24, 10, 0.66)",
+          border: "1px solid rgba(168, 228, 140, 0.22)",
+          color: "rgba(236, 255, 221, 0.9)",
+          fontFamily: "Georgia, serif",
+          letterSpacing: "0.04em",
+          fontSize: "0.9rem",
+        }}
+      >
+        Loading...
+      </div>
+    </main>
+  );
 }
 
 function ShopButton() {
@@ -279,15 +298,34 @@ function SeedCounter()
   const { user, token, refreshUser } = useAuth();
   const navigate = useNavigate();
   const userId = user?._id;
+  const isPageVisible = usePageVisibility();
 
   useEffect(() => {
     if (!userId || !token || !refreshUser) return undefined;
 
-    refreshUser();
-    const interval = setInterval(refreshUser, 30000);
+    if (isPageVisible) {
+      refreshUser();
+    }
 
-    return () => clearInterval(interval);
-  }, [userId, token, refreshUser]);
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        refreshUser();
+      }
+    }, 30000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshUser();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [userId, token, refreshUser, isPageVisible]);
 
   if (!user) return null;
 
@@ -323,16 +361,28 @@ function SeedCounter()
 
 function NotificationBell() {
   const { user, token } = useAuth();
+  const isPageVisible = usePageVisibility();
   useEffect(() => {
   if (token) {
     const socket = connectSocket(token);
 
     const activePing = setInterval(() => {
-      socket?.emit("user:active");
+      if (!document.hidden) {
+        socket?.emit("user:active");
+      }
     }, 30000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        socket?.emit("user:active");
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearInterval(activePing);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }
 
@@ -404,12 +454,29 @@ function NotificationBell() {
   };
 
   useEffect(() => {
-    fetchUnreadCount();
+    if (isPageVisible) {
+      fetchUnreadCount();
+    }
 
-    const interval = setInterval(fetchUnreadCount, 25000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchUnreadCount();
+      }
+    }, 25000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchUnreadCount();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id, token]);
+  }, [user?._id, token, isPageVisible]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1292,46 +1359,48 @@ function AppContent() {
     <>
       <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/confession/:id" element={<ConfessionPage />} />
-        <Route path="/confession/:id/comment/:commentId" element={<ConfessionPage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/user/:id" element={<UserProfile />} />
-        <Route path="/grove" element={<ThrivingGrove />} />
-        <Route path="/scorched" element={<ScorchedLands />} />
-        <Route path="/budding" element={<BuddingLand />} />
-        <Route path="/trending" element={<TrendingPage />} />
-        <Route path="/moods/:moodSlug" element={<TrendingPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/chess" element={<ChessPage />} />
-        <Route path="/chess/:gameId" element={<ChessPage />} />
-        <Route path="/shop" element={<ShopRoute />} />
-        <Route path="/titles" element={<TitleAchievements />} />
-        <Route path="/buy-seeds" element={<BuySeeds />} />
-        <Route path="/choose" element={<ChoicePage />} />
-        <Route path="/reena" element={<ReenaPage />} />
-        <Route path="/guidelines" element={<CommunityGuidelines />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/refund-cancellation" element={<RefundCancellationPolicy />} />
-        <Route path="/moderation-report-policy" element={<ModerationReportPolicy />} />
-        <Route path="/contact-support" element={<ContactSupport />} />
-        <Route path="/pressed-leaves" element={<PressedLeaves />} />
-        <Route path="/weekly-events" element={<WeeklyEventsPage />} />
-        <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
-        <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
-        <Route path="/reena-apology" element={<ReenaApologyPage />} />
-        <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
-      </Routes>
+      <Suspense fallback={<RouteLoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/confession/:id" element={<ConfessionPage />} />
+          <Route path="/confession/:id/comment/:commentId" element={<ConfessionPage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/user/:id" element={<UserProfile />} />
+          <Route path="/grove" element={<ThrivingGrove />} />
+          <Route path="/scorched" element={<ScorchedLands />} />
+          <Route path="/budding" element={<BuddingLand />} />
+          <Route path="/trending" element={<TrendingPage />} />
+          <Route path="/moods/:moodSlug" element={<TrendingPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/chess" element={<ChessPage />} />
+          <Route path="/chess/:gameId" element={<ChessPage />} />
+          <Route path="/shop" element={<ShopRoute />} />
+          <Route path="/titles" element={<TitleAchievements />} />
+          <Route path="/buy-seeds" element={<BuySeeds />} />
+          <Route path="/choose" element={<ChoicePage />} />
+          <Route path="/reena" element={<ReenaPage />} />
+          <Route path="/guidelines" element={<CommunityGuidelines />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/refund-cancellation" element={<RefundCancellationPolicy />} />
+          <Route path="/moderation-report-policy" element={<ModerationReportPolicy />} />
+          <Route path="/contact-support" element={<ContactSupport />} />
+          <Route path="/pressed-leaves" element={<PressedLeaves />} />
+          <Route path="/weekly-events" element={<WeeklyEventsPage />} />
+          <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
+          <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
+          <Route path="/reena-apology" element={<ReenaApologyPage />} />
+          <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
+        </Routes>
+      </Suspense>
 
       <MobileRealmSwipeNav />
 
@@ -1350,7 +1419,11 @@ function AppContent() {
         </button>
       )}
 
-      <GuidebookPopup open={guidebookOpen} onClose={closeGuidebook} />
+      {guidebookOpen ? (
+        <Suspense fallback={null}>
+          <GuidebookPopup open={guidebookOpen} onClose={closeGuidebook} />
+        </Suspense>
+      ) : null}
       <ToastContainer />
     </>
   );
@@ -1364,6 +1437,7 @@ function App() {
       return "system";
     }
   });
+  const isPageVisible = usePageVisibility();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -1394,6 +1468,10 @@ function App() {
       if (mq && mq.removeEventListener) mq.removeEventListener("change", handle);
     };
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.dataset.tabHidden = isPageVisible ? "false" : "true";
+  }, [isPageVisible]);
 
   return (
     <AdminAuthProvider>

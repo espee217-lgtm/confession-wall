@@ -9117,6 +9117,103 @@ button.confession-image-scroller__item {
   }
 }
 
+/* === Performance mode hooks (no layout changes) === */
+html[data-performance-mode="lite"] .page-firefly:nth-of-type(n + 4) {
+  display: none !important;
+}
+
+html[data-performance-mode="lite"] .page-firefly,
+html[data-performance-mode="lite"] .nav-firefly {
+  opacity: 0.45 !important;
+}
+
+html[data-performance-mode="lite"] .nav-firefly:nth-of-type(n + 5) {
+  display: none !important;
+}
+
+html[data-performance-mode="lite"] .nav-firefly {
+  animation-duration: 6s !important;
+}
+
+html[data-performance-mode="lite"] .split-bouquet-shell {
+  animation-play-state: paused !important;
+}
+
+html[data-tab-hidden="true"] .nav-firefly,
+html[data-tab-hidden="true"] .page-firefly,
+html[data-tab-hidden="true"] .cw-cosmetic-fx-layer,
+html[data-tab-hidden="true"] .cw-cosmetic-fx-layer *,
+html[data-tab-hidden="true"] .cw-animated-badge,
+html[data-tab-hidden="true"] .cw-animated-badge * {
+  animation-play-state: paused !important;
+}
+
+html[data-performance-mode="lite"] .shop-earn-item::before {
+  animation-play-state: paused !important;
+}
+
+/* === Lite rendering cost reductions (visual identity preserved) === */
+html[data-performance-mode="lite"] .mobile-compose-backdrop,
+html[data-performance-mode="lite"] .confession-composer-backdrop,
+html[data-performance-mode="lite"] .mobile-guest-auth-prompt,
+html[data-performance-mode="lite"] .cw-settings-modal-backdrop,
+html[data-performance-mode="lite"] .composer-emoji-popover,
+html[data-performance-mode="lite"] .composer-emoji-popover--compact,
+html[data-performance-mode="lite"] .composer-emoji-popover--desktop,
+html[data-performance-mode="lite"] .cw-emoji-search-wrap,
+html[data-performance-mode="lite"] .cw-emoji-search-wrap--comment,
+html[data-performance-mode="lite"] .cw-emoji-category-tabs,
+html[data-performance-mode="lite"] .cw-emoji-category-tabs--comment {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-performance-mode="lite"] .mobile-compose-card,
+html[data-performance-mode="lite"] .confession-composer-shell,
+html[data-performance-mode="lite"] .mobile-guest-auth-card,
+html[data-performance-mode="lite"] .cw-settings-modal-panel {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.46) !important;
+}
+
+html[data-performance-mode="lite"] .mobile-home-card,
+html[data-performance-mode="lite"] .confession-card,
+html[data-performance-mode="lite"] .cw-feed-post-card,
+html[data-performance-mode="lite"] .echo-root-card,
+html[data-performance-mode="lite"] .trending-mobile-card,
+html[data-performance-mode="lite"] .activity-item,
+html[data-performance-mode="lite"] .search-state-card {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24) !important;
+}
+
+@media (max-width: 720px) {
+  html[data-performance-mode="lite"] .page-firefly:nth-of-type(n + 3) {
+    display: none !important;
+  }
+
+  html[data-performance-mode="lite"] .mobile-compose-backdrop,
+  html[data-performance-mode="lite"] .confession-composer-backdrop,
+  html[data-performance-mode="lite"] .mobile-guest-auth-prompt,
+  html[data-performance-mode="lite"] .cw-settings-modal-backdrop {
+    background: rgba(3, 10, 6, 0.86) !important;
+  }
+
+  html[data-performance-mode="lite"] .mobile-compose-card,
+  html[data-performance-mode="lite"] .confession-composer-shell,
+  html[data-performance-mode="lite"] .mobile-guest-auth-card,
+  html[data-performance-mode="lite"] .cw-settings-modal-panel {
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.44),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-firefly,
+  .page-firefly {
+    animation: none !important;
+  }
+}
+
 /* === Mobile bottom quest nav cleanup patch === */
 @media (max-width: 720px) {
   /* Keep Shop only in the bottom nav on mobile. Desktop navbar is unchanged. */

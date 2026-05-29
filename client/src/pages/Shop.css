@@ -1730,3 +1730,27 @@
   left: 50%;
   top: 50%;
 }
+
+/* Lite/mobile performance overrides: keep layout and identity, reduce costly blur/shadow work. */
+html[data-performance-mode="lite"] .shop-preview-modal-backdrop,
+html[data-performance-mode="lite"] .shop-confirm-modal-backdrop {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(3, 12, 7, 0.84) !important;
+}
+
+html[data-performance-mode="lite"] .shop-preview-modal,
+html[data-performance-mode="lite"] .shop-confirm-modal,
+html[data-performance-mode="lite"] .shop-item-card,
+html[data-performance-mode="lite"] .shop-earn-item {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34) !important;
+}
+
+@media (max-width: 720px) {
+  html[data-performance-mode="lite"] .shop-preview-modal,
+  html[data-performance-mode="lite"] .shop-confirm-modal,
+  html[data-performance-mode="lite"] .shop-item-card,
+  html[data-performance-mode="lite"] .shop-earn-item {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3) !important;
+  }
+}

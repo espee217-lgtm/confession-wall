@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import usePageVisibility from "../hooks/usePageVisibility";
 import "./ForestEventBanner.css";
 
 const API_BASE =
@@ -118,6 +119,7 @@ function getCompactStatus(event, isLoading = false) {
 
 export default function ForestEventBanner({ compact = false, statusData = null }) {
   const [status, setStatus] = useState(() => statusData || readCachedStatus());
+  const isPageVisible = usePageVisibility();
 
   useEffect(() => {
     const preload = new Image();
@@ -155,18 +157,30 @@ export default function ForestEventBanner({ compact = false, statusData = null }
       }
     };
 
-    void loadStatus();
+    if (isPageVisible) {
+      void loadStatus();
+    }
 
     const interval = window.setInterval(() => {
-      void loadStatus();
+      if (!document.hidden) {
+        void loadStatus();
+      }
     }, 60000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void loadStatus();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       alive = false;
       controller.abort();
       window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [statusData]);
+  }, [statusData, isPageVisible]);
 
   const isLoading = !status?.currentEvent;
   const event = status?.currentEvent || FALLBACK_EVENT;
