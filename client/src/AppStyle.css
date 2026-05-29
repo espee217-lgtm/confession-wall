@@ -2573,7 +2573,7 @@ a.chip {
 
 .home-desktop-guidebook-button {
   position: absolute;
-  left: 18px;
+  right: 18px;
   top: clamp(92px, 13vh, 126px);
   z-index: 155;
   display: inline-flex;
@@ -2683,7 +2683,11 @@ body.cw-guidebook-open .home-desktop-guidebook-button {
 
 @media (max-width: 720px) {
   .home-desktop-guidebook-button {
-    display: none;
+    right: 10px;
+    top: 76px;
+    min-width: 128px;
+    padding: 8px 12px;
+    font-size: 11px;
   }
 }
 
