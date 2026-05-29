@@ -2404,12 +2404,12 @@ useEffect(() => {
         data-ui="true"
         style={{
           position: "absolute",
-          top: "10px",
-          left: "14px",
-          width: "min(308px, calc(100vw - 52px))",
+          top: "4px",
+          left: "12px",
+          width: "min(270px, calc(100vw - 64px))",
           zIndex: 90,
           pointerEvents: "none",
-          transform: "scale(0.96)",
+          transform: "scaleX(1.16) scaleY(0.9)",
           transformOrigin: "top left",
         }}
       >

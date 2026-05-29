@@ -2574,7 +2574,7 @@ a.chip {
 .home-desktop-guidebook-button {
   position: absolute;
   right: 18px;
-  top: clamp(78px, 10.5vh, 104px);
+  top: clamp(38px, 4.8vh, 48px);
   z-index: 155;
   display: inline-flex;
   align-items: center;
@@ -2684,7 +2684,7 @@ body.cw-guidebook-open .home-desktop-guidebook-button {
 @media (max-width: 720px) {
   .home-desktop-guidebook-button {
     right: 10px;
-    top: 66px;
+    top: 36px;
     min-width: 128px;
     padding: 8px 12px;
     font-size: 11px;
