@@ -1314,7 +1314,6 @@ function Footer() {
 function AppContent() {
   const location = useLocation();
   const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
-  const hideGuidebookLauncher = HIDE_NAVBAR_ROUTES.includes(location.pathname);
   const [guidebookOpen, setGuidebookOpen] = useState(false);
 
   useEffect(() => {
@@ -1356,68 +1355,57 @@ function AppContent() {
   }, [location.pathname]);
 
   return (
-    <>
+    <div className="cw-app-shell">
       <Navbar />
 
-      <Suspense fallback={<RouteLoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/confession/:id" element={<ConfessionPage />} />
-          <Route path="/confession/:id/comment/:commentId" element={<ConfessionPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/user/:id" element={<UserProfile />} />
-          <Route path="/grove" element={<ThrivingGrove />} />
-          <Route path="/scorched" element={<ScorchedLands />} />
-          <Route path="/budding" element={<BuddingLand />} />
-          <Route path="/trending" element={<TrendingPage />} />
-          <Route path="/moods/:moodSlug" element={<TrendingPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/activity" element={<ActivityPage />} />
-          <Route path="/friends" element={<FriendsPage />} />
-          <Route path="/chess" element={<ChessPage />} />
-          <Route path="/chess/:gameId" element={<ChessPage />} />
-          <Route path="/shop" element={<ShopRoute />} />
-          <Route path="/titles" element={<TitleAchievements />} />
-          <Route path="/buy-seeds" element={<BuySeeds />} />
-          <Route path="/choose" element={<ChoicePage />} />
-          <Route path="/reena" element={<ReenaPage />} />
-          <Route path="/guidelines" element={<CommunityGuidelines />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/refund-cancellation" element={<RefundCancellationPolicy />} />
-          <Route path="/moderation-report-policy" element={<ModerationReportPolicy />} />
-          <Route path="/contact-support" element={<ContactSupport />} />
-          <Route path="/pressed-leaves" element={<PressedLeaves />} />
-          <Route path="/weekly-events" element={<WeeklyEventsPage />} />
-          <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
-          <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
-          <Route path="/reena-apology" element={<ReenaApologyPage />} />
-          <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
-        </Routes>
-      </Suspense>
+      <div className="cw-route-shell">
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/confession/:id" element={<ConfessionPage />} />
+            <Route path="/confession/:id/comment/:commentId" element={<ConfessionPage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/user/:id" element={<UserProfile />} />
+            <Route path="/grove" element={<ThrivingGrove />} />
+            <Route path="/scorched" element={<ScorchedLands />} />
+            <Route path="/budding" element={<BuddingLand />} />
+            <Route path="/trending" element={<TrendingPage />} />
+            <Route path="/moods/:moodSlug" element={<TrendingPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/activity" element={<ActivityPage />} />
+            <Route path="/friends" element={<FriendsPage />} />
+            <Route path="/chess" element={<ChessPage />} />
+            <Route path="/chess/:gameId" element={<ChessPage />} />
+            <Route path="/shop" element={<ShopRoute />} />
+            <Route path="/titles" element={<TitleAchievements />} />
+            <Route path="/buy-seeds" element={<BuySeeds />} />
+            <Route path="/choose" element={<ChoicePage />} />
+            <Route path="/reena" element={<ReenaPage />} />
+            <Route path="/guidelines" element={<CommunityGuidelines />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/refund-cancellation" element={<RefundCancellationPolicy />} />
+            <Route path="/moderation-report-policy" element={<ModerationReportPolicy />} />
+            <Route path="/contact-support" element={<ContactSupport />} />
+            <Route path="/pressed-leaves" element={<PressedLeaves />} />
+            <Route path="/weekly-events" element={<WeeklyEventsPage />} />
+            <Route path="/reena-kundali" element={<ReenaKundaliPage />} />
+            <Route path="/reena-trivia" element={<ReenaTriviaPage />} />
+            <Route path="/reena-apology" element={<ReenaApologyPage />} />
+            <Route path="/admin/special-logs" element={<SpecialLogsAdminPage />} />
+          </Routes>
+        </Suspense>
+      </div>
 
       <MobileRealmSwipeNav />
 
       {!hideFooter && <Footer />}
-
-      {!hideGuidebookLauncher && (
-        <button
-          type="button"
-          className="cw-guidebook-launcher"
-          onClick={() => setGuidebookOpen(true)}
-          title="Open the Confession Wall Guidebook"
-          aria-label="Open the Confession Wall Guidebook"
-        >
-          <span className="cw-guidebook-launcher-icon" aria-hidden="true">📜</span>
-          <span>Guidebook</span>
-        </button>
-      )}
 
       {guidebookOpen ? (
         <Suspense fallback={null}>
@@ -1425,7 +1413,7 @@ function AppContent() {
         </Suspense>
       ) : null}
       <ToastContainer />
-    </>
+    </div>
   );
 }
 

@@ -29,6 +29,21 @@ body {
   min-height: 100vh;
 }
 
+.cw-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cw-route-shell {
+  flex: 1 0 auto;
+  min-width: 0;
+}
+
+.site-footer {
+  flex: 0 0 auto;
+}
+
 /* ===== NAVBAR ===== */
 .navbar {
   background: linear-gradient(90deg, var(--primary), #00bfff);
