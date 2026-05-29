@@ -2404,11 +2404,13 @@ useEffect(() => {
         data-ui="true"
         style={{
           position: "absolute",
-          top: "18px",
-          left: "18px",
-          width: "min(340px, calc(100vw - 40px))",
+          top: "10px",
+          left: "14px",
+          width: "min(308px, calc(100vw - 52px))",
           zIndex: 90,
           pointerEvents: "none",
+          transform: "scale(0.96)",
+          transformOrigin: "top left",
         }}
       >
         <ForestEventBanner compact />
