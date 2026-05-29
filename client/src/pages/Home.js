@@ -1887,6 +1887,16 @@ const openGuidebookAfterTutorial = useCallback((mode = "auto") => {
   }, mode === "auto" ? 450 : 150);
 }, []);
 
+const openDesktopGuidebook = useCallback((event) => {
+  event?.stopPropagation();
+
+  window.dispatchEvent(
+    new CustomEvent("cw:open-guidebook", {
+      detail: { mode: "manual", source: "desktop-home" },
+    })
+  );
+}, []);
+
 useEffect(() => {
   const seenTutorial = localStorage.getItem("seenHomeTutorial");
 
@@ -2391,6 +2401,18 @@ useEffect(() => {
         onLeftClick={() => navigate("/grove")}
         onRightClick={() => navigate("/scorched")}
       />
+
+      <button
+        type="button"
+        data-ui="true"
+        className="home-desktop-guidebook-button"
+        onClick={openDesktopGuidebook}
+        aria-label="Open the Confession Wall Guidebook"
+        title="Open Guidebook"
+      >
+        <span className="home-desktop-guidebook-icon" aria-hidden="true">📜</span>
+        <span>Guidebook</span>
+      </button>
 
       {confessions.length > 0 && (
         <ConfessionFeed

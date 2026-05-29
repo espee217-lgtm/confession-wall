@@ -2571,6 +2571,71 @@ a.chip {
   transform-origin: center top;
 }
 
+.home-desktop-guidebook-button {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(92px, 15vh, 142px);
+  z-index: 155;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 164px;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid rgba(218, 238, 160, 0.28);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(12, 43, 17, 0.76), rgba(4, 18, 8, 0.86));
+  color: rgba(238, 255, 222, 0.9);
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.34),
+    0 0 18px rgba(174, 255, 111, 0.14),
+    inset 0 1px 0 rgba(255, 246, 190, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease,
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.home-desktop-guidebook-button:hover {
+  transform: translateX(-50%) translateY(-2px);
+  border-color: rgba(235, 255, 170, 0.42);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.38),
+    0 0 24px rgba(178, 255, 112, 0.2),
+    inset 0 1px 0 rgba(255, 246, 190, 0.16);
+}
+
+.home-desktop-guidebook-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+body.cw-notifications-open .home-desktop-guidebook-button,
+body.cw-guidebook-open .home-desktop-guidebook-button {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .home-desktop-guidebook-button {
+    display: none;
+  }
+}
+
 .quest-drop-wrap {
   position: relative;
   z-index: 4650;
