@@ -9,7 +9,11 @@ router.get("/health", (req, res) => {
     ok: true,
     route: "/api/translate/health",
     provider: process.env.TRANSLATION_PROVIDER || "none",
-    libreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL)
+    primaryLibreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_PRIMARY_URL),
+    fallbackLibreTranslateConfigured: Boolean(process.env.LIBRETRANSLATE_URL),
+    libreTranslateConfigured: Boolean(
+      process.env.LIBRETRANSLATE_PRIMARY_URL || process.env.LIBRETRANSLATE_URL
+    ),
   });
 });
 
@@ -150,10 +154,34 @@ const buildMemoryCacheEntry = (cacheDoc, fallbackSourceLang) => ({
   targetType: cacheDoc.targetType || "unknown",
 });
 
-async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
-  const libreTranslateUrl = String(process.env.LIBRETRANSLATE_URL || "").trim();
+const getLibreTranslateProviders = () => {
+  const primaryUrl = String(process.env.LIBRETRANSLATE_PRIMARY_URL || "").trim();
+  const fallbackUrl = String(process.env.LIBRETRANSLATE_URL || "").trim();
+  const providers = [];
 
-  if (!libreTranslateUrl) {
+  if (primaryUrl) {
+    providers.push({
+      role: "primary",
+      label: "Hugging Face LibreTranslate",
+      url: primaryUrl,
+    });
+  }
+
+  if (fallbackUrl && fallbackUrl !== primaryUrl) {
+    providers.push({
+      role: "fallback",
+      label: "Render LibreTranslate",
+      url: fallbackUrl,
+    });
+  }
+
+  return providers;
+};
+
+async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
+  const providers = getLibreTranslateProviders();
+
+  if (providers.length === 0) {
     const error = new Error("Translation service is not configured");
     error.status = 503;
     throw error;
@@ -166,7 +194,6 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
   }
 
   const apiKey = String(process.env.LIBRETRANSLATE_API_KEY || "").trim();
-  const translateUrl = `${libreTranslateUrl.replace(/\/+$/g, "")}/translate`;
   const buildPayload = (effectiveSourceLang) => {
     const payload = {
       q: text,
@@ -182,10 +209,11 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
     return payload;
   };
 
-  const requestTranslation = async (payload) => {
+  const requestTranslation = async (provider, payload) => {
     let response;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), LIBRE_TRANSLATE_TIMEOUT_MS);
+    const translateUrl = `${provider.url.replace(/\/+$/g, "")}/translate`;
 
     try {
       response = await fetch(translateUrl, {
@@ -218,27 +246,60 @@ async function translateWithLibreTranslate({ text, targetLang, sourceLang }) {
       throw error;
     }
 
+    if (typeof data?.translatedText !== "string" || !data.translatedText.trim()) {
+      const error = new Error("Translation unavailable");
+      error.status = 503;
+      error.code = "TRANSLATION_PROVIDER_ERROR";
+      error.providerStatus = response.status;
+      throw error;
+    }
+
     return data;
   };
 
-  let effectiveSourceLang = sourceLang || "auto";
-  let data;
+  const translateWithProvider = async (provider) => {
+    let effectiveSourceLang = sourceLang || "auto";
+    let data;
 
-  try {
-    data = await withTranslationRetry(() => requestTranslation(buildPayload(effectiveSourceLang)));
-  } catch (err) {
-    if (effectiveSourceLang !== "auto" || Number(err?.providerStatus) !== 400) {
-      throw err;
+    try {
+      data = await withTranslationRetry(() =>
+        requestTranslation(provider, buildPayload(effectiveSourceLang))
+      );
+    } catch (err) {
+      if (effectiveSourceLang !== "auto" || Number(err?.providerStatus) !== 400) {
+        throw err;
+      }
+
+      effectiveSourceLang = "en";
+      data = await withTranslationRetry(() =>
+        requestTranslation(provider, buildPayload(effectiveSourceLang))
+      );
     }
 
-    effectiveSourceLang = "en";
-    data = await withTranslationRetry(() => requestTranslation(buildPayload(effectiveSourceLang)));
+    return {
+      translatedText: data.translatedText,
+      detectedSourceLang: data?.detectedLanguage?.language || effectiveSourceLang,
+      providerRole: provider.role,
+    };
+  };
+
+  let lastError = null;
+
+  for (const provider of providers) {
+    try {
+      return await translateWithProvider(provider);
+    } catch (err) {
+      lastError = err;
+
+      if (provider.role === "primary" && providers.some((item) => item.role === "fallback")) {
+        console.warn("Primary LibreTranslate failed, trying fallback:", err.message);
+      } else {
+        console.warn(`${provider.label} failed:`, err.message);
+      }
+    }
   }
 
-  return {
-    translatedText: data.translatedText || text,
-    detectedSourceLang: data?.detectedLanguage?.language || effectiveSourceLang,
-  };
+  throw lastError || Object.assign(new Error("Translation unavailable"), { status: 503 });
 }
 
 router.post("/", async (req, res) => {
