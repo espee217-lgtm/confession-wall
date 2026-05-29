@@ -2573,10 +2573,9 @@ a.chip {
 
 .home-desktop-guidebook-button {
   position: absolute;
-  left: 50%;
-  bottom: clamp(92px, 15vh, 142px);
+  left: 18px;
+  top: clamp(92px, 13vh, 126px);
   z-index: 155;
-  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2610,12 +2609,64 @@ a.chip {
 }
 
 .home-desktop-guidebook-button:hover {
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateY(-2px);
   border-color: rgba(235, 255, 170, 0.42);
   box-shadow:
     0 14px 30px rgba(0, 0, 0, 0.38),
     0 0 24px rgba(178, 255, 112, 0.2),
     inset 0 1px 0 rgba(255, 246, 190, 0.16);
+}
+
+.home-side-feed {
+  z-index: 70 !important;
+  pointer-events: auto;
+}
+
+.home-side-card {
+  box-sizing: border-box;
+  pointer-events: auto;
+  z-index: 72;
+}
+
+.home-side-card-translation {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.home-side-card-translation .cw-translated-text {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.home-side-card-translation--grove {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.home-side-card-translation--grove .cw-translate-btn {
+  align-self: flex-end;
+  margin-left: auto;
+  margin-right: 0;
+  white-space: nowrap;
+}
+
+.home-side-card-translation--scorched {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.home-side-card-translation--scorched .cw-translate-btn {
+  align-self: flex-start;
+  margin-left: 0;
+  margin-right: auto;
+  white-space: nowrap;
 }
 
 .home-desktop-guidebook-icon {

@@ -502,6 +502,8 @@ function ConfessionFeed({ confessions, onCardClick }) {
 
   return (
     <div
+      data-spirit-blocker="true"
+      className="spirit-click-blocker home-side-feed home-side-feed--grove"
       style={{
         position: "absolute",
         left: 0,
@@ -540,6 +542,7 @@ function ConfessionCard({ conf, index, onClick }) {
 
   return (
     <div
+      data-spirit-blocker="true"
       className={`home-side-card home-side-card--grove${hovered ? " is-hovered" : ""}`}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
@@ -602,6 +605,7 @@ function ConfessionCard({ conf, index, onClick }) {
         targetType="confession"
         targetId={conf._id || conf.id}
         compact
+        className="home-side-card-translation home-side-card-translation--grove"
         textStyle={{
           margin: 0,
           fontSize: "11.5px",
@@ -661,6 +665,8 @@ function ScorchedFeed({ confessions, onCardClick }) {
 
   return (
     <div
+      data-spirit-blocker="true"
+      className="spirit-click-blocker home-side-feed home-side-feed--scorched"
       style={{
         position: "absolute",
         right: 0,
@@ -699,6 +705,7 @@ function ScorchedCard({ conf, index, onClick }) {
 
   return (
     <div
+      data-spirit-blocker="true"
       className={`home-side-card home-side-card--scorched${hovered ? " is-hovered" : ""}`}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
@@ -749,6 +756,7 @@ function ScorchedCard({ conf, index, onClick }) {
         targetType="confession"
         targetId={conf._id || conf.id}
         compact
+        className="home-side-card-translation home-side-card-translation--scorched"
         textStyle={{
           margin: 0,
           fontSize: "11.5px",
@@ -1589,6 +1597,15 @@ function shouldBlockSpiritInteraction(target) {
         ".mobile-compose-card",
         ".cw-settings-modal-backdrop",
         ".cw-settings-modal-panel",
+        "[data-spirit-blocker=\"true\"]",
+        ".spirit-click-blocker",
+        ".home-side-card",
+        ".home-desktop-guidebook-button",
+        "button",
+        "a",
+        "input",
+        "textarea",
+        "select",
         "[data-ui=\"true\"]",
       ].join(",")
     )
@@ -2405,6 +2422,7 @@ useEffect(() => {
       <button
         type="button"
         data-ui="true"
+        data-spirit-blocker="true"
         className="home-desktop-guidebook-button"
         onClick={openDesktopGuidebook}
         aria-label="Open the Confession Wall Guidebook"

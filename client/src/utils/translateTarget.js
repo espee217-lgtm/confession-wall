@@ -1,5 +1,6 @@
 export const TRANSLATE_TARGET_STORAGE_KEY = "cwTranslateTargetLang";
 export const TRANSLATE_REGION_STORAGE_KEY = "cwTranslateRegion";
+export const TRANSLATE_TARGET_MANUAL_STORAGE_KEY = "cwTranslateTargetManual";
 export const TRANSLATE_TARGET_CHANGE_EVENT = "cw:translate-target-change";
 
 export const SUPPORTED_TRANSLATION_OPTIONS = [
@@ -19,34 +20,19 @@ export const SUPPORTED_TRANSLATION_LANGS = SUPPORTED_TRANSLATION_OPTIONS.map(
 
 const SUPPORTED_TRANSLATION_LANG_SET = new Set(SUPPORTED_TRANSLATION_LANGS);
 
-const REGION_BY_COUNTRY = {
+const AUTO_REGION_BY_COUNTRY = {
   IN: "hi",
   PH: "tl",
-  ES: "es",
-  MX: "es",
-  AR: "es",
-  CO: "es",
-  CL: "es",
-  PE: "es",
-  FR: "fr",
-  BE: "fr",
-  CH: "fr",
-  CA: "fr",
-  SN: "fr",
-  CI: "fr",
-  CD: "fr",
-  CM: "fr",
   RU: "ru",
-  UA: "ru",
-  BY: "ru",
-  KZ: "ru",
   DE: "de",
   AT: "de",
+  CH: "de",
   BR: "pt",
   PT: "pt",
-  AO: "pt",
-  MZ: "pt",
 };
+
+const LATIN_REGION_COUNTRIES = new Set(["ES", "MX", "AR", "CO", "CL", "PE"]);
+const FRANCOPHONE_REGION_COUNTRIES = new Set(["FR", "CA"]);
 
 const normalizeLang = (lang) => {
   const value = String(lang || "").trim();
@@ -105,6 +91,31 @@ const getNavigatorLocales = () => {
   return locales.filter(Boolean);
 };
 
+const hasSupportedLocaleLanguage = (parsedLocales, lang) =>
+  parsedLocales.some((locale) => locale.language === lang);
+
+const getAutoRegionalLang = (parsedLocales) => {
+  const englishLocales = parsedLocales.filter((locale) => locale.language === "en");
+
+  for (const locale of englishLocales) {
+    if (LATIN_REGION_COUNTRIES.has(locale.region)) {
+      if (hasSupportedLocaleLanguage(parsedLocales, "es")) return "es";
+      continue;
+    }
+
+    if (FRANCOPHONE_REGION_COUNTRIES.has(locale.region)) {
+      if (hasSupportedLocaleLanguage(parsedLocales, "fr")) return "fr";
+      continue;
+    }
+
+    if (AUTO_REGION_BY_COUNTRY[locale.region]) {
+      return AUTO_REGION_BY_COUNTRY[locale.region];
+    }
+  }
+
+  return "";
+};
+
 const buildTarget = (lang, options = {}) => {
   const option = getTranslationOptionByLang(lang);
 
@@ -114,6 +125,7 @@ const buildTarget = (lang, options = {}) => {
     regionLabel: option.regionLabel,
     shouldShowTranslate: option.lang !== "en" || Boolean(options.explicit),
     explicit: Boolean(options.explicit),
+    manual: Boolean(options.manual),
   };
 };
 
@@ -125,17 +137,48 @@ export function getSavedTranslateTarget() {
   }
 }
 
+export function isManualTranslateTarget() {
+  try {
+    return localStorage.getItem(TRANSLATE_TARGET_MANUAL_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function setSavedTranslateTarget(lang) {
   const option = getTranslationOptionByLang(lang);
 
   try {
     localStorage.setItem(TRANSLATE_TARGET_STORAGE_KEY, option.lang);
     localStorage.setItem(TRANSLATE_REGION_STORAGE_KEY, option.regionLabel);
+    localStorage.setItem(TRANSLATE_TARGET_MANUAL_STORAGE_KEY, "true");
   } catch {
     // localStorage can be unavailable; still notify the current page.
   }
 
-  const target = buildTarget(option.lang, { explicit: true });
+  const target = buildTarget(option.lang, { explicit: true, manual: true });
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(TRANSLATE_TARGET_CHANGE_EVENT, {
+        detail: target,
+      })
+    );
+  }
+
+  return target;
+}
+
+export function clearManualTranslateTarget() {
+  try {
+    localStorage.removeItem(TRANSLATE_TARGET_MANUAL_STORAGE_KEY);
+    localStorage.removeItem(TRANSLATE_TARGET_STORAGE_KEY);
+    localStorage.removeItem(TRANSLATE_REGION_STORAGE_KEY);
+  } catch {
+    // localStorage can be unavailable; still notify the current page.
+  }
+
+  const target = getPreferredTranslateTarget();
 
   if (typeof window !== "undefined") {
     window.dispatchEvent(
@@ -151,8 +194,8 @@ export function setSavedTranslateTarget(lang) {
 export function getPreferredTranslateTarget() {
   const storedLang = getSavedTranslateTarget();
 
-  if (storedLang) {
-    return buildTarget(storedLang, { explicit: true });
+  if (isManualTranslateTarget() && storedLang) {
+    return buildTarget(storedLang, { explicit: true, manual: true });
   }
 
   const parsedLocales = getNavigatorLocales().map(parseLocale);
@@ -167,12 +210,9 @@ export function getPreferredTranslateTarget() {
     return buildTarget(supportedNonEnglishLocale.language);
   }
 
-  const englishRegionalLocale = parsedLocales.find(
-    (locale) => locale.language === "en" && REGION_BY_COUNTRY[locale.region]
-  );
-
-  if (englishRegionalLocale) {
-    return buildTarget(REGION_BY_COUNTRY[englishRegionalLocale.region]);
+  const regionalLang = getAutoRegionalLang(parsedLocales);
+  if (regionalLang) {
+    return buildTarget(regionalLang);
   }
 
   return buildTarget("en");

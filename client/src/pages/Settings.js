@@ -16,8 +16,10 @@ import {
   setSavedPerformanceMode,
 } from "../utils/performanceMode";
 import {
+  clearManualTranslateTarget,
   getPreferredTranslateTarget,
   getTranslationOptionByLang,
+  isManualTranslateTarget,
   setSavedTranslateTarget,
   SUPPORTED_TRANSLATION_OPTIONS,
   TRANSLATE_TARGET_CHANGE_EVENT,
@@ -429,6 +431,9 @@ export default function Settings() {
   const [translateTargetLang, setTranslateTargetLang] = useState(
     () => getPreferredTranslateTarget().lang
   );
+  const [translateTargetManual, setTranslateTargetManual] = useState(
+    () => isManualTranslateTarget()
+  );
 
   const palette = getPalette(theme);
 
@@ -617,6 +622,7 @@ export default function Settings() {
   useEffect(() => {
     const syncTranslateTarget = () => {
       setTranslateTargetLang(getPreferredTranslateTarget().lang);
+      setTranslateTargetManual(isManualTranslateTarget());
     };
 
     syncTranslateTarget();
@@ -694,6 +700,13 @@ export default function Settings() {
   const handleTranslateTarget = (lang) => {
     const target = setSavedTranslateTarget(lang);
     setTranslateTargetLang(target.lang);
+    setTranslateTargetManual(true);
+  };
+
+  const handleAutoTranslateTarget = () => {
+    const target = clearManualTranslateTarget();
+    setTranslateTargetLang(target.lang);
+    setTranslateTargetManual(false);
   };
 
   const handleImage = (e) => {
@@ -1194,6 +1207,30 @@ export default function Settings() {
                 Translation Region
               </p>
 
+              <button
+                type="button"
+                onClick={handleAutoTranslateTarget}
+                style={{
+                  width: "100%",
+                  marginBottom: "8px",
+                  padding: "9px 8px",
+                  borderRadius: "10px",
+                  border: !translateTargetManual
+                    ? `2px solid ${palette.accent}`
+                    : `1px solid ${palette.border}`,
+                  background: !translateTargetManual
+                    ? "rgba(74,143,53,0.22)"
+                    : "transparent",
+                  color: !translateTargetManual ? palette.accent : palette.muted,
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  fontFamily: "Georgia, serif",
+                  fontWeight: 700,
+                }}
+              >
+                Auto-detect from my browser
+              </button>
+
               <div
                 style={{
                   display: "grid",
@@ -1211,15 +1248,15 @@ export default function Settings() {
                       padding: "9px 8px",
                       borderRadius: "10px",
                       border:
-                        translateTargetLang === option.lang
+                        translateTargetManual && translateTargetLang === option.lang
                           ? `2px solid ${palette.accent}`
                           : `1px solid ${palette.border}`,
                       background:
-                        translateTargetLang === option.lang
+                        translateTargetManual && translateTargetLang === option.lang
                           ? "rgba(74,143,53,0.22)"
                           : "transparent",
                       color:
-                        translateTargetLang === option.lang
+                        translateTargetManual && translateTargetLang === option.lang
                           ? palette.accent
                           : palette.muted,
                       cursor: "pointer",
@@ -1253,7 +1290,7 @@ export default function Settings() {
                   fontFamily: "Georgia, serif",
                 }}
               >
-                Translate buttons use your selected region. Active: {selectedTranslateOption.label}.
+                Translate buttons use {translateTargetManual ? "your selected region" : "browser auto-detect"}. Active: {selectedTranslateOption.label}.
               </p>
             </div>
           </Section>
