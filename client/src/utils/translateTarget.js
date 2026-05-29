@@ -1,59 +1,51 @@
-const COUNTRY_TO_LANGUAGE = {
-  PH: { lang: "tl", label: "Filipino" },
-  IN: { lang: "hi", label: "Hindi" },
-  ID: { lang: "id", label: "Indonesian" },
-  MY: { lang: "ms", label: "Malay" },
-  BD: { lang: "bn", label: "Bengali" },
-  PK: { lang: "ur", label: "Urdu" },
-  NP: { lang: "ne", label: "Nepali" },
-  LK: { lang: "si", label: "Sinhala" },
-  TH: { lang: "th", label: "Thai" },
-  VN: { lang: "vi", label: "Vietnamese" },
-  JP: { lang: "ja", label: "Japanese" },
-  KR: { lang: "ko", label: "Korean" },
-  CN: { lang: "zh-CN", label: "Chinese" },
-  TW: { lang: "zh-TW", label: "Chinese" },
-  SA: { lang: "ar", label: "Arabic" },
-  AE: { lang: "ar", label: "Arabic" },
-  ES: { lang: "es", label: "Spanish" },
-  MX: { lang: "es", label: "Spanish" },
-  AR: { lang: "es", label: "Spanish" },
-  CO: { lang: "es", label: "Spanish" },
-  CL: { lang: "es", label: "Spanish" },
-  PE: { lang: "es", label: "Spanish" },
-  BR: { lang: "pt", label: "Portuguese" },
-  FR: { lang: "fr", label: "French" },
-  DE: { lang: "de", label: "German" },
-  IT: { lang: "it", label: "Italian" },
-  RU: { lang: "ru", label: "Russian" },
-};
+export const TRANSLATE_TARGET_STORAGE_KEY = "cwTranslateTargetLang";
+export const TRANSLATE_REGION_STORAGE_KEY = "cwTranslateRegion";
+export const TRANSLATE_TARGET_CHANGE_EVENT = "cw:translate-target-change";
 
-const LANGUAGE_LABELS = {
-  ar: "Arabic",
-  bn: "Bengali",
-  de: "German",
-  en: "English",
-  es: "Spanish",
-  fil: "Filipino",
-  fr: "French",
-  hi: "Hindi",
-  id: "Indonesian",
-  it: "Italian",
-  ja: "Japanese",
-  ko: "Korean",
-  ms: "Malay",
-  ne: "Nepali",
-  pt: "Portuguese",
-  ru: "Russian",
-  si: "Sinhala",
-  ta: "Tamil",
-  te: "Telugu",
-  th: "Thai",
-  tl: "Filipino",
-  ur: "Urdu",
-  vi: "Vietnamese",
-  "zh-CN": "Chinese",
-  "zh-TW": "Chinese",
+export const SUPPORTED_TRANSLATION_OPTIONS = [
+  { regionLabel: "Global / English", lang: "en", label: "English" },
+  { regionLabel: "India Region", lang: "hi", label: "Hindi" },
+  { regionLabel: "Philippines Region", lang: "tl", label: "Filipino" },
+  { regionLabel: "Latin Region", lang: "es", label: "Spanish" },
+  { regionLabel: "Francophone Region", lang: "fr", label: "French" },
+  { regionLabel: "Eastern Europe Region", lang: "ru", label: "Russian" },
+  { regionLabel: "Central Europe Region", lang: "de", label: "German" },
+  { regionLabel: "Lusophone Region", lang: "pt", label: "Portuguese" },
+];
+
+export const SUPPORTED_TRANSLATION_LANGS = SUPPORTED_TRANSLATION_OPTIONS.map(
+  (option) => option.lang
+);
+
+const SUPPORTED_TRANSLATION_LANG_SET = new Set(SUPPORTED_TRANSLATION_LANGS);
+
+const REGION_BY_COUNTRY = {
+  IN: "hi",
+  PH: "tl",
+  ES: "es",
+  MX: "es",
+  AR: "es",
+  CO: "es",
+  CL: "es",
+  PE: "es",
+  FR: "fr",
+  BE: "fr",
+  CH: "fr",
+  CA: "fr",
+  SN: "fr",
+  CI: "fr",
+  CD: "fr",
+  CM: "fr",
+  RU: "ru",
+  UA: "ru",
+  BY: "ru",
+  KZ: "ru",
+  DE: "de",
+  AT: "de",
+  BR: "pt",
+  PT: "pt",
+  AO: "pt",
+  MZ: "pt",
 };
 
 const normalizeLang = (lang) => {
@@ -62,15 +54,21 @@ const normalizeLang = (lang) => {
 
   const lower = value.toLowerCase();
   if (lower === "fil" || lower.startsWith("fil-") || lower === "tagalog") return "tl";
-  if (lower === "zh-cn" || lower === "zh-hans") return "zh-CN";
-  if (lower === "zh-tw" || lower === "zh-hant") return "zh-TW";
 
   return lower.split("-")[0];
 };
 
-const getLanguageLabel = (lang) => {
+export const normalizeTranslateLang = (lang) => {
   const normalized = normalizeLang(lang);
-  return LANGUAGE_LABELS[lang] || LANGUAGE_LABELS[normalized] || normalized.toUpperCase();
+  return SUPPORTED_TRANSLATION_LANG_SET.has(normalized) ? normalized : "";
+};
+
+export const getTranslationOptionByLang = (lang) => {
+  const normalized = normalizeTranslateLang(lang);
+  return (
+    SUPPORTED_TRANSLATION_OPTIONS.find((option) => option.lang === normalized) ||
+    SUPPORTED_TRANSLATION_OPTIONS[0]
+  );
 };
 
 const parseLocale = (locale) => {
@@ -99,58 +97,83 @@ const parseLocale = (locale) => {
 const getNavigatorLocales = () => {
   if (typeof navigator === "undefined") return [];
 
-  const locales = Array.isArray(navigator.languages) && navigator.languages.length
-    ? navigator.languages
-    : [navigator.language];
+  const locales =
+    Array.isArray(navigator.languages) && navigator.languages.length
+      ? navigator.languages
+      : [navigator.language];
 
   return locales.filter(Boolean);
 };
 
-export function getPreferredTranslateTarget() {
-  try {
-    const stored = localStorage.getItem("cwTranslateTargetLang");
-    const storedLang = normalizeLang(stored);
+const buildTarget = (lang, options = {}) => {
+  const option = getTranslationOptionByLang(lang);
 
-    if (storedLang) {
-      return {
-        lang: storedLang,
-        label: getLanguageLabel(storedLang),
-        shouldShowTranslate: storedLang !== "en",
-      };
-    }
+  return {
+    lang: option.lang,
+    label: option.label,
+    regionLabel: option.regionLabel,
+    shouldShowTranslate: option.lang !== "en" || Boolean(options.explicit),
+    explicit: Boolean(options.explicit),
+  };
+};
+
+export function getSavedTranslateTarget() {
+  try {
+    return normalizeTranslateLang(localStorage.getItem(TRANSLATE_TARGET_STORAGE_KEY));
   } catch {
-    // localStorage can be unavailable; browser locale detection still works.
+    return "";
+  }
+}
+
+export function setSavedTranslateTarget(lang) {
+  const option = getTranslationOptionByLang(lang);
+
+  try {
+    localStorage.setItem(TRANSLATE_TARGET_STORAGE_KEY, option.lang);
+    localStorage.setItem(TRANSLATE_REGION_STORAGE_KEY, option.regionLabel);
+  } catch {
+    // localStorage can be unavailable; still notify the current page.
+  }
+
+  const target = buildTarget(option.lang, { explicit: true });
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(TRANSLATE_TARGET_CHANGE_EVENT, {
+        detail: target,
+      })
+    );
+  }
+
+  return target;
+}
+
+export function getPreferredTranslateTarget() {
+  const storedLang = getSavedTranslateTarget();
+
+  if (storedLang) {
+    return buildTarget(storedLang, { explicit: true });
   }
 
   const parsedLocales = getNavigatorLocales().map(parseLocale);
-  const nonEnglishLocale = parsedLocales.find((locale) => locale.language && locale.language !== "en");
+  const supportedNonEnglishLocale = parsedLocales.find(
+    (locale) =>
+      locale.language &&
+      locale.language !== "en" &&
+      SUPPORTED_TRANSLATION_LANG_SET.has(locale.language)
+  );
 
-  if (nonEnglishLocale?.language) {
-    return {
-      lang: nonEnglishLocale.language,
-      label: getLanguageLabel(nonEnglishLocale.language),
-      shouldShowTranslate: nonEnglishLocale.language !== "en",
-    };
+  if (supportedNonEnglishLocale?.language) {
+    return buildTarget(supportedNonEnglishLocale.language);
   }
 
   const englishRegionalLocale = parsedLocales.find(
-    (locale) => locale.language === "en" && COUNTRY_TO_LANGUAGE[locale.region]
+    (locale) => locale.language === "en" && REGION_BY_COUNTRY[locale.region]
   );
-  const mappedTarget = englishRegionalLocale
-    ? COUNTRY_TO_LANGUAGE[englishRegionalLocale.region]
-    : null;
 
-  if (mappedTarget) {
-    return {
-      lang: mappedTarget.lang,
-      label: mappedTarget.label,
-      shouldShowTranslate: mappedTarget.lang !== "en",
-    };
+  if (englishRegionalLocale) {
+    return buildTarget(REGION_BY_COUNTRY[englishRegionalLocale.region]);
   }
 
-  return {
-    lang: "en",
-    label: "English",
-    shouldShowTranslate: false,
-  };
+  return buildTarget("en");
 }

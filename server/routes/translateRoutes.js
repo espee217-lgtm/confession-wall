@@ -22,13 +22,17 @@ const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 60;
 const LIBRE_TRANSLATE_TIMEOUT_MS = 20000;
+const SUPPORTED_TRANSLATION_LANGS = new Set(["en", "tl", "hi", "es", "fr", "ru", "de", "pt"]);
+const SUPPORTED_SOURCE_LANGS = new Set(["auto", ...SUPPORTED_TRANSLATION_LANGS]);
 
 const translationCache = new Map();
 const rateLimitBuckets = new Map();
 
 const normalizeLang = (value) => {
   const lang = String(value || "").trim().toLowerCase();
-  return lang === "fil" || lang.startsWith("fil-") || lang === "tagalog" ? "tl" : lang;
+  if (lang === "fil" || lang.startsWith("fil-") || lang === "tagalog") return "tl";
+  if (lang === "auto") return "auto";
+  return lang.split("-")[0];
 };
 
 const normalizeText = (value) =>
@@ -324,6 +328,14 @@ router.post("/", async (req, res) => {
 
   if (!targetLang) {
     return res.status(400).json({ message: "Target language is required" });
+  }
+
+  if (!SUPPORTED_TRANSLATION_LANGS.has(targetLang)) {
+    return res.status(400).json({ message: "Unsupported target language" });
+  }
+
+  if (!SUPPORTED_SOURCE_LANGS.has(sourceLang)) {
+    return res.status(400).json({ message: "Unsupported source language" });
   }
 
   if (text.length > MAX_TEXT_LENGTH) {

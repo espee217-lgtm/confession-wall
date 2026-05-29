@@ -15,6 +15,13 @@ import {
   resolvePerformanceMode,
   setSavedPerformanceMode,
 } from "../utils/performanceMode";
+import {
+  getPreferredTranslateTarget,
+  getTranslationOptionByLang,
+  setSavedTranslateTarget,
+  SUPPORTED_TRANSLATION_OPTIONS,
+  TRANSLATE_TARGET_CHANGE_EVENT,
+} from "../utils/translateTarget";
 
 const API_URL = process.env.REACT_APP_API_BASE
   ? `${process.env.REACT_APP_API_BASE}/api/auth`
@@ -419,6 +426,9 @@ export default function Settings() {
   const [resolvedPerformanceMode, setResolvedPerformanceMode] = useState(() =>
     resolvePerformanceMode(getSavedPerformanceMode())
   );
+  const [translateTargetLang, setTranslateTargetLang] = useState(
+    () => getPreferredTranslateTarget().lang
+  );
 
   const palette = getPalette(theme);
 
@@ -604,6 +614,21 @@ export default function Settings() {
     return () => window.removeEventListener("cw:performance-mode-change", syncMode);
   }, []);
 
+  useEffect(() => {
+    const syncTranslateTarget = () => {
+      setTranslateTargetLang(getPreferredTranslateTarget().lang);
+    };
+
+    syncTranslateTarget();
+    window.addEventListener(TRANSLATE_TARGET_CHANGE_EVENT, syncTranslateTarget);
+    window.addEventListener("storage", syncTranslateTarget);
+
+    return () => {
+      window.removeEventListener(TRANSLATE_TARGET_CHANGE_EVENT, syncTranslateTarget);
+      window.removeEventListener("storage", syncTranslateTarget);
+    };
+  }, []);
+
   if (!user) return null;
 
   const equipped = user?.equippedCosmetics || {};
@@ -613,6 +638,7 @@ export default function Settings() {
   const postThemeItem = getCosmeticMeta(equipped.postTheme);
   const previewThemeStyle = getPostThemeStyle(equipped.postTheme, "budding");
   const allTitleRows = Array.isArray(titleState?.allTitles) ? titleState.allTitles : [];
+  const selectedTranslateOption = getTranslationOptionByLang(translateTargetLang);
   const preferredTitleRows = SETTINGS_TITLE_PREVIEW_IDS.map((titleId) =>
     allTitleRows.find((title) => title.id === titleId)
   ).filter(Boolean);
@@ -663,6 +689,11 @@ export default function Settings() {
     setPerformanceMode(nextMode);
     setSavedPerformanceMode(nextMode);
     setResolvedPerformanceMode(applyPerformanceMode(nextMode));
+  };
+
+  const handleTranslateTarget = (lang) => {
+    const target = setSavedTranslateTarget(lang);
+    setTranslateTargetLang(target.lang);
   };
 
   const handleImage = (e) => {
@@ -1137,6 +1168,92 @@ export default function Settings() {
                 }}
               >
                 Auto chooses smoother settings for weaker devices. Full keeps all visual effects. Lite reduces background visual work for smoother performance. Active: {resolvedPerformanceMode}.
+              </p>
+            </div>
+
+            <div
+              style={{
+                marginTop: "10px",
+                padding: "12px",
+                borderRadius: "12px",
+                border: `1px solid ${palette.border}`,
+                background: "rgba(255,255,255,0.045)",
+              }}
+            >
+              <p
+                style={{
+                  margin: "0 0 8px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color: palette.text,
+                  fontFamily: "Georgia, serif",
+                  textTransform: "uppercase",
+                }}
+              >
+                Translation Region
+              </p>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(126px, 1fr))",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                {SUPPORTED_TRANSLATION_OPTIONS.map((option) => (
+                  <button
+                    key={option.lang}
+                    type="button"
+                    onClick={() => handleTranslateTarget(option.lang)}
+                    style={{
+                      padding: "9px 8px",
+                      borderRadius: "10px",
+                      border:
+                        translateTargetLang === option.lang
+                          ? `2px solid ${palette.accent}`
+                          : `1px solid ${palette.border}`,
+                      background:
+                        translateTargetLang === option.lang
+                          ? "rgba(74,143,53,0.22)"
+                          : "transparent",
+                      color:
+                        translateTargetLang === option.lang
+                          ? palette.accent
+                          : palette.muted,
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      fontFamily: "Georgia, serif",
+                      fontWeight: 700,
+                      textAlign: "center",
+                    }}
+                  >
+                    {option.regionLabel}
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: "3px",
+                        fontSize: "10px",
+                        opacity: 0.78,
+                      }}
+                    >
+                      {option.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: palette.muted,
+                  fontSize: "12px",
+                  lineHeight: 1.45,
+                  fontFamily: "Georgia, serif",
+                }}
+              >
+                Translate buttons use your selected region. Active: {selectedTranslateOption.label}.
               </p>
             </div>
           </Section>

@@ -1,6 +1,67 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { requestTranslation } from "../utils/translateApi";
-import { getPreferredTranslateTarget } from "../utils/translateTarget";
+import {
+  getPreferredTranslateTarget,
+  TRANSLATE_TARGET_CHANGE_EVENT,
+} from "../utils/translateTarget";
+
+const ENGLISH_SIGNAL_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "but",
+  "for",
+  "from",
+  "have",
+  "he",
+  "her",
+  "his",
+  "i",
+  "if",
+  "in",
+  "is",
+  "it",
+  "me",
+  "my",
+  "not",
+  "of",
+  "on",
+  "or",
+  "our",
+  "she",
+  "so",
+  "that",
+  "the",
+  "their",
+  "they",
+  "this",
+  "to",
+  "was",
+  "we",
+  "with",
+  "you",
+]);
+
+const NON_ENGLISH_SIGNAL_RE =
+  /\b(hola|gracias|porque|bonjour|merci|salut|je|suis|und|ich|nicht|danke|hallo|privet|spasibo|namaste|nahi|hai|ako|hindi|salamat|kumusta|obrigado|voce|nao)\b/i;
+
+const NON_ENGLISH_SCRIPT_RE = /[\u00c0-\u024f\u0400-\u04ff\u0900-\u097f]/;
+
+const shouldOfferEnglishTranslation = (text) => {
+  const value = String(text || "").trim();
+  if (!value) return false;
+  if (NON_ENGLISH_SCRIPT_RE.test(value) || NON_ENGLISH_SIGNAL_RE.test(value)) return true;
+
+  const words = value.toLowerCase().match(/[a-z']+/g) || [];
+  if (words.length < 3) return true;
+
+  const englishHits = words.filter((word) => ENGLISH_SIGNAL_WORDS.has(word)).length;
+  return englishHits / words.length < 0.28;
+};
 
 export default function TranslatableText({
   text,
@@ -18,13 +79,31 @@ export default function TranslatableText({
   commentId,
   replyId,
 }) {
-  const target = useMemo(() => getPreferredTranslateTarget(), []);
+  const [target, setTarget] = useState(() => getPreferredTranslateTarget());
   const [translatedText, setTranslatedText] = useState("");
   const [isTranslated, setIsTranslated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const cleanText = String(text || "").trim();
+
+  useEffect(() => {
+    const syncTarget = (event) => {
+      if (event?.detail?.lang) {
+        setTarget(event.detail);
+      } else {
+        setTarget(getPreferredTranslateTarget());
+      }
+    };
+
+    window.addEventListener(TRANSLATE_TARGET_CHANGE_EVENT, syncTarget);
+    window.addEventListener("storage", syncTarget);
+
+    return () => {
+      window.removeEventListener(TRANSLATE_TARGET_CHANGE_EVENT, syncTarget);
+      window.removeEventListener("storage", syncTarget);
+    };
+  }, []);
 
   useEffect(() => {
     setTranslatedText("");
@@ -38,7 +117,10 @@ export default function TranslatableText({
   const TextTag = as;
   const WrapperTag = wrapperAs;
   const displayText = isTranslated && translatedText ? translatedText : text;
-  const showTranslate = target.shouldShowTranslate;
+  const showTranslate =
+    target.lang === "en"
+      ? target.shouldShowTranslate && shouldOfferEnglishTranslation(cleanText)
+      : target.shouldShowTranslate;
 
   const handleTranslateClick = async (event) => {
     event.preventDefault();
