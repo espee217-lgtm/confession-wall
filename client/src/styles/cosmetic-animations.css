@@ -2714,7 +2714,105 @@
   will-change: background-position;
 }
 
+/* Hover-only avatar frame animation control */
+.cw-framed-avatar[class*="cw-cosmetic-frame-"],
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]::after,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"] *,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"] *::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"] *::after,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"],
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]::before,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]::after,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"] *,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"] *::before,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"] *::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"],
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"] *,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"] *::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"] *::after {
+  animation-play-state: paused !important;
+  will-change: auto !important;
+}
+
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover::after,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover *,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover *::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:hover *::after,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within::after,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within *,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within *::before,
+.cw-framed-avatar[class*="cw-cosmetic-frame-"]:focus-within *::after,
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"],
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"]::before,
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"]::after,
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"] *,
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::before,
+.cw-friend-card:hover .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::after,
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"],
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"]::before,
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"]::after,
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"] *,
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::before,
+.cw-friend-card:focus-within .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::after,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover::before,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover::after,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover *,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover *::before,
+.shop-preview-avatar[class*="cw-cosmetic-frame-"]:hover *::after,
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"],
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"]::before,
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"]::after,
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"] *,
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"] *::before,
+.shop-preview-shell:hover .shop-preview-avatar[class*="cw-cosmetic-frame-"] *::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover *,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover *::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:hover *::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within::after,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within *,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within *::before,
+.nav-profile-wrap[class*="cw-cosmetic-frame-"]:focus-within *::after {
+  animation-play-state: running !important;
+  will-change: transform, opacity, filter, background-position !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"],
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"]::before,
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"]::after,
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"] *,
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::before,
+  .cw-framed-avatar[class*="cw-cosmetic-frame-"] *::after,
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"],
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"]::before,
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"]::after,
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"] *,
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"] *::before,
+  .shop-preview-avatar[class*="cw-cosmetic-frame-"] *::after,
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"],
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"]::before,
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"]::after,
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"] *,
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"] *::before,
+  .nav-profile-wrap[class*="cw-cosmetic-frame-"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
   .cw-visor-lift-sprite-shell {
     animation: none !important;
   }

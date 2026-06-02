@@ -2433,6 +2433,133 @@ a.chip {
   box-shadow: 0 0 22px rgba(170, 255, 110, 0.42);
 }
 
+.desktop-friends-nav-btn {
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .desktop-friends-nav-btn {
+    display: none !important;
+  }
+}
+
+.desktop-friends-nav-btn.active {
+  border-color: rgba(225, 255, 185, 0.6);
+}
+
+.desktop-friends-nav-btn svg {
+  display: block;
+}
+
+/* Desktop navbar left tools layout */
+@media (min-width: 721px) {
+  .navbar .desktop-navbar-layout {
+    grid-template-columns: auto minmax(300px, 1fr) auto !important;
+    column-gap: clamp(10px, 1.35vw, 18px);
+  }
+
+  .navbar .desktop-navbar-left-tools,
+  .navbar .desktop-navbar-right-tools {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .navbar .desktop-navbar-left-tools {
+    gap: 8px !important;
+    justify-self: start !important;
+    transform: translateX(-36px);
+  }
+
+  /* Desktop navbar alignment tune */
+  .navbar .desktop-navbar-links {
+    gap: clamp(8px, 1vw, 14px) !important;
+    min-width: 0;
+    justify-self: center;
+    transform: translateX(-76px);
+  }
+
+  .navbar .desktop-navbar-right-tools {
+    position: static !important;
+    right: auto !important;
+    top: auto !important;
+    transform: translateX(24px) !important;
+    gap: 10px !important;
+    justify-self: end !important;
+  }
+
+  .navbar .desktop-navbar-right-tools .desktop-search-box {
+    width: clamp(190px, 14vw, 240px);
+    min-width: 190px;
+    flex: 0 1 auto;
+  }
+
+  .navbar .desktop-navbar-right-tools .cw-notification-bell-wrap {
+    z-index: 30000 !important;
+  }
+
+  .navbar .desktop-navbar-right-tools .cw-notification-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    transform: none !important;
+    width: min(360px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    z-index: 30000 !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  .navbar .desktop-navbar-layout {
+    grid-template-columns: auto minmax(360px, 1fr) auto !important;
+  }
+
+  .navbar .desktop-navbar-links {
+    gap: 14px !important;
+  }
+
+  .navbar .desktop-navbar-left-tools {
+    transform: translateX(-64px);
+  }
+
+  .navbar .desktop-navbar-right-tools {
+    transform: translateX(58px) !important;
+  }
+
+  .navbar .desktop-navbar-right-tools .desktop-search-box {
+    width: clamp(220px, 16vw, 300px);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1320px) {
+  .navbar .navbar-brand img[alt="Confession Wall"] {
+    width: clamp(300px, 26vw, 360px) !important;
+    height: auto !important;
+  }
+
+  .navbar .desktop-navbar-right-tools .desktop-search-box {
+    width: 190px;
+    min-width: 190px;
+  }
+
+  .navbar .desktop-navbar-left-tools {
+    transform: translateX(-18px);
+  }
+}
+
+@media (max-width: 720px) {
+  .cw-notification-dropdown {
+    position: fixed !important;
+    top: 70px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    z-index: 30000 !important;
+  }
+}
+
 .nav-profile-wrap {
   position: relative;
   display: inline-flex;

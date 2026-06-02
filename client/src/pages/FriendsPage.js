@@ -42,69 +42,99 @@ function getPresenceMeta(presence) {
   return { label: "Recently active", className: "is-recent" };
 }
 
-function EmptyState({ title, text }) {
+function EmptyState({ title, text, actionLabel, onAction }) {
   return (
-    <div className="cw-friends-empty">
+    <div className="cw-friends-empty friends-empty-state">
       <span aria-hidden="true">❧</span>
       <strong>{title}</strong>
       <p>{text}</p>
+      {actionLabel && onAction ? (
+        <button type="button" className="friend-btn-primary" onClick={onAction}>
+          {actionLabel}
+        </button>
+      ) : null}
     </div>
   );
 }
 
-function FriendIdentity({ user }) {
+function FriendIdentity({ user, avatarSize = 66 }) {
   const cosmetics = getDisplayCosmetics(user || {});
 
   return (
-    <div className="cw-friend-identity">
-      <FramedAvatar
-        src={user?.profilePicture}
-        username={user?.username}
-        frameId={cosmetics?.frame}
-        effectId={cosmetics?.visualEffect}
-        size={52}
-        context="friends"
-        placeholder={user?.username?.[0]?.toUpperCase?.() || "U"}
-      />
-      <div className="cw-friend-copy">
-        <Link to={`/user/${user?._id}`} className="cw-friend-name">
-          {user?.username || "Unknown user"}
+    <div className="cw-friend-identity friend-card-main">
+      <div className="cw-friend-avatar-wrap friend-avatar-wrap">
+        <FramedAvatar
+          src={user?.profilePicture}
+          username={user?.username}
+          frameId={cosmetics?.frame}
+          effectId={cosmetics?.visualEffect}
+          size={avatarSize}
+          context="friends"
+          animationMode="hover"
+          placeholder={user?.username?.[0]?.toUpperCase?.() || "U"}
+        />
+      </div>
+      <div className="cw-friend-copy friend-info">
+        <div className="cw-friend-name-row friend-name-row">
+          <Link to={`/user/${user?._id}`} className="cw-friend-name friend-username">
+            {user?.username || "Unknown user"}
+          </Link>
           <AnimatedBadge badgeId={cosmetics?.badge} size="sm" />
-        </Link>
+        </div>
         <DisplayTitlePill titleId={cosmetics?.title} size="small" />
       </div>
     </div>
   );
 }
 
-function FriendCard({ item, actionLabel, onPrimary, onSecondary, secondaryLabel, busy, presence }) {
+function FriendCard({
+  item,
+  actionLabel,
+  onPrimary,
+  onSecondary,
+  secondaryLabel,
+  busy,
+  presence,
+  metaLabel = "Forest companion",
+  primaryTone = "primary",
+  secondaryTone = "secondary",
+}) {
   const user = item?.user || item;
   const presenceMeta = getPresenceMeta(presence);
+  const displayActionLabel = actionLabel?.startsWith("Challenge") ? "Challenge" : actionLabel;
+  const disabledPrimary =
+    busy ||
+    displayActionLabel === "Friends" ||
+    displayActionLabel === "Request Sent" ||
+    displayActionLabel === "You";
 
   return (
-    <article className="cw-friend-card">
+    <article className="cw-friend-card friend-card">
       <div className="cw-friend-main">
         <FriendIdentity user={user} />
-        <span className={`cw-friend-presence ${presenceMeta.className}`}>
-          <i aria-hidden="true" />
-          {presenceMeta.label}
-        </span>
+        <div className="cw-friend-card-meta">
+          <span className={`cw-friend-presence friend-status ${presenceMeta.className}`}>
+            <i aria-hidden="true" />
+            {presenceMeta.label}
+          </span>
+          <span className="cw-friend-meta-note">{metaLabel}</span>
+        </div>
       </div>
-      <div className="cw-friend-actions">
+      <div className="cw-friend-actions friend-actions">
         {onPrimary && (
           <button
             type="button"
-            className="cw-friend-action cw-friend-action--primary"
+            className={`cw-friend-action friend-btn-${primaryTone}`}
             onClick={onPrimary}
-            disabled={busy || actionLabel === "Friends" || actionLabel === "Request Sent" || actionLabel === "You"}
+            disabled={disabledPrimary}
           >
-            {busy ? "Working..." : actionLabel}
+            {busy ? "Working..." : displayActionLabel}
           </button>
         )}
         {onSecondary && secondaryLabel && (
           <button
             type="button"
-            className="cw-friend-action cw-friend-action--ghost"
+            className={`cw-friend-action friend-btn-${secondaryTone}`}
             onClick={onSecondary}
             disabled={busy}
           >
@@ -152,6 +182,24 @@ export default function FriendsPage() {
 
     return Array.from(new Set(ids.map(String)));
   }, [friends, incoming, outgoing, results]);
+
+  const onlineCount = useMemo(
+    () =>
+      friends.filter((item) => {
+        const userId = item?.user?._id;
+        return userId && presenceById[userId]?.status === "online";
+      }).length,
+    [friends, presenceById]
+  );
+
+  const tabCounts = useMemo(
+    () => ({
+      friends: friends.length,
+      requests: incoming.length + outgoing.length,
+      find: results.length,
+    }),
+    [friends.length, incoming.length, outgoing.length, results.length]
+  );
 
   const request = useCallback(
     async (path, options = {}) => {
@@ -369,8 +417,8 @@ export default function FriendsPage() {
 
   if (!user || !token) {
     return (
-      <main className="cw-friends-page">
-        <section className="cw-friends-shell cw-friends-auth-card">
+      <main className="cw-friends-page friends-page">
+        <section className="cw-friends-shell friends-shell cw-friends-auth-card">
           <span className="cw-friends-orb" aria-hidden="true">👥</span>
           <h1>Friends</h1>
           <p>Log in to grow your friend list and prepare for future chess invites.</p>
@@ -383,43 +431,62 @@ export default function FriendsPage() {
   }
 
   return (
-    <main className="cw-friends-page">
-      <section className="cw-friends-shell">
-        <div className="cw-friends-hero">
-          <div>
-            <p className="cw-friends-kicker">forest companions</p>
+    <main className="cw-friends-page friends-page">
+      <section className="cw-friends-shell friends-shell">
+        <div className="cw-friends-hero friends-hero">
+          <div className="cw-friends-hero-copy friends-hero-copy">
+            <p className="cw-friends-kicker">FOREST COMPANIONS</p>
             <h1>Friends</h1>
             <p>
               Search users, manage requests, and challenge accepted friends to chess.
             </p>
+            <div className="cw-friends-stats friends-stats" aria-label="Friend statistics">
+              <span className="cw-friends-stat-chip friends-stat-chip">
+                <strong>{friends.length}</strong>
+                Friends
+              </span>
+              <span className="cw-friends-stat-chip friends-stat-chip">
+                <strong>{incoming.length}</strong>
+                Incoming
+              </span>
+              <span className="cw-friends-stat-chip friends-stat-chip">
+                <strong>{onlineCount}</strong>
+                Online
+              </span>
+            </div>
           </div>
           <span className="cw-friends-hero-icon" aria-hidden="true">👥</span>
         </div>
 
-        <div className="cw-friends-tabs" role="tablist" aria-label="Friends sections">
+        <div className="cw-friends-tabs friends-tabs" role="tablist" aria-label="Friends sections">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
-              className={activeTab === tab.key ? "is-active" : ""}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              className={`cw-friends-tab friends-tab ${activeTab === tab.key ? "is-active" : ""}`}
               onClick={() => setActiveTab(tab.key)}
             >
               {tab.label}
-              {tab.key === "requests" && incoming.length > 0 ? <span>{incoming.length}</span> : null}
+              {tabCounts[tab.key] > 0 ? <span>{tabCounts[tab.key]}</span> : null}
             </button>
           ))}
         </div>
 
         {error && <div className="cw-friends-error">{error}</div>}
 
-        {loading ? (
-          <div className="cw-friends-loading">growing the friend grove...</div>
+        <section className="cw-friends-panel friends-panel">
+          {loading ? (
+          <div className="cw-friends-loading">Preparing the companion grove...</div>
         ) : activeTab === "friends" ? (
-          <div className="cw-friends-list">
+          <div className="cw-friends-list cw-friends-grid friends-grid">
             {friends.length === 0 ? (
               <EmptyState
-                title="No friends yet"
-                text="Open Find People or visit a public profile to send your first request."
+                title="No forest companions yet"
+                text="Find people to add friends, then challenge them to chess."
+                actionLabel="Find People"
+                onAction={() => setActiveTab("find")}
               />
             ) : (
               friends.map((item) => (
@@ -428,21 +495,24 @@ export default function FriendsPage() {
                   item={item}
                   actionLabel="Challenge ♟️"
                   busy={busyId === `remove-${item.friendshipId}` || busyId === `chess-${item?.user?._id}`}
-                  onPrimary={() => challengeFriend(item?.user?._id)}
+                  onPrimary={item?.user?._id ? () => challengeFriend(item.user._id) : null}
                   onSecondary={() => removeFriendship(item.friendshipId, "Friend removed.")}
                   secondaryLabel="Remove"
+                  metaLabel="Accepted companion"
+                  secondaryTone="danger"
                   presence={presenceById[item?.user?._id]}
                 />
               ))
             )}
           </div>
         ) : activeTab === "requests" ? (
-          <div className="cw-friends-list">
+          <div className="cw-friends-request-stack">
             <h2 className="cw-friends-section-title">Incoming requests</h2>
             {incoming.length === 0 ? (
-              <EmptyState title="No incoming requests" text="New friend requests will appear here." />
+              <EmptyState title="No pending requests" text="Friend requests will appear here." />
             ) : (
-              incoming.map((item) => (
+              <div className="cw-friends-list cw-friends-grid friends-grid">
+                {incoming.map((item) => (
                 <FriendCard
                   key={item.friendshipId}
                   item={item}
@@ -451,9 +521,12 @@ export default function FriendsPage() {
                   onPrimary={() => acceptRequest(item.friendshipId)}
                   onSecondary={() => declineRequest(item.friendshipId)}
                   secondaryLabel="Decline"
+                  metaLabel="Incoming request"
+                  secondaryTone="danger"
                   presence={presenceById[item?.user?._id]}
                 />
-              ))
+                ))}
+              </div>
             )}
 
             <h2 className="cw-friends-section-title cw-friends-section-title--spaced">
@@ -462,7 +535,8 @@ export default function FriendsPage() {
             {outgoing.length === 0 ? (
               <EmptyState title="No sent requests" text="Requests you send will wait here until accepted." />
             ) : (
-              outgoing.map((item) => (
+              <div className="cw-friends-list cw-friends-grid friends-grid">
+                {outgoing.map((item) => (
                 <FriendCard
                   key={item.friendshipId}
                   item={item}
@@ -470,9 +544,11 @@ export default function FriendsPage() {
                   busy={busyId === `remove-${item.friendshipId}`}
                   onSecondary={() => removeFriendship(item.friendshipId, "Friend request cancelled.")}
                   secondaryLabel="Cancel"
+                  metaLabel="Awaiting answer"
                   presence={presenceById[item?.user?._id]}
                 />
-              ))
+                ))}
+              </div>
             )}
           </div>
         ) : (
@@ -480,21 +556,37 @@ export default function FriendsPage() {
             <label className="cw-friends-search-label" htmlFor="friend-search">
               Find people by username
             </label>
-            <input
-              id="friend-search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Type at least 2 letters..."
-              className="cw-friends-search"
-            />
+            <div className="cw-friends-search-row friends-search-row">
+              <input
+                id="friend-search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by username..."
+                className="cw-friends-search friends-search-input"
+                aria-label="Search by username"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  className="cw-friends-clear-search"
+                  onClick={() => {
+                    setQuery("");
+                    setResults([]);
+                  }}
+                  aria-label="Clear search"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
 
-            {searching ? <div className="cw-friends-loading">searching the forest...</div> : null}
+            {searching ? <div className="cw-friends-loading">Searching the forest...</div> : null}
 
-            <div className="cw-friends-list">
+            <div className="cw-friends-list cw-friends-grid friends-grid">
               {query.trim().length < 2 ? (
-                <EmptyState title="Search users" text="Type a username to find people and send requests." />
+                <EmptyState title="Search for companions" text="Type a username to discover people." />
               ) : results.length === 0 && !searching ? (
-                <EmptyState title="No users found" text="Try another username or spelling." />
+                <EmptyState title="No companions found" text="Try another name." />
               ) : (
                 results.map((foundUser) => {
                   const friendship = foundUser.friendship || { status: "none" };
@@ -529,6 +621,14 @@ export default function FriendsPage() {
                           ? "Remove"
                           : ""
                       }
+                      metaLabel={
+                        friendship.status === "accepted"
+                          ? "Accepted companion"
+                          : friendship.status === "pending"
+                          ? "Request pending"
+                          : "Discoverable user"
+                      }
+                      secondaryTone={friendship.status === "accepted" ? "danger" : "secondary"}
                       presence={presenceById[foundUser._id]}
                     />
                   );
@@ -536,7 +636,8 @@ export default function FriendsPage() {
               )}
             </div>
           </div>
-        )}
+          )}
+        </section>
       </section>
     </main>
   );

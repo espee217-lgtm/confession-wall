@@ -687,7 +687,7 @@ function NotificationBell() {
   return (
     <div
       ref={bellRef}
-      className="cw-notification-bell-wrap"
+      className="cw-notification-bell-wrap cw-notification-bell-wrap--navbar-right"
       style={{ position: "relative", justifySelf: "end", zIndex: 4600 }}
     >
       <button
@@ -971,16 +971,23 @@ function NotificationBell() {
   );
 }
 
-function FriendsMobileIcon() {
+function FriendsNavButton({ variant = "mobile" }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === "/friends";
+  const className =
+    variant === "desktop"
+      ? `nav-shop-btn desktop-friends-nav-btn${isActive ? " active" : ""}`
+      : "nav-friends-mobile-btn";
 
   return (
     <button
       type="button"
-      className="nav-friends-mobile-btn"
+      className={className}
       onClick={() => navigate("/friends")}
       title="Friends"
-      aria-label="Open friends"
+      aria-label="Friends"
+      aria-current={isActive ? "page" : undefined}
     >
       <svg
         viewBox="0 0 24 24"
@@ -1076,6 +1083,7 @@ function Navbar() {
       }}
     >
       <div
+        className="desktop-navbar-layout"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
@@ -1086,6 +1094,7 @@ function Navbar() {
         }}
       >
         <div
+          className="desktop-navbar-left-tools"
           style={{
             display: "flex",
             alignItems: "center",
@@ -1096,6 +1105,7 @@ function Navbar() {
         >
           <ShopButton />
           {user && <SeedCounter />}
+          {user && <FriendsNavButton variant="desktop" />}
 
           <Link
             className="navbar-brand"
@@ -1126,6 +1136,7 @@ function Navbar() {
         </div>
 
         <div
+          className="desktop-navbar-links"
           style={{
             position: "relative",
             display: "flex",
@@ -1173,14 +1184,14 @@ function Navbar() {
         </div>
 
         <div
-            className={`nav-actions ${user ? "nav-actions--auth" : "nav-actions--guest"}`}
-            style={{
-              justifySelf: "end",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-            }}
-          >
+          className={`nav-actions desktop-navbar-right-tools ${user ? "nav-actions--auth" : "nav-actions--guest"}`}
+          style={{
+            justifySelf: "end",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
             <button
               type="button"
               className="desktop-search-box"
@@ -1193,7 +1204,6 @@ function Navbar() {
 
             {user ? (
               <>
-                <FriendsMobileIcon />
                 <div
                   onClick={() => navigate("/settings")}
                   className="nav-profile-wrap"
@@ -1218,6 +1228,7 @@ function Navbar() {
                   )}
                 </div>
                 <NotificationBell />
+                <FriendsNavButton />
               </>
             ) : (
               <>
