@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../AppStyle.css";
 
@@ -9,24 +9,17 @@ const API_URL =
     ? "http://localhost:5000/api/auth"
     : "https://confession-wall-hn63.onrender.com/api/auth";
 
-const BG_IMAGES = [
-  "https://i.pinimg.com/736x/3b/de/be/3bdebe37f3e3e6109bf3ee87ed79abcc.jpg",
-  "https://i.pinimg.com/1200x/46/a8/c6/46a8c6b7486d303c54b3adfaf73bc09f.jpg",
-  "https://i.pinimg.com/736x/5f/63/b1/5f63b12b594b07fc6c64aa55c1600347.jpg",
-];
-
-const inputStyle = {
-  width: "100%",
-  padding: "12px 16px",
-  borderRadius: "12px",
-  border: "1px solid rgba(255,255,255,0.25)",
-  marginBottom: "12px",
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
-  fontSize: "15px",
-  boxSizing: "border-box",
-  outline: "none",
-};
+function ResetDaisyBackdrop() {
+  return (
+    <div className="reset-auth-ambient" aria-hidden="true">
+      <span className="reset-auth-firefly reset-auth-firefly--one" />
+      <span className="reset-auth-firefly reset-auth-firefly--two" />
+      <span className="reset-auth-firefly reset-auth-firefly--three" />
+      <span className="reset-auth-firefly reset-auth-firefly--four" />
+      <span className="reset-auth-firefly reset-auth-firefly--five" />
+    </div>
+  );
+}
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -34,19 +27,6 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [currentBg, setCurrentBg] = useState(0);
-  const [fade, setFade] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
-        setCurrentBg((prev) => (prev + 1) % BG_IMAGES.length);
-        setFade(true);
-      }, 800);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,30 +58,47 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${BG_IMAGES[currentBg]})`, backgroundSize: "cover", backgroundPosition: "center", transition: "opacity 0.8s ease", opacity: fade ? 1 : 0, zIndex: 0 }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0, 0, 0, 0.5)", zIndex: 1 }} />
+    <main className="reset-auth-page reset-daisy-page" aria-labelledby="forgot-password-title">
+      <ResetDaisyBackdrop />
 
-      <div style={{ position: "relative", zIndex: 2, background: "rgba(255, 255, 255, 0.12)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255, 255, 255, 0.25)", borderRadius: "24px", padding: "2.5rem", width: "100%", maxWidth: "400px", margin: "0 1rem", boxShadow: "0 8px 40px rgba(0,0,0,0.3)", color: "white" }}>
-        <h2 style={{ textAlign: "center", fontFamily: "Georgia, serif", marginTop: 0 }}>Reset Password</h2>
-        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.72)", fontSize: "14px", lineHeight: 1.6 }}>
-          Enter your account email. We&apos;ll send a 6-digit reset code.
-        </p>
+      <section className="reset-auth-card reset-auth-card--forgot">
+        <div className="reset-auth-emblem" aria-hidden="true">
+          <span>✿</span>
+        </div>
 
-        {error && <div style={{ background: "rgba(220,53,69,0.2)", border: "1px solid rgba(220,53,69,0.4)", borderRadius: "10px", padding: "10px 14px", color: "#ffaaaa", fontSize: "14px", marginBottom: "1rem" }}>{error}</div>}
-        {message && <div style={{ background: "rgba(70,180,90,0.2)", border: "1px solid rgba(100,255,140,0.35)", borderRadius: "10px", padding: "10px 14px", color: "#bfffc1", fontSize: "14px", marginBottom: "1rem" }}>{message}</div>}
+        <div className="reset-auth-copy">
+          <p className="reset-auth-eyebrow">Account Recovery</p>
+          <h1 id="forgot-password-title">Reset Password</h1>
+          <p className="reset-auth-subtitle">
+            Enter your account email. We&apos;ll send a 6-digit reset code.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" required style={inputStyle} />
-          <button type="submit" disabled={loading} style={{ width: "100%", padding: "13px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.22)", color: "white", fontSize: "15px", fontWeight: "600", cursor: loading ? "not-allowed" : "pointer" }}>
-            {loading ? "Sending..." : "Send Reset Code"}
+        {error && <div className="reset-auth-alert reset-auth-alert--error">{error}</div>}
+        {message && <div className="reset-auth-alert reset-auth-alert--success">{message}</div>}
+
+        <form className="reset-auth-form" onSubmit={handleSubmit}>
+          <label className="reset-auth-field">
+            <span>Email address</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+          </label>
+
+          <button className="reset-auth-primary-btn" type="submit" disabled={loading}>
+            {loading ? "Sending code..." : "Send Reset Code"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", marginTop: "1.2rem", color: "rgba(255,255,255,0.7)", fontSize: "14px" }}>
-          Remembered it? <Link to="/login" style={{ color: "white", fontWeight: "600", textDecoration: "none" }}>Login</Link>
+        <p className="reset-auth-footer">
+          Remembered it? <Link to="/login">Login</Link>
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
