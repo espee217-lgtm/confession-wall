@@ -13028,3 +13028,80 @@ html[data-performance-mode="lite"] .search-state-card {
     flex-wrap: wrap;
   }
 }
+
+/* Home navbar Budding glow */
+@media (min-width: 721px) {
+  .nav-budding-glow {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate;
+  }
+
+  .nav-budding-glow::before {
+    content: "";
+    position: absolute;
+    inset: -5px -10px;
+    border-radius: 10px;
+    border: 1px solid rgba(206, 255, 143, 0.34);
+    background:
+      radial-gradient(circle at 20% 50%, rgba(214, 255, 142, 0.16), transparent 34%),
+      radial-gradient(circle at 78% 50%, rgba(255, 214, 93, 0.14), transparent 32%);
+    box-shadow:
+      0 0 14px rgba(156, 255, 130, 0.18),
+      inset 0 0 14px rgba(204, 255, 149, 0.08);
+    opacity: 0.78;
+    z-index: -1;
+    animation: cwBuddingNavPulse 2.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .nav-budding-glow::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(226, 255, 151, 0.92);
+    box-shadow:
+      -30px 0 0 rgba(174, 255, 127, 0.3),
+      30px 0 0 rgba(255, 215, 105, 0.3),
+      0 0 12px rgba(206, 255, 129, 0.7);
+    transform: translateX(-50%);
+    animation: cwBuddingNavSpark 1.8s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+}
+
+@keyframes cwBuddingNavPulse {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(0.985);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes cwBuddingNavSpark {
+  from {
+    opacity: 0.4;
+    filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0.4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-budding-glow::before,
+  .nav-budding-glow::after {
+    animation: none !important;
+  }
+}

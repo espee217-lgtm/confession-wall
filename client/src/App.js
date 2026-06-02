@@ -1169,6 +1169,7 @@ function Navbar() {
 
             <Link
               to="/budding"
+              className="nav-budding-glow"
               style={navLinkStyle("/budding", "rgba(220,200,115,0.75)")}
             >
               Budding

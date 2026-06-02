@@ -2186,6 +2186,11 @@ useEffect(() => {
                 equippedCosmetics: user.equippedCosmetics || {},
               },
       };
+      const newConfessionId =
+        newConfession?._id ||
+        newConfession?.confession?._id ||
+        newConfession?.data?._id ||
+        confessionWithUser?._id;
 
       setConfessions((prev) => [confessionWithUser, ...prev]);
       setMessage("");
@@ -2209,6 +2214,7 @@ useEffect(() => {
       );
       setShowCompose(false);
       setShowPostEmojiPicker(false);
+      navigate(newConfessionId ? `/budding?post=${newConfessionId}` : "/budding");
     } catch (err) {
       console.error(err);
       window.cwToast?.("Could not post — is the backend running?", "error") || alert("Could not post — is the backend running?");
