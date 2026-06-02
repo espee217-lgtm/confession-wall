@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "backfill:tl": "node scripts/backfillTagalogTranslations.js"
+    "backfill:tl": "node scripts/backfillTagalogTranslations.js",
+    "seeded:mark-one": "node scripts/markSeededContentForConfession.js",
+    "seeded:mark-accounts": "node scripts/markSeededAccounts.js",
+    "delete:one-seeded-comment": "node scripts/deleteOneSeededCommentByText.js"
   },
   "keywords": [],
   "author": "",

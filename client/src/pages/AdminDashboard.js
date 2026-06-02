@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { connectSocket } from "../socket";
 import { getStoredAdminToken, useAdminAuth } from "../context/AdminAuthContext";
 import { useAuth } from "../context/AuthContext";
+import { enableAdminMainSiteMode } from "../utils/adminMode";
 import "./AdminDashboard.css";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -123,6 +124,18 @@ export default function AdminDashboard() {
 
   const [userSearch, setUserSearch] = useState("");
   const [logSearch, setLogSearch] = useState("");
+  const [seededItems, setSeededItems] = useState([]);
+  const [seededTypeFilter, setSeededTypeFilter] = useState("all");
+  const [seededSearch, setSeededSearch] = useState("");
+  const [seededLoading, setSeededLoading] = useState(false);
+  const [editingSeededKey, setEditingSeededKey] = useState("");
+  const [editingSeededText, setEditingSeededText] = useState("");
+  const [savingSeededEdit, setSavingSeededEdit] = useState(false);
+  const [selectedSeededUserId, setSelectedSeededUserId] = useState("");
+  const [selectedSeededUsername, setSelectedSeededUsername] = useState("");
+  const [seededAccounts, setSeededAccounts] = useState([]);
+  const [seededAccountsSearch, setSeededAccountsSearch] = useState("");
+  const [seededAccountsLoading, setSeededAccountsLoading] = useState(false);
 
   const effectiveAdminToken = adminToken || getStoredAdminToken();
   const headers = { Authorization: `Bearer ${effectiveAdminToken}` };
@@ -192,6 +205,49 @@ export default function AdminDashboard() {
     setLogs(Array.isArray(data) ? data : []);
   };
 
+  const fetchSeededContent = async () => {
+    setSeededLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("type", seededTypeFilter || "all");
+      if (safeText(seededSearch)) params.set("q", safeText(seededSearch));
+      if (safeText(selectedSeededUserId)) params.set("userId", safeText(selectedSeededUserId));
+      params.set("limit", "200");
+
+      const res = await fetch(`${API_URL}/seeded-content?${params.toString()}`, {
+        headers,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not load seeded content.", "error") ||
+          alert(data.message || "Could not load seeded content.");
+        setSeededItems([]);
+        return;
+      }
+
+      setSeededItems(Array.isArray(data.items) ? data.items : []);
+    } finally {
+      setSeededLoading(false);
+    }
+  };
+
+  const fetchSeededAccounts = async () => {
+    setSeededAccountsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/seeded-accounts`, { headers });
+      const data = await res.json().catch(() => []);
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not load seeded accounts.", "error") ||
+          alert(data.message || "Could not load seeded accounts.");
+        setSeededAccounts([]);
+        return;
+      }
+      setSeededAccounts(Array.isArray(data) ? data : []);
+    } finally {
+      setSeededAccountsLoading(false);
+    }
+  };
+
   const fetchWeeklyEventStatus = async () => {
     const res = await fetch(`${API_URL}/weekly-event/status`, { headers });
     const data = await res.json().catch(() => ({}));
@@ -226,12 +282,28 @@ export default function AdminDashboard() {
         fetchGrantableTitles(),
         fetchLogs(),
         fetchWeeklyEventStatus(),
+        fetchSeededContent(),
+        fetchSeededAccounts(),
       ]);
     };
 
     loadAdminData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveAdminToken]);
+
+  useEffect(() => {
+    if (!effectiveAdminToken) return;
+    if (tab !== "seeded") return;
+    fetchSeededContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, seededTypeFilter, seededSearch, selectedSeededUserId, effectiveAdminToken]);
+
+  useEffect(() => {
+    if (!effectiveAdminToken) return;
+    if (tab !== "seeded-accounts") return;
+    fetchSeededAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, effectiveAdminToken]);
 
   const finalizeWeeklyEvent = async () => {
     if (
@@ -915,6 +987,174 @@ export default function AdminDashboard() {
     });
   };
 
+  const getSeededItemKey = (item) =>
+    [item?.type, item?.confessionId, item?.commentId || "", item?.replyId || ""].join(":");
+
+  const openSeededItem = (item) => {
+    const confessionId = safeText(item?.confessionId);
+    if (!confessionId) return;
+    const commentId = safeText(item?.commentId);
+    const replyId = safeText(item?.replyId);
+    const hash = replyId ? `#reply-${replyId}` : commentId ? `#comment-${commentId}` : "";
+    navigate(`/confession/${confessionId}${hash}`, {
+      state: { fromAdmin: true, returnTo: "/admin/dashboard" },
+    });
+  };
+
+  const startSeededEdit = (item) => {
+    setEditingSeededKey(getSeededItemKey(item));
+    setEditingSeededText(String(item?.text || ""));
+  };
+
+  const cancelSeededEdit = () => {
+    setEditingSeededKey("");
+    setEditingSeededText("");
+  };
+
+  const saveSeededEdit = async (item) => {
+    const nextText = safeText(editingSeededText);
+    if (!nextText) {
+      window.cwToast?.("Text cannot be empty.", "warning") || alert("Text cannot be empty.");
+      return;
+    }
+
+    let url = "";
+    let body = {};
+    if (item.type === "post") {
+      url = `${API_URL}/seeded-content/post/${item.confessionId}`;
+      body = { message: nextText };
+    } else if (item.type === "comment") {
+      url = `${API_URL}/seeded-content/comment/${item.confessionId}/${item.commentId}`;
+      body = { text: nextText };
+    } else {
+      url = `${API_URL}/seeded-content/reply/${item.confessionId}/${item.commentId}/${item.replyId}`;
+      body = { text: nextText };
+    }
+
+    try {
+      setSavingSeededEdit(true);
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not update seeded content.", "error") ||
+          alert(data.message || "Could not update seeded content.");
+        return;
+      }
+
+      setSeededItems((prev) =>
+        prev.map((entry) =>
+          getSeededItemKey(entry) === getSeededItemKey(item)
+            ? {
+                ...entry,
+                text: nextText,
+                isEdited: true,
+                editedAt: new Date().toISOString(),
+              }
+            : entry
+        )
+      );
+      cancelSeededEdit();
+      window.cwToast?.(data.message || "Seeded content updated.", "success") ||
+        alert(data.message || "Seeded content updated.");
+    } finally {
+      setSavingSeededEdit(false);
+    }
+  };
+
+  const deleteSeededItem = async (item) => {
+    const itemLabel =
+      item.type === "post" ? "seeded post" : item.type === "comment" ? "seeded comment" : "seeded reply";
+    if (!window.confirm(`Delete this ${itemLabel}? This cannot be undone.`)) {
+      return;
+    }
+
+    let url = "";
+    if (item.type === "post") {
+      url = `${API_URL}/seeded-content/post/${item.confessionId}`;
+    } else if (item.type === "comment") {
+      url = `${API_URL}/seeded-content/comment/${item.confessionId}/${item.commentId}`;
+    } else {
+      url = `${API_URL}/seeded-content/reply/${item.confessionId}/${item.commentId}/${item.replyId}`;
+    }
+
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not delete seeded content.", "error") ||
+        alert(data.message || "Could not delete seeded content.");
+      return;
+    }
+
+    setSeededItems((prev) =>
+      prev.filter((entry) => getSeededItemKey(entry) !== getSeededItemKey(item))
+    );
+    if (editingSeededKey === getSeededItemKey(item)) {
+      cancelSeededEdit();
+    }
+    window.cwToast?.(data.message || "Seeded content deleted.", "success") ||
+      alert(data.message || "Seeded content deleted.");
+  };
+
+  const operateAsSeededAccount = async (seededUser) => {
+    const username = safeText(seededUser?.username);
+    const userId = safeText(seededUser?._id);
+    if (!username || !userId) return;
+
+    if (
+      !window.confirm(
+        `Operate as @${username}? You will be switched into this seeded account.`
+      )
+    ) {
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/seeded-accounts/${userId}/impersonate`, {
+      method: "POST",
+      headers,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      window.cwToast?.(data.message || "Could not switch to seeded account.", "error") ||
+        alert(data.message || "Could not switch to seeded account.");
+      return;
+    }
+
+    try {
+      localStorage.setItem("cwAdminReturnToken", String(effectiveAdminToken || ""));
+      localStorage.setItem(
+        "cwImpersonatingSeed",
+        JSON.stringify({
+          username: data?.user?.username || username,
+          userId: data?.user?._id || userId,
+          startedAt: data?.impersonation?.startedAt || new Date().toISOString(),
+        })
+      );
+    } catch (_) {
+      // ignore localStorage failures
+    }
+
+    login(data.user, data.token, null, null);
+    navigate("/");
+  };
+
+  const viewSeededContentForAccount = (seededUser) => {
+    const userId = safeText(seededUser?._id);
+    if (!userId) return;
+    setSelectedSeededUserId(userId);
+    setSelectedSeededUsername(safeText(seededUser?.username));
+    setTab("seeded");
+  };
+
   const enterMainSiteAsAdmin = async () => {
     try {
       const res = await fetch(`${API_URL}/enter-site`, {
@@ -931,6 +1171,7 @@ export default function AdminDashboard() {
         return;
       }
 
+      enableAdminMainSiteMode();
       login(data.user, data.token);
       navigate("/");
     } catch (err) {
@@ -1052,6 +1293,45 @@ export default function AdminDashboard() {
       return haystack.includes(query);
     });
   }, [logSearch, logs]);
+
+  const filteredSeededItems = useMemo(() => {
+    const query = safeText(seededSearch).toLowerCase();
+    return seededItems
+      .filter((item) => {
+        if (seededTypeFilter !== "all" && item.type !== seededTypeFilter) {
+          return false;
+        }
+        if (!query) return true;
+        const haystack = [
+          item.type,
+          item.text,
+          item.authorUsername,
+          item.seedLabel,
+          item.confessionPreview,
+        ]
+          .map((part) => safeText(part).toLowerCase())
+          .join(" ");
+        return haystack.includes(query);
+      })
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [seededItems, seededSearch, seededTypeFilter]);
+
+  const filteredSeededAccounts = useMemo(() => {
+    const query = safeText(seededAccountsSearch).toLowerCase();
+    return seededAccounts
+      .filter((account) => {
+        if (!query) return true;
+        const haystack = [
+          account.username,
+          account.email,
+          account.seedLabel,
+        ]
+          .map((part) => safeText(part).toLowerCase())
+          .join(" ");
+        return haystack.includes(query);
+      })
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  }, [seededAccounts, seededAccountsSearch]);
 
   const reportStatusPillCounts = {
     all: reports.length,
@@ -1263,6 +1543,20 @@ export default function AdminDashboard() {
             onClick={() => setTab("logs")}
           >
             Logs
+          </button>
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "seeded" ? "is-active" : ""}`}
+            onClick={() => setTab("seeded")}
+          >
+            Seeded Content
+          </button>
+          <button
+            type="button"
+            className={`adminDash-tab ${tab === "seeded-accounts" ? "is-active" : ""}`}
+            onClick={() => setTab("seeded-accounts")}
+          >
+            Seeded Accounts
           </button>
           <button
             type="button"
@@ -1896,6 +2190,256 @@ export default function AdminDashboard() {
                     </article>
                   );
                 })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {tab === "seeded" && (
+          <section className="adminDash-surface adminDash-section">
+            <div className="adminDash-sectionHeader">
+              <h2>
+                Seeded Content
+                {selectedSeededUserId && selectedSeededUsername
+                  ? ` by @${selectedSeededUsername}`
+                  : ""}
+              </h2>
+              <span className="adminDash-countPill">{filteredSeededItems.length} shown</span>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={seededSearch}
+                onChange={(event) => setSeededSearch(event.target.value)}
+                placeholder="Search seeded text, author, labels, or confession preview..."
+              />
+            </div>
+
+            <div className="adminDash-chipRow">
+              <button
+                type="button"
+                className={`adminDash-chip ${seededTypeFilter === "all" ? "is-active" : ""}`}
+                onClick={() => setSeededTypeFilter("all")}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${seededTypeFilter === "post" ? "is-active" : ""}`}
+                onClick={() => setSeededTypeFilter("post")}
+              >
+                Posts
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${seededTypeFilter === "comment" ? "is-active" : ""}`}
+                onClick={() => setSeededTypeFilter("comment")}
+              >
+                Comments
+              </button>
+              <button
+                type="button"
+                className={`adminDash-chip ${seededTypeFilter === "reply" ? "is-active" : ""}`}
+                onClick={() => setSeededTypeFilter("reply")}
+              >
+                Replies
+              </button>
+              {selectedSeededUserId && (
+                <button
+                  type="button"
+                  className="adminDash-btn adminDash-btnGhost"
+                  onClick={() => {
+                    setSelectedSeededUserId("");
+                    setSelectedSeededUsername("");
+                  }}
+                >
+                  Clear User Filter
+                </button>
+              )}
+            </div>
+
+            {seededLoading ? (
+              <p className="adminDash-emptyText">Loading seeded content...</p>
+            ) : filteredSeededItems.length === 0 ? (
+              <p className="adminDash-emptyText">No seeded content matches this filter.</p>
+            ) : (
+              <div className="adminDash-cardList">
+                {filteredSeededItems.map((item) => {
+                  const itemKey = getSeededItemKey(item);
+                  const isEditing = editingSeededKey === itemKey;
+
+                  return (
+                    <article key={itemKey} className="adminDash-itemCard">
+                      <div className="adminDash-itemTop">
+                        <div className="adminDash-chipRow">
+                          <span className="adminDash-statusBadge adminDash-statusInfo">
+                            {item.type === "post"
+                              ? "Post"
+                              : item.type === "comment"
+                                ? "Comment"
+                                : "Reply"}
+                          </span>
+                          {item.isEdited && (
+                            <span className="adminDash-statusBadge adminDash-statusWarn">
+                              Edited
+                            </span>
+                          )}
+                          {safeText(item.seedLabel) && (
+                            <span className="adminDash-statusBadge adminDash-statusHidden">
+                              {item.seedLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="adminDash-actionRow">
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnGhost"
+                            onClick={() => openSeededItem(item)}
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnAccent"
+                            onClick={() => startSeededEdit(item)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="adminDash-btn adminDash-btnDanger"
+                            onClick={() => deleteSeededItem(item)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div>
+                          <textarea
+                            className="adminDash-input"
+                            style={{ minHeight: "88px", resize: "vertical" }}
+                            value={editingSeededText}
+                            onChange={(event) => setEditingSeededText(event.target.value)}
+                          />
+                          <div className="adminDash-actionRow" style={{ marginTop: "10px" }}>
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnSuccess"
+                              onClick={() => saveSeededEdit(item)}
+                              disabled={savingSeededEdit || !safeText(editingSeededText)}
+                            >
+                              {savingSeededEdit ? "Saving..." : "Save"}
+                            </button>
+                            <button
+                              type="button"
+                              className="adminDash-btn adminDash-btnGhost"
+                              onClick={cancelSeededEdit}
+                              disabled={savingSeededEdit}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="adminDash-itemBodyText">{item.text}</p>
+                      )}
+
+                      <p className="adminDash-itemBodyText">
+                        <strong>Confession:</strong> {item.confessionPreview || "N/A"}
+                      </p>
+                      <div className="adminDash-itemMeta">
+                        <span>@{item.authorUsername || "anonymous"}</span>
+                        <span>Water: {item.wateredCount || 0}</span>
+                        <span>Burn: {item.burnedCount || 0}</span>
+                        <span>{formatDateTime(item.createdAt)}</span>
+                        {item.editedAt ? <span>Edited: {formatDateTime(item.editedAt)}</span> : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {tab === "seeded-accounts" && (
+          <section className="adminDash-surface adminDash-section seeded-accounts-panel">
+            <div className="adminDash-sectionHeader">
+              <h2>Seeded Accounts</h2>
+              <span className="adminDash-countPill">{filteredSeededAccounts.length} shown</span>
+            </div>
+
+            <div className="adminDash-toolbar">
+              <input
+                className="adminDash-input"
+                value={seededAccountsSearch}
+                onChange={(event) => setSeededAccountsSearch(event.target.value)}
+                placeholder="Search seeded accounts by username, email, or label..."
+              />
+            </div>
+
+            {seededAccountsLoading ? (
+              <p className="adminDash-emptyText">Loading seeded accounts...</p>
+            ) : filteredSeededAccounts.length === 0 ? (
+              <p className="adminDash-emptyText">No seeded accounts found.</p>
+            ) : (
+              <div className="adminDash-cardList">
+                {filteredSeededAccounts.map((account) => (
+                  <article key={account._id} className="adminDash-itemCard seeded-account-card">
+                    <div className="adminDash-itemTop">
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        {account.avatar ? (
+                          <img
+                            src={account.avatar}
+                            alt=""
+                            className="seeded-account-avatar"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          <div className="adminDash-avatar adminDash-avatarFallback seeded-account-avatar">
+                            {safeText(account.username).charAt(0).toUpperCase() || "?"}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="adminDash-userName">@{account.username}</h3>
+                          <p className="adminDash-mutedSmall">{account.email || "No email"}</p>
+                        </div>
+                      </div>
+
+                      <div className="adminDash-actionRow seeded-account-actions">
+                        <span className="adminDash-statusBadge adminDash-statusInfo">
+                          {account.seedLabel || "demo-seed"}
+                        </span>
+                        <button
+                          type="button"
+                          className="adminDash-btn adminDash-btnAccent"
+                          onClick={() => operateAsSeededAccount(account)}
+                        >
+                          Operate as this user
+                        </button>
+                        <button
+                          type="button"
+                          className="adminDash-btn adminDash-btnGhost"
+                          onClick={() => viewSeededContentForAccount(account)}
+                        >
+                          View Seeded Content
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="adminDash-itemMeta">
+                      <span>Posts: {Number(account?.stats?.posts || 0)}</span>
+                      <span>Comments: {Number(account?.stats?.comments || 0)}</span>
+                      <span>Replies: {Number(account?.stats?.replies || 0)}</span>
+                      <span>Created: {formatDateTime(account.createdAt)}</span>
+                    </div>
+                  </article>
+                ))}
               </div>
             )}
           </section>

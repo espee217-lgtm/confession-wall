@@ -100,6 +100,22 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    isSeededAccount: {
+      type: Boolean,
+      default: false,
+    },
+
+    seedLabel: {
+      type: String,
+      default: "",
+    },
+
+    seedCreatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     isSuspended: {
       type: Boolean,
       default: false,

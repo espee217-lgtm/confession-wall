@@ -25,10 +25,12 @@ import ContactSupport from "./pages/ContactSupport";
 import PressedLeaves from "./pages/PressedLeaves";
 import ToastContainer from "./components/Toast";
 import MobileRealmSwipeNav from "./components/MobileRealmSwipeNav";
+import AdminMainSiteBanner from "./components/AdminMainSiteBanner";
 
 import { useAuth } from "./context/AuthContext";
 import FramedAvatar from "./components/FramedAvatar";
 import { AnimatedBadge } from "./components/CosmeticFx";
+import { isAdminMainSiteMode } from "./utils/adminMode";
 import usePageVisibility from "./hooks/usePageVisibility";
 import { getDisplayCosmetics } from "./utils/engagement";
 import { applySeo, defaultSeo } from "./utils/seo";
@@ -1313,8 +1315,18 @@ function Footer() {
 
 function AppContent() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const hideFooter = HIDE_FOOTER_ROUTES.includes(location.pathname);
   const [guidebookOpen, setGuidebookOpen] = useState(false);
+  const [seedImpersonation, setSeedImpersonation] = useState(() => {
+    try {
+      const raw = localStorage.getItem("cwImpersonatingSeed");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     const handleOpenGuidebook = (event) => {
@@ -1354,9 +1366,74 @@ function AppContent() {
     });
   }, [location.pathname]);
 
+  useEffect(() => {
+    const syncSeedImpersonation = () => {
+      try {
+        const raw = localStorage.getItem("cwImpersonatingSeed");
+        setSeedImpersonation(raw ? JSON.parse(raw) : null);
+      } catch {
+        setSeedImpersonation(null);
+      }
+    };
+
+    window.addEventListener("storage", syncSeedImpersonation);
+    return () => window.removeEventListener("storage", syncSeedImpersonation);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cwImpersonatingSeed");
+      setSeedImpersonation(raw ? JSON.parse(raw) : null);
+    } catch {
+      setSeedImpersonation(null);
+    }
+  }, [user?._id]);
+
+  const returnToAdminDashboard = () => {
+    navigate("/admin/dashboard");
+  };
+
+  const exitSeedImpersonation = () => {
+    try {
+      localStorage.removeItem("cwImpersonatingSeed");
+    } catch {
+      // ignore localStorage failures
+    }
+    setSeedImpersonation(null);
+    logout();
+    navigate("/login");
+  };
+
+  const showSeedBanner = Boolean(seedImpersonation && user?.isSeededAccount);
+  const showAdminBanner = isAdminMainSiteMode() && !location.pathname.startsWith("/admin");
+
   return (
     <div className="cw-app-shell">
       <Navbar />
+      {showAdminBanner && <AdminMainSiteBanner />}
+      {showSeedBanner && (
+        <div className="seed-impersonation-banner" data-spirit-blocker="true">
+          <span>
+            Operating as seeded account @{seedImpersonation?.username || user?.username || "unknown"}
+          </span>
+          <div className="seeded-account-actions">
+            <button
+              type="button"
+              className="seed-impersonation-exit"
+              onClick={returnToAdminDashboard}
+            >
+              Return to Admin
+            </button>
+            <button
+              type="button"
+              className="seed-impersonation-exit"
+              onClick={exitSeedImpersonation}
+            >
+              Exit Seeded Account
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="cw-route-shell">
         <Suspense fallback={<RouteLoadingFallback />}>

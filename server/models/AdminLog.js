@@ -5,7 +5,22 @@ const adminLogSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["user_login", "user_register", "post_create", "comment_create"],
+      enum: [
+        "user_login",
+        "user_register",
+        "post_create",
+        "comment_create",
+        "seeded_post_edit",
+        "seeded_comment_edit",
+        "seeded_reply_edit",
+        "seeded_post_delete",
+        "seeded_comment_delete",
+        "seeded_reply_delete",
+        "seeded_account_impersonation_start",
+        "admin_main_delete_confession",
+        "admin_main_delete_comment",
+        "admin_main_delete_reply",
+      ],
       index: true,
     },
 
@@ -48,7 +63,7 @@ const adminLogSchema = new mongoose.Schema(
 
     targetType: {
       type: String,
-      enum: ["user", "confession", "comment", ""],
+      enum: ["user", "confession", "comment", "reply", ""],
       default: "",
     },
 

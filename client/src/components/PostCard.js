@@ -21,6 +21,9 @@ import {
 } from "../utils/contentWarning";
 import { getConfessionImages } from "../utils/confessionImages";
 import TranslatableText from "./TranslatableText";
+import CardActionMenu from "./CardActionMenu";
+import { copyConfessionLink, shareConfession } from "../utils/shareConfession";
+import { getAdminToken, isAdminMainSiteMode } from "../utils/adminMode";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 const REPORT_URL = `${API_BASE}/api/reports`;
@@ -48,11 +51,18 @@ function PostCardImagePreview({ images, blurred }) {
 export default function PostCard({ post, realm, highlighted, onOpen }) {
   const { token, user, updateUser } = useAuth();
   const [localPost, setLocalPost] = useState(post);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editMessage, setEditMessage] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isSensitiveRevealed, setIsSensitiveRevealed] = useState(false);
 
   useEffect(() => {
     setLocalPost(post);
     setIsSensitiveRevealed(false);
+    setIsDeleted(false);
+    setIsEditingPost(false);
+    setEditMessage(String(post?.message || ""));
   }, [post]);
 
   const isBudding = realm === "budding";
@@ -83,6 +93,11 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const hideSensitiveContent =
     shouldBlurSensitiveContent(contentWarning) && !isSensitiveRevealed;
   const confessionImages = getConfessionImages(localPost);
+  const isOwner =
+    Boolean(user?._id) &&
+    String(localPost?.userId?._id || localPost?.userId || "") === String(user?._id || "");
+  const adminMainSiteMode = isAdminMainSiteMode();
+  const canDelete = isOwner || adminMainSiteMode;
 
   const readableTextColor =
     isScorched || isBudding || hasCustomPostTheme
@@ -101,7 +116,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     : "none";
 
   const reportPost = async (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
 
     if (!token) {
       window.cwToast?.("You must be logged in to report.", "warning") ||
@@ -153,7 +168,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   };
 
   const togglePressedLeaf = async (e) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
 
     if (!token) {
       window.cwToast?.("You must be logged in to save confessions.", "warning") ||
@@ -234,6 +249,112 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
     }
   };
 
+  const handleCopyLink = async () => {
+    const result = await copyConfessionLink(localPost?._id);
+    if (result.ok) {
+      window.cwToast?.("Confession link copied.", "success") || alert("Confession link copied.");
+      return;
+    }
+    window.cwToast?.("Could not copy link.", "warning") || alert("Could not copy link.");
+  };
+
+  const handleShare = async () => {
+    const result = await shareConfession(localPost);
+    if (result.cancelled) return;
+    if (result.ok) {
+      window.cwToast?.(
+        result.method === "native-share" ? "Share ready." : "Confession link copied.",
+        "success"
+      );
+      return;
+    }
+    window.cwToast?.("Could not share automatically.", "warning") || alert("Could not share automatically.");
+  };
+
+  const handleDelete = async () => {
+    if (!canDelete || !token || !localPost?._id) return;
+    const isAdminDelete = adminMainSiteMode;
+    const shouldDelete = window.confirm(
+      isAdminDelete
+        ? "Admin delete this confession? This cannot be undone."
+        : "Delete this confession? This cannot be undone."
+    );
+    if (!shouldDelete) return;
+    try {
+      const deleteUrl = isAdminDelete
+        ? `${API_BASE}/api/admin/main-site/confessions/${localPost._id}`
+        : `${API_BASE}/api/confessions/${localPost._id}`;
+      const deleteToken = isAdminDelete ? getAdminToken() : token;
+
+      if (isAdminDelete && !deleteToken) {
+        window.cwToast?.("Admin token missing.", "error") || alert("Admin token missing.");
+        return;
+      }
+
+      const res = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${deleteToken}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not delete confession.", "error") ||
+          alert(data.message || "Could not delete confession.");
+        return;
+      }
+      window.cwToast?.("Confession deleted.", "success") || alert("Confession deleted.");
+      setIsDeleted(true);
+    } catch (error) {
+      window.cwToast?.("Could not delete confession.", "error") || alert("Could not delete confession.");
+    }
+  };
+
+  const startEditPost = () => {
+    setEditMessage(String(localPost?.message || ""));
+    setIsEditingPost(true);
+  };
+
+  const cancelEditPost = () => {
+    setIsEditingPost(false);
+    setEditMessage(String(localPost?.message || ""));
+  };
+
+  const saveEditPost = async () => {
+    const nextMessage = String(editMessage || "").trim();
+    if (!nextMessage || !token || !localPost?._id) return;
+    try {
+      setIsSavingEdit(true);
+      const res = await fetch(`${API_BASE}/api/confessions/${localPost._id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: nextMessage }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not update confession.", "error") ||
+          alert(data.message || "Could not update confession.");
+        return;
+      }
+      setLocalPost((prev) => ({
+        ...prev,
+        ...data,
+        message: data?.message ?? nextMessage,
+        isEdited: true,
+        editedAt: data?.editedAt || new Date().toISOString(),
+      }));
+      setIsEditingPost(false);
+      window.cwToast?.("Confession updated.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not update confession.", "error") || alert("Could not update confession.");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  if (isDeleted) return null;
+
   return (
     <div
       id={`post-${localPost._id}`}
@@ -271,6 +392,21 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
         ...postThemeStyle,
       }}
     >
+      <div className="cw-post-menu-anchor">
+        <CardActionMenu
+          itemType="post"
+          canEdit={isOwner}
+          onEdit={startEditPost}
+          canDelete={canDelete}
+          onDelete={handleDelete}
+          onReport={reportPost}
+          onCopyLink={handleCopyLink}
+          onShare={handleShare}
+          onTogglePressedLeaves={togglePressedLeaf}
+          isPressedLeaf={isSaved}
+          showPressedLeaves
+        />
+      </div>
       <PostThemeFxLayers themeId={postThemeId} />
 
       <div
@@ -374,27 +510,57 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       )}
 
       <div style={{ position: "relative", marginBottom: "12px" }}>
-        <TranslatableText
-          text={localPost.message}
-          context="confession"
-          targetType="confession"
-          targetId={localPost._id || localPost.id}
-          compact
-          textStyle={{
-            fontSize: "14px",
-            color: readableTextColor,
-            lineHeight: 1.65,
-            textShadow: softTextShadow,
-            margin: 0,
-            display: "-webkit-box",
-            WebkitLineClamp: isScorched ? 3 : "unset",
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            filter: hideSensitiveContent ? "blur(7px)" : "none",
-            userSelect: hideSensitiveContent ? "none" : "text",
-            transition: "filter 0.18s ease",
-          }}
-        />
+        {isEditingPost ? (
+          <div className="cw-inline-edit" onClick={(e) => e.stopPropagation()}>
+            <textarea
+              className="cw-inline-edit-input"
+              value={editMessage}
+              onChange={(e) => setEditMessage(e.target.value)}
+              rows={4}
+              maxLength={5000}
+            />
+            <div className="cw-inline-edit-actions">
+              <button
+                type="button"
+                className="cw-inline-edit-save"
+                onClick={saveEditPost}
+                disabled={isSavingEdit || !String(editMessage || "").trim()}
+              >
+                {isSavingEdit ? "Saving..." : "Save"}
+              </button>
+              <button type="button" className="cw-inline-edit-cancel" onClick={cancelEditPost} disabled={isSavingEdit}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <TranslatableText
+            text={localPost.message}
+            context="confession"
+            targetType="confession"
+            targetId={localPost._id || localPost.id}
+            compact
+            textStyle={{
+              fontSize: "14px",
+              color: readableTextColor,
+              lineHeight: 1.65,
+              textShadow: softTextShadow,
+              margin: 0,
+              display: "-webkit-box",
+              WebkitLineClamp: isScorched ? 3 : "unset",
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              filter: hideSensitiveContent ? "blur(7px)" : "none",
+              userSelect: hideSensitiveContent ? "none" : "text",
+              transition: "filter 0.18s ease",
+            }}
+          />
+        )}
+        {(localPost?.isEdited || localPost?.editedAt) && (
+          <span className="cw-edited-mark" title={localPost?.editedAt ? `Edited ${new Date(localPost.editedAt).toLocaleString()}` : "edited"}>
+            edited
+          </span>
+        )}
 
         {hideSensitiveContent && (
           <div
@@ -567,53 +733,6 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
           🔥 {localPost.burnedBy?.length || 0}
         </span>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-          <button
-            type="button"
-            onClick={togglePressedLeaf}
-            style={{
-              background: isSaved
-                ? "rgba(220, 192, 120, 0.16)"
-                : "rgba(220, 192, 120, 0.08)",
-              border: `1px solid ${
-                isSaved ? "rgba(240, 210, 135, 0.4)" : "rgba(220, 192, 120, 0.22)"
-              }`,
-              color: hasCustomPostTheme
-                ? isSaved
-                  ? "#fff0b8"
-                  : "#f7e4a5"
-                : isSaved
-                ? "#ffe6a7"
-                : "#e7d59a",
-              borderRadius: "12px",
-              fontWeight: 700,
-              textShadow: softTextShadow,
-              padding: "5px 11px",
-              fontSize: "11px",
-              cursor: "pointer",
-              fontFamily: "Georgia, serif",
-            }}
-          >
-            {isSaved ? "🍂 saved" : "🍂 press leaf"}
-          </button>
-
-          <button
-            type="button"
-            onClick={reportPost}
-            style={{
-              background: "rgba(255,80,80,0.12)",
-              border: "1px solid rgba(255,80,80,0.35)",
-              color: "#ff8a8a",
-              borderRadius: "12px",
-              padding: "5px 11px",
-              fontSize: "11px",
-              cursor: "pointer",
-              fontFamily: "Georgia, serif",
-            }}
-          >
-            Report
-          </button>
-        </div>
       </div>
     </div>
   );

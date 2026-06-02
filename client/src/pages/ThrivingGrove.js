@@ -22,6 +22,28 @@ const normalizeFeedResponse = (data) => {
   };
 };
 
+const getPostSortTime = (post = {}) => {
+  const createdAtTime = post?.createdAt ? new Date(post.createdAt).getTime() : NaN;
+  if (Number.isFinite(createdAtTime)) return createdAtTime;
+
+  const id = String(post?._id || "");
+  if (/^[a-f\d]{24}$/i.test(id)) {
+    const objectIdSeconds = Number.parseInt(id.slice(0, 8), 16);
+    if (Number.isFinite(objectIdSeconds)) {
+      return objectIdSeconds * 1000;
+    }
+  }
+
+  return 0;
+};
+
+const sortNewestFirst = (posts = []) =>
+  [...posts].sort((a, b) => {
+    const timeDiff = getPostSortTime(b) - getPostSortTime(a);
+    if (timeDiff !== 0) return timeDiff;
+    return String(b?._id || "").localeCompare(String(a?._id || ""));
+  });
+
 const isGrovePost = (post) => {
   const watered = post?.wateredBy?.length || 0;
   const burned = post?.burnedBy?.length || 0;
@@ -39,7 +61,7 @@ const appendUniquePosts = (current, incoming) => {
     merged.push(post);
   });
 
-  return merged;
+  return sortNewestFirst(merged);
 };
 
 export default function ThrivingGrove() {
@@ -74,7 +96,7 @@ export default function ThrivingGrove() {
 
         const normalized = normalizeFeedResponse(data);
         const groveOnly = normalized.items.filter(isGrovePost);
-        setPosts(groveOnly);
+        setPosts(sortNewestFirst(groveOnly));
         setPage(normalized.page);
         setHasMore(normalized.hasMore);
       } catch (err) {
@@ -121,7 +143,7 @@ export default function ThrivingGrove() {
           if (prev.some((post) => String(post._id) === String(data._id))) {
             return prev;
           }
-          return [data, ...prev];
+          return appendUniquePosts(prev, [data]);
         });
       } catch (err) {
         console.error(err);

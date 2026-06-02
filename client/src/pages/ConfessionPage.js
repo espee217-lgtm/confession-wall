@@ -5,6 +5,7 @@ import { AnimatedBadge, PostThemeFxLayers } from "../components/CosmeticFx";
 import MobileBottomNav from "../components/MobileBottomNav";
 import EmojiIcon from "../components/EmojiIcon";
 import TranslatableText from "../components/TranslatableText";
+import CardActionMenu from "../components/CardActionMenu";
 import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
@@ -31,6 +32,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { useParams, useNavigate, useSearchParams, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getAdminToken, isAdminMainSiteMode } from "../utils/adminMode";
 import { COMMENT_EMOJI_GROUPS } from "../data/emojiGroups";
 import { filterEmojiGroups, getEmojiCategoryLabels } from "../utils/filterEmojiGroups";
 
@@ -751,6 +753,15 @@ export default function ConfessionPage() {
   const [commentPreview, setCommentPreview] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [replySubmitting, setReplySubmitting] = useState(false);
+  const [isEditingConfession, setIsEditingConfession] = useState(false);
+  const [editingConfessionText, setEditingConfessionText] = useState("");
+  const [isSavingConfessionEdit, setIsSavingConfessionEdit] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState("");
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [isSavingCommentEdit, setIsSavingCommentEdit] = useState(false);
+  const [editingReplyKey, setEditingReplyKey] = useState({ commentId: "", replyId: "" });
+  const [editingReplyText, setEditingReplyText] = useState("");
+  const [isSavingReplyEdit, setIsSavingReplyEdit] = useState(false);
   const replyInputRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [emojiQueryInput, setEmojiQueryInput] = useState("");
@@ -871,6 +882,11 @@ export default function ConfessionPage() {
   }, [id, confession?._id]);
 
   useEffect(() => {
+    setEditingConfessionText(String(confession?.message || ""));
+    setIsEditingConfession(false);
+  }, [confession?._id]);
+
+  useEffect(() => {
     if (!lightboxImage) return undefined;
 
     const onKeyDown = (event) => {
@@ -900,6 +916,25 @@ export default function ConfessionPage() {
       }, 250);
     }
   }, [selectedCommentId, confession]);
+
+  useEffect(() => {
+    if (!confession) return;
+    const rawHash = (location.hash || "").replace("#", "").trim();
+    if (!rawHash) return;
+    const targetId =
+      rawHash.startsWith("comment-") || rawHash.startsWith("reply-")
+        ? rawHash
+        : "";
+    if (!targetId) return;
+    const targetEl = document.getElementById(targetId);
+    if (!targetEl) return;
+    const timer = window.setTimeout(() => {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      targetEl.classList.add("cw-target-highlight");
+      window.setTimeout(() => targetEl.classList.remove("cw-target-highlight"), 2200);
+    }, 240);
+    return () => window.clearTimeout(timer);
+  }, [location.hash, confession]);
   useEffect(() => {
   if (!showEmojiPicker) return;
 
@@ -1079,6 +1114,11 @@ const activeCommentPinPosition = isPhoneLayout
     ...viewerPostThemeStyle,
   };
   const comments = Array.isArray(confession?.comments) ? confession.comments : [];
+  const isConfessionOwner =
+    Boolean(user?._id) &&
+    String(confession?.userId?._id || confession?.userId || "") === String(user?._id || "");
+  const adminMainSiteMode = isAdminMainSiteMode();
+  const canDeleteConfession = isConfessionOwner || adminMainSiteMode;
   const selectedComment = selectedCommentId
     ? comments.find((c) => String(c?._id || "") === String(selectedCommentId))
     : null;
@@ -1204,6 +1244,76 @@ const activeCommentPinPosition = isPhoneLayout
       alert("Could not share automatically. Copy link below.");
   };
 
+  const buildCommentUrl = (commentId) =>
+    `${window.location.origin}/confession/${id}#comment-${commentId}`;
+  const buildReplyUrl = (commentId, replyId) =>
+    `${window.location.origin}/confession/${id}#reply-${replyId}`;
+
+  const copyUrl = async (url, successMessage = "Link copied.") => {
+    try {
+      await navigator.clipboard.writeText(url);
+      window.cwToast?.(successMessage, "success") || alert(successMessage);
+      return true;
+    } catch (error) {
+      window.cwToast?.("Copy failed.", "warning") || alert("Copy failed.");
+      return false;
+    }
+  };
+
+  const shareUrl = async (url, text = "Confession Wall") => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Confession Wall", text, url });
+        window.cwToast?.("Share ready.", "success");
+        return true;
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return false;
+    }
+    return copyUrl(url, "Link copied.");
+  };
+
+  const deleteConfession = async () => {
+    if (!token || !confession?._id) return;
+    const isAdminDelete = adminMainSiteMode;
+    const shouldDelete = window.confirm(
+      isAdminDelete
+        ? "Admin delete this confession? This cannot be undone."
+        : "Delete this confession? This cannot be undone."
+    );
+    if (!shouldDelete) return;
+    try {
+      const deleteUrl = isAdminDelete
+        ? `${API_BASE}/api/admin/main-site/confessions/${confession._id}`
+        : `${API_BASE}/api/confessions/${confession._id}`;
+      const deleteToken = isAdminDelete ? getAdminToken() : token;
+
+      if (isAdminDelete && !deleteToken) {
+        window.cwToast?.("Admin token missing.", "error") || alert("Admin token missing.");
+        return;
+      }
+
+      const res = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${deleteToken}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not delete confession.", "error") ||
+          alert(data.message || "Could not delete confession.");
+        return;
+      }
+      window.cwToast?.("Confession deleted.", "success") || alert("Confession deleted.");
+      if (isAdminDelete) {
+        navigate("/", { replace: true });
+      } else {
+        navigate(-1);
+      }
+    } catch (error) {
+      window.cwToast?.("Could not delete confession.", "error") || alert("Could not delete confession.");
+    }
+  };
+
   const reportComment = async (commentId) => {
     if (!token) {
       window.cwToast?.("You must be logged in to report.", "warning") ||
@@ -1252,6 +1362,277 @@ const activeCommentPinPosition = isPhoneLayout
       console.error(err);
       window.cwToast?.("Something went wrong while reporting.", "error") ||
         alert("Something went wrong while reporting.");
+    }
+  };
+
+  const reportConfession = async () => {
+    if (!token || !id) {
+      window.cwToast?.("You must be logged in to report.", "warning") ||
+        alert("You must be logged in to report.");
+      return;
+    }
+    const reason = window.prompt("Why are you reporting this post?");
+    if (!reason || !reason.trim()) return;
+    try {
+      const res = await fetch(REPORT_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          targetType: "confession",
+          confessionId: id,
+          reason: reason.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        window.cwToast?.(data.message || data.error || "Could not submit report.", "error") ||
+          alert(data.message || data.error || "Could not submit report.");
+        return;
+      }
+      window.cwToast?.("Report submitted.", "success") || alert("Report submitted.");
+    } catch (error) {
+      window.cwToast?.("Something went wrong while reporting.", "error") ||
+        alert("Something went wrong while reporting.");
+    }
+  };
+
+  const deleteComment = async (commentId) => {
+    if (!token || !commentId) return;
+    const isAdminDelete = adminMainSiteMode;
+    const shouldDelete = window.confirm(
+      isAdminDelete
+        ? "Admin delete this comment? This cannot be undone."
+        : "Delete this comment? This cannot be undone."
+    );
+    if (!shouldDelete) return;
+    try {
+      const deleteUrl = isAdminDelete
+        ? `${API_BASE}/api/admin/main-site/confessions/${id}/comments/${commentId}`
+        : `${API_BASE}/api/confessions/${id}/comments/${commentId}`;
+      const deleteToken = isAdminDelete ? getAdminToken() : token;
+
+      if (isAdminDelete && !deleteToken) {
+        window.cwToast?.("Admin token missing.", "error") || alert("Admin token missing.");
+        return;
+      }
+
+      const res = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${deleteToken}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not delete comment.", "error") ||
+          alert(data.message || "Could not delete comment.");
+        return;
+      }
+      setConfession(data.confession || confession);
+      if (isCommentFocusPage && String(selectedCommentId) === String(commentId)) {
+        navigate(`/confession/${id}`, { replace: true });
+      }
+      window.cwToast?.("Comment deleted.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not delete comment.", "error") || alert("Could not delete comment.");
+    }
+  };
+
+  const deleteReply = async (commentId, replyId) => {
+    if (!token || !commentId || !replyId) return;
+    const isAdminDelete = adminMainSiteMode;
+    const shouldDelete = window.confirm(
+      isAdminDelete
+        ? "Admin delete this reply? This cannot be undone."
+        : "Delete this reply? This cannot be undone."
+    );
+    if (!shouldDelete) return;
+    try {
+      const deleteUrl = isAdminDelete
+        ? `${API_BASE}/api/admin/main-site/confessions/${id}/comments/${commentId}/replies/${replyId}`
+        : `${API_BASE}/api/confessions/${id}/comments/${commentId}/replies/${replyId}`;
+      const deleteToken = isAdminDelete ? getAdminToken() : token;
+
+      if (isAdminDelete && !deleteToken) {
+        window.cwToast?.("Admin token missing.", "error") || alert("Admin token missing.");
+        return;
+      }
+
+      const res = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${deleteToken}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not delete reply.", "error") ||
+          alert(data.message || "Could not delete reply.");
+        return;
+      }
+      setConfession(data.confession || confession);
+      window.cwToast?.("Reply deleted.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not delete reply.", "error") || alert("Could not delete reply.");
+    }
+  };
+
+  const startEditConfession = () => {
+    setEditingConfessionText(String(confession?.message || ""));
+    setIsEditingConfession(true);
+  };
+
+  const cancelEditConfession = () => {
+    setIsEditingConfession(false);
+    setEditingConfessionText(String(confession?.message || ""));
+  };
+
+  const saveEditConfession = async () => {
+    const nextMessage = String(editingConfessionText || "").trim();
+    if (!nextMessage || !token || !confession?._id) return;
+    try {
+      setIsSavingConfessionEdit(true);
+      const res = await fetch(`${API_BASE}/api/confessions/${confession._id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: nextMessage }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not update confession.", "error") ||
+          alert(data.message || "Could not update confession.");
+        return;
+      }
+      setConfession((prev) => ({
+        ...prev,
+        ...data,
+        message: data?.message ?? nextMessage,
+        isEdited: true,
+        editedAt: data?.editedAt || new Date().toISOString(),
+      }));
+      setIsEditingConfession(false);
+      window.cwToast?.("Confession updated.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not update confession.", "error") || alert("Could not update confession.");
+    } finally {
+      setIsSavingConfessionEdit(false);
+    }
+  };
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(String(comment?._id || ""));
+    setEditingCommentText(String(comment?.text || ""));
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId("");
+    setEditingCommentText("");
+  };
+
+  const saveEditComment = async (commentId) => {
+    const normalizedConfessionId = String(confession?._id || id || "").trim();
+    const normalizedCommentId = String(commentId || "").trim();
+    const nextText = String(editingCommentText || "").trim();
+    if (!nextText || !token || !normalizedConfessionId || !normalizedCommentId) return;
+    try {
+      setIsSavingCommentEdit(true);
+      const res = await fetch(`${API_BASE}/api/confessions/${normalizedConfessionId}/comments/${normalizedCommentId}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: nextText }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not update comment.", "error") ||
+          alert(data.message || "Could not update comment.");
+        return;
+      }
+      if (data?.confession) {
+        setConfession(data.confession);
+      } else {
+        setConfession((prev) => ({
+          ...prev,
+          comments: (prev?.comments || []).map((c) =>
+            String(c?._id) === String(normalizedCommentId)
+              ? { ...c, text: nextText, isEdited: true, editedAt: new Date().toISOString() }
+              : c
+          ),
+        }));
+      }
+      cancelEditComment();
+      window.cwToast?.("Comment updated.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not update comment.", "error") || alert("Could not update comment.");
+    } finally {
+      setIsSavingCommentEdit(false);
+    }
+  };
+
+  const startEditReply = (commentId, reply) => {
+    setEditingReplyKey({ commentId: String(commentId || ""), replyId: String(reply?._id || "") });
+    setEditingReplyText(String(reply?.text || ""));
+  };
+
+  const cancelEditReply = () => {
+    setEditingReplyKey({ commentId: "", replyId: "" });
+    setEditingReplyText("");
+  };
+
+  const saveEditReply = async (commentId, replyId) => {
+    const normalizedConfessionId = String(confession?._id || id || "").trim();
+    const normalizedCommentId = String(commentId || "").trim();
+    const normalizedReplyId = String(replyId || "").trim();
+    const nextText = String(editingReplyText || "").trim();
+    if (!nextText || !token || !normalizedConfessionId || !normalizedCommentId || !normalizedReplyId) return;
+    try {
+      setIsSavingReplyEdit(true);
+      const res = await fetch(
+        `${API_BASE}/api/confessions/${normalizedConfessionId}/comments/${normalizedCommentId}/replies/${normalizedReplyId}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: nextText }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        window.cwToast?.(data.message || "Could not update reply.", "error") ||
+          alert(data.message || "Could not update reply.");
+        return;
+      }
+      if (data?.confession) {
+        setConfession(data.confession);
+      } else {
+        setConfession((prev) => ({
+          ...prev,
+          comments: (prev?.comments || []).map((c) =>
+            String(c?._id) !== String(normalizedCommentId)
+              ? c
+              : {
+                  ...c,
+                  replies: (c?.replies || []).map((r) =>
+                    String(r?._id) === String(normalizedReplyId)
+                      ? { ...r, text: nextText, isEdited: true, editedAt: new Date().toISOString() }
+                      : r
+                  ),
+                }
+          ),
+        }));
+      }
+      cancelEditReply();
+      window.cwToast?.("Reply updated.", "success");
+    } catch (error) {
+      window.cwToast?.("Could not update reply.", "error") || alert("Could not update reply.");
+    } finally {
+      setIsSavingReplyEdit(false);
     }
   };
 
@@ -1755,21 +2136,51 @@ const activeCommentPinPosition = isPhoneLayout
             )}
 
             <div style={{ position: "relative", marginBottom: "12px" }}>
-              <TranslatableText
-                text={confession.message}
-                context="confession"
-                targetType="confession"
-                targetId={confession._id || id}
-                textStyle={{
-                  fontSize: isPhoneLayout ? "15px" : "16px",
-                  color: theme.text,
-                  lineHeight: isPhoneLayout ? 1.62 : 1.7,
-                  margin: 0,
-                  filter: hideSensitiveContent ? "blur(8px)" : "none",
-                  userSelect: hideSensitiveContent ? "none" : "text",
-                  transition: "filter 0.18s ease",
-                }}
-              />
+              {isEditingConfession ? (
+                <div className="cw-inline-edit">
+                  <textarea
+                    className="cw-inline-edit-input"
+                    value={editingConfessionText}
+                    onChange={(e) => setEditingConfessionText(e.target.value)}
+                    rows={5}
+                    maxLength={5000}
+                  />
+                  <div className="cw-inline-edit-actions">
+                    <button
+                      type="button"
+                      className="cw-inline-edit-save"
+                      onClick={saveEditConfession}
+                      disabled={isSavingConfessionEdit || !String(editingConfessionText || "").trim()}
+                    >
+                      {isSavingConfessionEdit ? "Saving..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="cw-inline-edit-cancel"
+                      onClick={cancelEditConfession}
+                      disabled={isSavingConfessionEdit}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <TranslatableText
+                  text={confession.message}
+                  context="confession"
+                  targetType="confession"
+                  targetId={confession._id || id}
+                  textStyle={{
+                    fontSize: isPhoneLayout ? "15px" : "16px",
+                    color: theme.text,
+                    lineHeight: isPhoneLayout ? 1.62 : 1.7,
+                    margin: 0,
+                    filter: hideSensitiveContent ? "blur(8px)" : "none",
+                    userSelect: hideSensitiveContent ? "none" : "text",
+                    transition: "filter 0.18s ease",
+                  }}
+                />
+              )}
 
               {hideSensitiveContent && (
                 <div
@@ -1907,6 +2318,14 @@ const activeCommentPinPosition = isPhoneLayout
               }}
             >
               🌱 {new Date(confession.createdAt).toLocaleString()}
+              {(confession?.isEdited || confession?.editedAt) && (
+                <span
+                  className="cw-edited-mark"
+                  title={confession?.editedAt ? `Edited ${new Date(confession.editedAt).toLocaleString()}` : "edited"}
+                >
+                  edited
+                </span>
+              )}
             </div>
 
             <div
@@ -1914,27 +2333,11 @@ const activeCommentPinPosition = isPhoneLayout
                 marginTop: "12px",
                 display: "flex",
                 flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
                 gap: "8px",
               }}
             >
-              <button
-                type="button"
-                onClick={handleShareConfession}
-                aria-label="Share confession"
-                className="confession-detail-action-btn"
-                style={actionButtonStyle}
-              >
-                Share
-              </button>
-              <button
-                type="button"
-                onClick={handleCopyConfessionLink}
-                aria-label="Copy confession link"
-                className="confession-detail-action-btn"
-                style={actionButtonStyle}
-              >
-                Copy Link
-              </button>
               {nextConfession?._id && (
                 <button
                   type="button"
@@ -1946,6 +2349,20 @@ const activeCommentPinPosition = isPhoneLayout
                   Next Confession
                 </button>
               )}
+              <CardActionMenu
+                itemType="post"
+                canEdit={isConfessionOwner}
+                onEdit={startEditConfession}
+                canDelete={canDeleteConfession}
+                onDelete={deleteConfession}
+                onReport={reportConfession}
+                onCopyLink={handleCopyConfessionLink}
+                onShare={handleShareConfession}
+                onTogglePressedLeaves={togglePressedLeaf}
+                isPressedLeaf={isSaved}
+                showPressedLeaves
+                className="cw-card-menu-wrap--detail"
+              />
             </div>
 
             {copyFallbackUrl && (
@@ -1965,24 +2382,7 @@ const activeCommentPinPosition = isPhoneLayout
               </div>
             )}
 
-            <div
-              style={{
-                marginTop: "10px",
-                display: "flex",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                type="button"
-                onClick={togglePressedLeaf}
-                className={`confession-detail-action-btn confession-detail-action-btn--save${
-                  isSaved ? " is-active" : ""
-                }`}
-                style={actionButtonStyle}
-              >
-                {isSaved ? "🍂 saved to Pressed Leaves" : "🍂 save to Pressed Leaves"}
-              </button>
-            </div>
+            
 
             <ReactionBar
               wateredBy={confession.wateredBy || []}
@@ -2128,7 +2528,22 @@ const activeCommentPinPosition = isPhoneLayout
 
                     <div className="echo-root-card-topline">
                       <span className="echo-root-type-pill">🌿 Open Echo Root</span>
-                      <span className="echo-root-position">#{i + 1}</span>
+                      <div className="cw-comment-topline">
+                        <span className="echo-root-position cw-comment-serial">#{i + 1}</span>
+                          <CardActionMenu
+                            itemType="comment"
+                            canEdit={String(c?.userId?._id || c?.userId || "") === String(user?._id || "")}
+                            onEdit={() => startEditComment(c)}
+                            canDelete={
+                              adminMainSiteMode ||
+                              String(c?.userId?._id || c?.userId || "") === String(user?._id || "")
+                            }
+                            onDelete={() => deleteComment(c._id)}
+                            onReport={() => reportComment(c._id)}
+                            onCopyLink={() => copyUrl(buildCommentUrl(c._id), "Comment link copied.")}
+                            onShare={() => shareUrl(buildCommentUrl(c._id), "Comment on Confession Wall")}
+                          />
+                      </div>
                     </div>
 
                     <div className="echo-author-line">
@@ -2169,22 +2584,59 @@ const activeCommentPinPosition = isPhoneLayout
                       <DisplayTitlePill titleId={commentEquipped.title} />
                     </div>
 
-                    {c.text && (
-                      <TranslatableText
-                        text={c.text}
-                        context="comment"
-                        targetType="comment"
-                        targetId={confession._id || id}
-                        commentId={c._id}
-                        compact
-                        textStyle={{
-                          fontSize: isPhoneLayout ? "14px" : "15px",
-                          color: commentTextColor,
-                          lineHeight: isPhoneLayout ? 1.6 : 1.72,
-                          margin: "10px 0 0",
-                        }}
-                      />
+                    {editingCommentId && String(editingCommentId) === String(c._id) ? (
+                      <div className="cw-inline-edit" onClick={(event) => event.stopPropagation()}>
+                        <textarea
+                          className="cw-inline-edit-input"
+                          value={editingCommentText}
+                          onChange={(e) => setEditingCommentText(e.target.value)}
+                          rows={3}
+                          maxLength={3000}
+                        />
+                        <div className="cw-inline-edit-actions">
+                          <button
+                            type="button"
+                            className="cw-inline-edit-save"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              saveEditComment(editingCommentId);
+                            }}
+                            disabled={isSavingCommentEdit || !String(editingCommentText || "").trim()}
+                          >
+                            {isSavingCommentEdit ? "Saving..." : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            className="cw-inline-edit-cancel"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              cancelEditComment();
+                            }}
+                            disabled={isSavingCommentEdit}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      c.text && (
+                        <TranslatableText
+                          text={c.text}
+                          context="comment"
+                          targetType="comment"
+                          targetId={confession._id || id}
+                          commentId={c._id}
+                          compact
+                          textStyle={{
+                            fontSize: isPhoneLayout ? "14px" : "15px",
+                            color: commentTextColor,
+                            lineHeight: isPhoneLayout ? 1.6 : 1.72,
+                            margin: "10px 0 0",
+                          }}
+                        />
+                      )
                     )}
+                    {(c?.isEdited || c?.editedAt) && <span className="cw-edited-mark">edited</span>}
 
                     {c.image && (
                       <img
@@ -2211,18 +2663,7 @@ const activeCommentPinPosition = isPhoneLayout
                       >
                         Echo back
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => reportComment(c._id)}
-                        className="echo-root-action-btn echo-root-action-btn--report"
-                        style={{
-                          "--echo-report-bg": theme.reportBg,
-                          "--echo-report-border": theme.reportBorder,
-                          "--echo-report-color": theme.reportColor,
-                        }}
-                      >
-                        Report
-                      </button>
+                      
                     </div>
                   </article>
                 );
@@ -2239,7 +2680,11 @@ const activeCommentPinPosition = isPhoneLayout
                     {selectedReplies.map((reply, replyIndex) => {
                       const replyEquipped = getDisplayCosmetics(reply.userId);
                       return (
-                        <div key={reply._id || replyIndex} className="echo-reply-row">
+                        <div
+                          key={reply._id || replyIndex}
+                          id={reply?._id ? `reply-${reply._id}` : undefined}
+                          className="echo-reply-row"
+                        >
                           <span className="echo-reply-string" aria-hidden="true" />
                           <div className="echo-reply-bubble">
                             <div className="echo-reply-meta">
@@ -2258,17 +2703,78 @@ const activeCommentPinPosition = isPhoneLayout
                                 @{reply.userId?.username || "anonymous"}
                               </Link>
                               <span>#{replyIndex + 1}</span>
+                              <CardActionMenu
+                                itemType="reply"
+                                canEdit={
+                                  String(reply?.userId?._id || reply?.userId || "") === String(user?._id || "")
+                                }
+                                onEdit={() => startEditReply(selectedComment?._id, reply)}
+                                canDelete={
+                                  adminMainSiteMode ||
+                                  String(reply?.userId?._id || reply?.userId || "") ===
+                                    String(user?._id || "")
+                                }
+                                onDelete={() => deleteReply(selectedComment?._id, reply._id)}
+                                onReport={() => reportComment(selectedComment?._id)}
+                                onCopyLink={() =>
+                                  copyUrl(buildReplyUrl(selectedComment?._id, reply._id), "Reply link copied.")
+                                }
+                                onShare={() =>
+                                  shareUrl(
+                                    buildReplyUrl(selectedComment?._id, reply._id),
+                                    "Reply on Confession Wall"
+                                  )
+                                }
+                              />
                             </div>
-                            <TranslatableText
-                              text={reply.text}
-                              context="reply"
-                              targetType="reply"
-                              targetId={confession._id || id}
-                              commentId={selectedComment._id}
-                              replyId={reply._id}
-                              compact
-                              textStyle={{ margin: 0 }}
-                            />
+                            {editingReplyKey.commentId === String(selectedComment?._id || "") &&
+                            editingReplyKey.replyId === String(reply?._id || "") ? (
+                              <div className="cw-inline-edit">
+                                <textarea
+                                  className="cw-inline-edit-input"
+                                  value={editingReplyText}
+                                  onChange={(e) => setEditingReplyText(e.target.value)}
+                                  rows={3}
+                                  maxLength={3000}
+                                />
+                                <div className="cw-inline-edit-actions">
+                                  <button
+                                    type="button"
+                                    className="cw-inline-edit-save"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      saveEditReply(editingReplyKey.commentId, editingReplyKey.replyId);
+                                    }}
+                                    disabled={isSavingReplyEdit || !String(editingReplyText || "").trim()}
+                                  >
+                                    {isSavingReplyEdit ? "Saving..." : "Save"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="cw-inline-edit-cancel"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      cancelEditReply();
+                                    }}
+                                    disabled={isSavingReplyEdit}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <TranslatableText
+                                text={reply.text}
+                                context="reply"
+                                targetType="reply"
+                                targetId={confession._id || id}
+                                commentId={selectedComment._id}
+                                replyId={reply._id}
+                                compact
+                                textStyle={{ margin: 0 }}
+                              />
+                            )}
+                            {(reply?.isEdited || reply?.editedAt) && <span className="cw-edited-mark">edited</span>}
                           </div>
                         </div>
                       );
@@ -2373,7 +2879,22 @@ const activeCommentPinPosition = isPhoneLayout
 
                         <div className="echo-root-card-topline">
                           <span className="echo-root-type-pill">🌿 Echo Root</span>
-                          <span className="echo-root-position">#{i + 1}</span>
+                          <div className="cw-comment-topline">
+                            <span className="echo-root-position cw-comment-serial">#{i + 1}</span>
+                            <CardActionMenu
+                              itemType="comment"
+                              canEdit={String(c?.userId?._id || c?.userId || "") === String(user?._id || "")}
+                              onEdit={() => startEditComment(c)}
+                              canDelete={
+                                adminMainSiteMode ||
+                                String(c?.userId?._id || c?.userId || "") === String(user?._id || "")
+                              }
+                              onDelete={() => deleteComment(c._id)}
+                              onReport={() => reportComment(c._id)}
+                              onCopyLink={() => copyUrl(buildCommentUrl(c._id), "Comment link copied.")}
+                              onShare={() => shareUrl(buildCommentUrl(c._id), "Comment on Confession Wall")}
+                            />
+                          </div>
                         </div>
 
                         <div
@@ -2423,22 +2944,59 @@ const activeCommentPinPosition = isPhoneLayout
                           <DisplayTitlePill titleId={commentEquipped.title} />
                         </div>
 
-                        {c.text && (
-                          <TranslatableText
-                            text={c.text}
-                            context="comment"
-                            targetType="comment"
-                            targetId={confession._id || id}
-                            commentId={c._id}
-                            compact
-                            textStyle={{
-                              fontSize: isPhoneLayout ? "13px" : "14px",
-                              color: commentTextColor,
-                              lineHeight: isPhoneLayout ? 1.58 : 1.65,
-                              margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
-                            }}
-                          />
+                        {editingCommentId && String(editingCommentId) === String(c._id) ? (
+                          <div className="cw-inline-edit" onClick={(event) => event.stopPropagation()}>
+                            <textarea
+                              className="cw-inline-edit-input"
+                              value={editingCommentText}
+                              onChange={(e) => setEditingCommentText(e.target.value)}
+                              rows={3}
+                              maxLength={3000}
+                            />
+                            <div className="cw-inline-edit-actions">
+                              <button
+                                type="button"
+                                className="cw-inline-edit-save"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  saveEditComment(editingCommentId);
+                                }}
+                                disabled={isSavingCommentEdit || !String(editingCommentText || "").trim()}
+                              >
+                                {isSavingCommentEdit ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                className="cw-inline-edit-cancel"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  cancelEditComment();
+                                }}
+                                disabled={isSavingCommentEdit}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          c.text && (
+                            <TranslatableText
+                              text={c.text}
+                              context="comment"
+                              targetType="comment"
+                              targetId={confession._id || id}
+                              commentId={c._id}
+                              compact
+                              textStyle={{
+                                fontSize: isPhoneLayout ? "13px" : "14px",
+                                color: commentTextColor,
+                                lineHeight: isPhoneLayout ? 1.58 : 1.65,
+                                margin: isPhoneLayout ? "6px 0 0" : "5px 0 0",
+                              }}
+                            />
+                          )
                         )}
+                        {(c?.isEdited || c?.editedAt) && <span className="cw-edited-mark">edited</span>}
 
                         {c.image && (
                           <img
@@ -2463,7 +3021,11 @@ const activeCommentPinPosition = isPhoneLayout
                         {previewReplies.length > 0 && (
                           <div className="echo-root-reply-preview">
                             {previewReplies.map((reply, replyIndex) => (
-                              <div key={reply._id || replyIndex} className="echo-root-reply-preview-row">
+                              <div
+                                key={reply._id || replyIndex}
+                                id={reply?._id ? `reply-${reply._id}` : undefined}
+                                className="echo-root-reply-preview-row"
+                              >
                                 <span>@{reply.userId?.username || "anon"}</span>
                                 <TranslatableText
                                   text={reply.text}
@@ -2504,21 +3066,7 @@ const activeCommentPinPosition = isPhoneLayout
                             Echo back {replies.length ? `(${replies.length})` : ""}
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              reportComment(c._id);
-                            }}
-                            className="echo-root-action-btn echo-root-action-btn--report"
-                            style={{
-                              "--echo-report-bg": theme.reportBg,
-                              "--echo-report-border": theme.reportBorder,
-                              "--echo-report-color": theme.reportColor,
-                            }}
-                          >
-                            Report
-                          </button>
+                          
                         </div>
 
                         <div onClick={(event) => event.stopPropagation()}>
@@ -2591,7 +3139,7 @@ const activeCommentPinPosition = isPhoneLayout
             </div>
           )}
 
-         <form onSubmit={handleCommentSubmit}>
+         <form onSubmit={handleCommentSubmit} className="confession-comment-form">
             {commentPreview && (
               <div
                 style={{
@@ -2635,17 +3183,18 @@ const activeCommentPinPosition = isPhoneLayout
               </div>
             )}
 
-            <div className="comment-input-row" style={inputRowStyle}>
+            <div className="comment-input-row confession-comment-input-row" style={inputRowStyle}>
               <MentionInput
                 inputRef={commentInputRef}
                 token={token}
                 placeholder="leave an echo…"
                 value={comment}
                 onChange={setComment}
-                wrapperClassName="mention-input-shell--comment"
+                wrapperClassName="mention-input-shell--comment confession-comment-input-wrap"
                 inputStyle={{
-                  flex: isPhoneLayout ? "1 1 100%" : 1,
-                  width: isPhoneLayout ? "100%" : "auto",
+                  flex: "1 1 auto",
+                  width: "100%",
+                  minWidth: 0,
                   minHeight: isPhoneLayout ? "42px" : undefined,
                   border: "none",
                   outline: "none",
@@ -2658,7 +3207,11 @@ const activeCommentPinPosition = isPhoneLayout
                 }}
               />
 
-              <div ref={emojiPickerRef} style={{ position: "relative", flexShrink: 0 }}>
+              <div
+                ref={emojiPickerRef}
+                className="confession-comment-action confession-comment-emoji-action"
+                style={{ position: "relative", flexShrink: 0 }}
+              >
                 <button
                   type="button"
                   onClick={toggleEmojiPicker}
@@ -2853,7 +3406,7 @@ onMouseLeave={(e) => {
               </div>
 
               <label
-                className="comment-image-pin"
+                className="comment-image-pin confession-comment-action"
                 style={{
                   background: "none",
                   border: "none",
@@ -2885,6 +3438,7 @@ onMouseLeave={(e) => {
 
               <button
                 type="submit"
+                className="confession-comment-submit confession-comment-action"
                 style={{
                   background: viewerHasPostTheme
                     ? "rgba(110, 170, 255, 0.28)"

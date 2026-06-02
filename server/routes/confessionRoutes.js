@@ -1140,6 +1140,199 @@ router.delete("/:id", protect, async (req, res) => {
   }
 });
 
+const findNestedDocById = (items, id) => {
+  const normalizedId = String(id || "");
+  if (!normalizedId || !items) return null;
+
+  if (typeof items.id === "function") {
+    const found = items.id(normalizedId);
+    if (found) return found;
+  }
+
+  return Array.from(items || []).find(
+    (item) => String(item?._id || "") === normalizedId
+  );
+};
+
+const findReplyLocationById = (comments, replyId) => {
+  const normalizedReplyId = String(replyId || "");
+  if (!normalizedReplyId || !comments) return null;
+
+  for (const comment of Array.from(comments || [])) {
+    const reply = findNestedDocById(comment?.replies, normalizedReplyId);
+    if (reply) {
+      return { comment, reply };
+    }
+  }
+
+  return null;
+};
+
+const sendEditedConfession = async (res, confessionId, message) => {
+  const updatedConfession = await Confession.findById(confessionId)
+    .populate("userId", USER_PUBLIC_SELECT)
+    .populate("comments.userId", USER_PUBLIC_SELECT)
+    .populate("comments.replies.userId", USER_PUBLIC_SELECT);
+
+  return res.json({
+    message,
+    confession: stripHiddenCommentsFromConfession(updatedConfession),
+  });
+};
+
+const applyOwnedTextEdit = async ({
+  req,
+  res,
+  confession,
+  confessionId,
+  target,
+  emptyMessage,
+  forbiddenMessage,
+  successMessage,
+}) => {
+  const requesterId = String(req.user?._id || "");
+  const ownerId = String(target?.userId || "");
+  if (ownerId !== requesterId) {
+    return res.status(403).json({ message: forbiddenMessage });
+  }
+
+  const nextText = String(req.body?.text || "").trim();
+  if (!nextText) {
+    return res.status(400).json({ message: emptyMessage });
+  }
+
+  target.text = nextText;
+  target.isEdited = true;
+  target.editedAt = new Date();
+  await confession.save();
+
+  return sendEditedConfession(res, confessionId, successMessage);
+};
+
+const handleEditComment = async (req, res) => {
+  try {
+    const confessionId = req.params.confessionId || req.params.id;
+    const confession = await Confession.findById(confessionId);
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const comment = findNestedDocById(confession.comments, req.params.commentId);
+    if (!comment) {
+      const replyLocation = findReplyLocationById(confession.comments, req.params.commentId);
+      if (replyLocation?.reply) {
+        return applyOwnedTextEdit({
+          req,
+          res,
+          confession,
+          confessionId,
+          target: replyLocation.reply,
+          emptyMessage: "Reply text cannot be empty.",
+          forbiddenMessage: "You can only edit your own reply.",
+          successMessage: "Reply updated.",
+        });
+      }
+
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    return applyOwnedTextEdit({
+      req,
+      res,
+      confession,
+      confessionId,
+      target: comment,
+      emptyMessage: "Comment text cannot be empty.",
+      forbiddenMessage: "You can only edit your own comment.",
+      successMessage: "Comment updated.",
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Could not edit comment." });
+  }
+};
+
+const handleEditReply = async (req, res) => {
+  try {
+    const confessionId = req.params.confessionId || req.params.id;
+    const confession = await Confession.findById(confessionId);
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const comment = findNestedDocById(confession.comments, req.params.commentId);
+    const reply = comment
+      ? findNestedDocById(comment.replies, req.params.replyId)
+      : null;
+    const fallbackReplyLocation = reply
+      ? null
+      : findReplyLocationById(confession.comments, req.params.replyId);
+    const targetReply = reply || fallbackReplyLocation?.reply;
+
+    if (!comment && !fallbackReplyLocation?.comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+    if (!targetReply) {
+      return res.status(404).json({ message: "Reply not found." });
+    }
+
+    return applyOwnedTextEdit({
+      req,
+      res,
+      confession,
+      confessionId,
+      target: targetReply,
+      emptyMessage: "Reply text cannot be empty.",
+      forbiddenMessage: "You can only edit your own reply.",
+      successMessage: "Reply updated.",
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Could not edit reply." });
+  }
+};
+
+router.patch(
+  "/:confessionId/comments/:commentId/replies/:replyId",
+  protect,
+  blockSuspended,
+  handleEditReply
+);
+router.patch("/:confessionId/comments/:commentId", protect, blockSuspended, handleEditComment);
+
+// EDIT a confession
+router.patch("/:id", protect, blockSuspended, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.id);
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const requesterId = String(req.user?._id || "");
+    const ownerId = String(confession.userId || "");
+    if (requesterId !== ownerId) {
+      return res.status(403).json({ message: "You can only edit your own confession." });
+    }
+
+    const nextMessage = String(req.body?.message || "").trim();
+    if (!nextMessage) {
+      return res.status(400).json({ message: "Confession message cannot be empty." });
+    }
+
+    confession.message = nextMessage;
+    confession.isEdited = true;
+    confession.editedAt = new Date();
+    await confession.save();
+
+    const updated = await Confession.findById(req.params.id)
+      .populate("userId", USER_PUBLIC_SELECT)
+      .populate("comments.userId", USER_PUBLIC_SELECT)
+      .populate("comments.replies.userId", USER_PUBLIC_SELECT);
+
+    return res.json(stripHiddenCommentsFromConfession(updated));
+  } catch (err) {
+    return res.status(500).json({ message: "Could not edit confession." });
+  }
+});
+
 // ADD a comment to a confession
 // Banned users are blocked by protect.
 // Suspended users are blocked by blockSuspended.
@@ -1361,9 +1554,89 @@ router.post(
   }
 );
 
-// REACT to a confession
-// Banned users are blocked by protect.
-// Suspended users are blocked by blockSuspended.
+// DELETE a comment
+router.delete("/:id/comments/:commentId", protect, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.id);
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const comment = confession.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    const requesterId = String(req.user?._id || "");
+    const ownerId = String(comment.userId || "");
+    const requesterRole = String(req.user?.role || "").toLowerCase();
+    const canModerate =
+      req.user?.isAdmin === true || requesterRole === "admin" || requesterRole === "moderator";
+
+    if (ownerId !== requesterId && !canModerate) {
+      return res.status(403).json({ message: "You can only delete your own comment." });
+    }
+
+    comment.deleteOne();
+    await confession.save();
+
+    const updatedConfession = await Confession.findById(req.params.id)
+      .populate("comments.userId", USER_PUBLIC_SELECT)
+      .populate("comments.replies.userId", USER_PUBLIC_SELECT);
+
+    return res.json({
+      message: "Comment deleted.",
+      confession: stripHiddenCommentsFromConfession(updatedConfession),
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Could not delete comment." });
+  }
+});
+
+// DELETE a reply
+router.delete("/:id/comments/:commentId/replies/:replyId", protect, async (req, res) => {
+  try {
+    const confession = await Confession.findById(req.params.id);
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    const comment = confession.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    const reply = comment.replies.id(req.params.replyId);
+    if (!reply) {
+      return res.status(404).json({ message: "Reply not found." });
+    }
+
+    const requesterId = String(req.user?._id || "");
+    const ownerId = String(reply.userId || "");
+    const requesterRole = String(req.user?.role || "").toLowerCase();
+    const canModerate =
+      req.user?.isAdmin === true || requesterRole === "admin" || requesterRole === "moderator";
+
+    if (ownerId !== requesterId && !canModerate) {
+      return res.status(403).json({ message: "You can only delete your own reply." });
+    }
+
+    reply.deleteOne();
+    await confession.save();
+
+    const updatedConfession = await Confession.findById(req.params.id)
+      .populate("comments.userId", USER_PUBLIC_SELECT)
+      .populate("comments.replies.userId", USER_PUBLIC_SELECT);
+
+    return res.json({
+      message: "Reply deleted.",
+      confession: stripHiddenCommentsFromConfession(updatedConfession),
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Could not delete reply." });
+  }
+});
+
 router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, res) => {
   try {
     const { type } = req.body;
