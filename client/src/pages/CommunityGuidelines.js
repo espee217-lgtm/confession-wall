@@ -24,6 +24,24 @@ export default function CommunityGuidelines() {
           </p>
         </section>
 
+        <section className="guidelines-transparency-note" aria-labelledby="seeded-demo-content-title">
+          <h2 id="seeded-demo-content-title" className="guidelines-transparency-title">
+            Seeded Demo Content Transparency
+          </h2>
+          <p className="guidelines-transparency-text">
+            Transparency note: During the early stage of Confession Wall, some
+            visible confessions, comments, reactions, and accounts may be seeded
+            demo content. These seed accounts help show how the platform works,
+            what kinds of anonymous posts people can make, and how community
+            interactions look while the real user base grows. Seeded content is
+            used for demonstration and onboarding, not to replace real
+            participation. As real confessions and community activity grow,
+            seeded demo content may be reduced or removed so the space becomes
+            fully shaped by real users. Real users can still post, comment,
+            react, report, and interact normally.
+          </p>
+        </section>
+
         <section className="legal-section">
           <h2>2. Not Therapy or an Emergency Service</h2>
           <p>
