@@ -51,7 +51,19 @@ const commentLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-const createNotification = async ({ userId, type, message, link }) => {
+const createNotification = async ({
+  userId,
+  type,
+  message,
+  link,
+  senderId = null,
+  confessionId = null,
+  targetType = null,
+  targetId = null,
+  commentId = null,
+  replyId = null,
+  action = null,
+}) => {
   try {
     if (!userId) return;
 
@@ -60,6 +72,13 @@ const createNotification = async ({ userId, type, message, link }) => {
       type,
       message,
       link,
+      senderId,
+      confessionId,
+      targetType,
+      targetId,
+      commentId,
+      replyId,
+      action,
     });
   } catch (err) {
     console.error("Create notification error:", err);
@@ -828,6 +847,92 @@ router.get("/:id/related", async (req, res) => {
   } catch (err) {
     console.error("Related confessions error:", err);
     res.status(500).json({ message: "Could not load related confessions right now." });
+  }
+});
+
+// GET safe public users for a confession, comment, or reply reaction.
+router.get("/:id/reactions", async (req, res) => {
+  try {
+    const targetType = String(req.query.targetType || "").trim();
+    const targetId = String(req.query.targetId || "").trim();
+    const reaction = String(req.query.reaction || "").trim();
+
+    if (!["confession", "comment", "reply"].includes(targetType)) {
+      return res.status(400).json({ message: "Invalid reaction target type." });
+    }
+
+    if (!["water", "burn"].includes(reaction)) {
+      return res.status(400).json({ message: "Invalid reaction type." });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid confession ID." });
+    }
+
+    if (targetType !== "confession" && !mongoose.Types.ObjectId.isValid(targetId)) {
+      return res.status(400).json({ message: "Invalid reaction target ID." });
+    }
+
+    const confession = await Confession.findOne({
+      _id: req.params.id,
+      isHidden: { $ne: true },
+    });
+
+    if (!confession) {
+      return res.status(404).json({ message: "Confession not found." });
+    }
+
+    let target = confession;
+
+    if (targetType === "confession") {
+      if (targetId && String(confession._id) !== targetId) {
+        return res.status(404).json({ message: "Reaction target not found." });
+      }
+    } else if (targetType === "comment") {
+      target = confession.comments.id(targetId);
+      if (!target || target.isHidden) {
+        return res.status(404).json({ message: "Comment not found." });
+      }
+    } else {
+      target = null;
+      for (const comment of confession.comments) {
+        if (comment.isHidden) continue;
+        const reply = comment.replies.id(targetId);
+        if (reply) {
+          target = reply;
+          break;
+        }
+      }
+
+      if (!target) {
+        return res.status(404).json({ message: "Reply not found." });
+      }
+    }
+
+    const reactionField = reaction === "water" ? "wateredBy" : "burnedBy";
+    const reactionIds = [
+      ...new Set(
+        (Array.isArray(target[reactionField]) ? target[reactionField] : [])
+          .map((entry) => String(entry?._id || entry || ""))
+          .filter((entry) => mongoose.Types.ObjectId.isValid(entry))
+      ),
+    ];
+
+    const users = reactionIds.length
+      ? await User.find({ _id: { $in: reactionIds } })
+          .select("username profilePicture equippedCosmetics temporaryCosmeticOverride")
+          .lean()
+      : [];
+    const usersById = new Map(users.map((reactionUser) => [String(reactionUser._id), reactionUser]));
+    const orderedUsers = reactionIds.map((reactionUserId) => usersById.get(reactionUserId)).filter(Boolean);
+
+    return res.json({
+      users: orderedUsers,
+      count: orderedUsers.length,
+    });
+  } catch (err) {
+    console.error("Fetch reaction users error:", err);
+    return res.status(500).json({ message: "Could not load reactions." });
   }
 });
 
@@ -1678,7 +1783,12 @@ router.post("/:id/react", protect, blockSuspended, reactionLimiter, async (req, 
           type === "water"
             ? `${req.user.username || "Someone"} watered your post.`
             : `${req.user.username || "Someone"} burned your post.`,
-        link: `/confession/${confession._id}`,
+        link: `/confession/${confession._id}?focus=confession`,
+        senderId: userId,
+        confessionId: confession._id,
+        targetType: "confession",
+        targetId: confession._id,
+        action: type,
       });
 
       const alreadyRewardedForThisReactor = confession.seedReactionRewardedBy?.some((id) =>
@@ -1779,7 +1889,13 @@ router.post(
             type === "water"
               ? `${req.user.username || "Someone"} watered your comment.`
               : `${req.user.username || "Someone"} burned your comment.`,
-          link: `/confession/${confession._id}`,
+          link: `/confession/${confession._id}?focus=comment&commentId=${comment._id}`,
+          senderId: userId,
+          confessionId: confession._id,
+          targetType: "comment",
+          targetId: comment._id,
+          commentId: comment._id,
+          action: type,
         });
       }
 
@@ -1789,6 +1905,76 @@ router.post(
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// REACT to a reply
+router.post(
+  "/:id/comments/:commentId/replies/:replyId/react",
+  protect,
+  blockSuspended,
+  reactionLimiter,
+  async (req, res) => {
+    try {
+      const { type } = req.body;
+
+      if (!["water", "burn"].includes(type)) {
+        return res.status(400).json({ error: "Invalid type" });
+      }
+
+      const confession = await Confession.findById(req.params.id);
+
+      if (!confession) {
+        return res.status(404).json({ error: "Not found" });
+      }
+
+      const comment = confession.comments.id(req.params.commentId);
+      const reply = comment?.replies.id(req.params.replyId);
+
+      if (!comment || comment.isHidden || !reply) {
+        return res.status(404).json({ error: "Reply not found" });
+      }
+
+      const userId = req.user._id;
+      const addField = type === "water" ? "wateredBy" : "burnedBy";
+      const removeField = type === "water" ? "burnedBy" : "wateredBy";
+      const alreadyVoted = reply[addField].some((id) => id.equals(userId));
+
+      if (alreadyVoted) {
+        reply[addField].pull(userId);
+      } else {
+        reply[removeField].pull(userId);
+        reply[addField].push(userId);
+      }
+
+      await confession.save();
+
+      if (!alreadyVoted && reply.userId && !reply.userId.equals(userId)) {
+        await createNotification({
+          userId: reply.userId,
+          type: "reaction",
+          message:
+            type === "water"
+              ? `${req.user.username || "Someone"} watered your reply.`
+              : `${req.user.username || "Someone"} burned your reply.`,
+          link: `/confession/${confession._id}?focus=reply&commentId=${comment._id}&replyId=${reply._id}`,
+          senderId: userId,
+          confessionId: confession._id,
+          targetType: "reply",
+          targetId: reply._id,
+          commentId: comment._id,
+          replyId: reply._id,
+          action: type,
+        });
+      }
+
+      return res.json({
+        wateredBy: reply.wateredBy,
+        burnedBy: reply.burnedBy,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
     }
   }
 );

@@ -6,6 +6,7 @@ import MobileBottomNav from "../components/MobileBottomNav";
 import EmojiIcon from "../components/EmojiIcon";
 import TranslatableText from "../components/TranslatableText";
 import CardActionMenu from "../components/CardActionMenu";
+import ReactionCountButton from "../components/ReactionUserList";
 import {
   getCosmeticAnimationClass,
   getPostThemeStyle,
@@ -165,6 +166,9 @@ function ReactionBar({
   wateredBy = [],
   burnedBy = [],
   onReact,
+  confessionId,
+  targetType,
+  targetId,
   userId,
   theme,
   small = false,
@@ -190,17 +194,13 @@ function ReactionBar({
       : "rgba(216,90,48,0.25)";
     const activeText = isWater ? "#9fffc1" : "#ffb099";
     const idleText = isWater ? "#78c68a" : "#d8795b";
+    const count = isWater ? wateredBy.length : burnedBy.length;
 
     return (
-      <button
-        type="button"
-        onClick={() => onReact(type)}
-        aria-label={`${isWater ? "Water" : "Burn"} confession`}
+      <span
         className={[
-          "confession-detail-reaction-btn",
-          isWater ? "is-water" : "is-burn",
-          active ? "is-active" : "",
-          small ? "confession-detail-reaction-btn--small" : "",
+          "confession-detail-reaction-control",
+          small ? "confession-detail-reaction-control--small" : "",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -211,9 +211,37 @@ function ReactionBar({
           "--reaction-idle-text": idleText,
         }}
       >
-        {isWater ? "🌱" : "🔥"}{" "}
-        <span>{isWater ? wateredBy.length : burnedBy.length}</span>
-      </button>
+        <button
+          type="button"
+          onClick={() => onReact(type)}
+          aria-label={`${isWater ? "Water" : "Burn"} ${targetType}`}
+          className={[
+            "confession-detail-reaction-btn",
+            "confession-detail-reaction-toggle",
+            isWater ? "is-water" : "is-burn",
+            active ? "is-active" : "",
+            small ? "confession-detail-reaction-btn--small" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {isWater ? "🌱" : "🔥"}
+        </button>
+        <ReactionCountButton
+          confessionId={confessionId}
+          targetType={targetType}
+          targetId={targetId}
+          reaction={type}
+          count={count}
+          className={[
+            "confession-detail-reaction-count",
+            active ? "is-active" : "",
+            small ? "confession-detail-reaction-count--small" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        />
+      </span>
     );
   };
 
@@ -737,9 +765,14 @@ export default function ConfessionPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const targetCommentId = searchParams.get("comment");
+  const notificationFocus = searchParams.get("focus");
+  const notificationCommentId = searchParams.get("commentId");
+  const targetCommentId =
+    routeCommentId || notificationCommentId || searchParams.get("comment");
   const selectedCommentId = routeCommentId || targetCommentId || "";
-  const isCommentFocusPage = Boolean(routeCommentId);
+  const isCommentFocusPage = Boolean(
+    routeCommentId || (notificationFocus === "reply" && notificationCommentId)
+  );
   const { token, user, refreshUser, updateUser } = useAuth();
 
   const [confession, setConfession] = useState(null);
@@ -907,34 +940,45 @@ export default function ConfessionPage() {
   }, [lightboxImage]);
 
   useEffect(() => {
-    if (!selectedCommentId || !confession) return;
-
-    const el = document.getElementById(`comment-${selectedCommentId}`);
-    if (el) {
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 250);
-    }
-  }, [selectedCommentId, confession]);
-
-  useEffect(() => {
-    if (!confession) return;
+    if (!confession?._id) return;
+    const params = new URLSearchParams(location.search);
+    const focus = params.get("focus");
+    const commentId = params.get("commentId");
+    const replyId = params.get("replyId");
     const rawHash = (location.hash || "").replace("#", "").trim();
-    if (!rawHash) return;
-    const targetId =
-      rawHash.startsWith("comment-") || rawHash.startsWith("reply-")
-        ? rawHash
-        : "";
-    if (!targetId) return;
-    const targetEl = document.getElementById(targetId);
-    if (!targetEl) return;
-    const timer = window.setTimeout(() => {
+    const hashTarget =
+      rawHash.startsWith("comment-") || rawHash.startsWith("reply-") ? rawHash : "";
+    const targetDomId =
+      focus === "reply" && replyId
+        ? `reply-${replyId}`
+        : focus === "comment" && commentId
+        ? `comment-${commentId}`
+        : focus === "confession"
+        ? "confession-main-card"
+        : hashTarget || (selectedCommentId ? `comment-${selectedCommentId}` : "");
+
+    if (!targetDomId) return;
+
+    let highlightTimer;
+    const scrollTimer = window.setTimeout(() => {
+      const targetEl = document.getElementById(targetDomId);
+      if (!targetEl) return;
       targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      targetEl.classList.add("cw-target-highlight");
-      window.setTimeout(() => targetEl.classList.remove("cw-target-highlight"), 2200);
-    }, 240);
-    return () => window.clearTimeout(timer);
-  }, [location.hash, confession]);
+      targetEl.classList.add("cw-notification-target-highlight");
+      highlightTimer = window.setTimeout(
+        () => targetEl.classList.remove("cw-notification-target-highlight"),
+        3500
+      );
+    }, 350);
+
+    return () => {
+      window.clearTimeout(scrollTimer);
+      window.clearTimeout(highlightTimer);
+      document
+        .getElementById(targetDomId)
+        ?.classList.remove("cw-notification-target-highlight");
+    };
+  }, [location.hash, location.search, selectedCommentId, confession?._id]);
   useEffect(() => {
   if (!showEmojiPicker) return;
 
@@ -1245,9 +1289,9 @@ const activeCommentPinPosition = isPhoneLayout
   };
 
   const buildCommentUrl = (commentId) =>
-    `${window.location.origin}/confession/${id}#comment-${commentId}`;
+    `${window.location.origin}/confession/${id}?focus=comment&commentId=${commentId}`;
   const buildReplyUrl = (commentId, replyId) =>
-    `${window.location.origin}/confession/${id}#reply-${replyId}`;
+    `${window.location.origin}/confession/${id}?focus=reply&commentId=${commentId}&replyId=${replyId}`;
 
   const copyUrl = async (url, successMessage = "Link copied.") => {
     try {
@@ -1695,6 +1739,93 @@ const activeCommentPinPosition = isPhoneLayout
     navigate(`/confession/${id}/comment/${commentId}`);
   };
 
+  const reactToComment = async (commentIndex, type) => {
+    if (!token) {
+      window.cwToast?.("You must be logged in to react.", "warning") ||
+        alert("You must be logged in to react.");
+      return;
+    }
+
+    if (commentIndex < 0) return;
+
+    const res = await fetch(`${API_URL}/${id}/comments/${commentIndex}/react`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ type }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(
+        data.message || data.error || "Could not react.",
+        "error"
+      ) || alert(data.message || data.error || "Could not react.");
+      return;
+    }
+
+    setConfession((prev) => {
+      const updated = [...prev.comments];
+      updated[commentIndex] = {
+        ...updated[commentIndex],
+        wateredBy: data.wateredBy,
+        burnedBy: data.burnedBy,
+      };
+      return { ...prev, comments: updated };
+    });
+  };
+
+  const reactToReply = async (commentId, replyId, type) => {
+    if (!token) {
+      window.cwToast?.("You must be logged in to react.", "warning") ||
+        alert("You must be logged in to react.");
+      return;
+    }
+
+    const res = await fetch(
+      `${API_URL}/${id}/comments/${commentId}/replies/${replyId}/react`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type }),
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      window.cwToast?.(
+        data.message || data.error || "Could not react.",
+        "error"
+      ) || alert(data.message || data.error || "Could not react.");
+      return;
+    }
+
+    setConfession((prev) => ({
+      ...prev,
+      comments: prev.comments.map((currentComment) =>
+        String(currentComment?._id || "") !== String(commentId)
+          ? currentComment
+          : {
+              ...currentComment,
+              replies: (currentComment.replies || []).map((currentReply) =>
+                String(currentReply?._id || "") !== String(replyId)
+                  ? currentReply
+                  : {
+                      ...currentReply,
+                      wateredBy: data.wateredBy,
+                      burnedBy: data.burnedBy,
+                    }
+              ),
+            }
+      ),
+    }));
+  };
+
   const focusReplyInput = () => {
     setTimeout(() => {
       replyInputRef.current?.focus();
@@ -2012,6 +2143,7 @@ const activeCommentPinPosition = isPhoneLayout
             <ComfortSideStack side="left" cards={leftComfortCards} />
 
             <div
+              id="confession-main-card"
               style={cardStyle}
               className={["confession-detail-card", authorPostThemeClass]
                 .filter(Boolean)
@@ -2387,6 +2519,9 @@ const activeCommentPinPosition = isPhoneLayout
             <ReactionBar
               wateredBy={confession.wateredBy || []}
               burnedBy={confession.burnedBy || []}
+              confessionId={confession._id}
+              targetType="confession"
+              targetId={confession._id}
               userId={user?._id}
               theme={theme}
               onReact={async (type) => {
@@ -2663,8 +2798,19 @@ const activeCommentPinPosition = isPhoneLayout
                       >
                         Echo back
                       </button>
-                      
                     </div>
+
+                    <ReactionBar
+                      wateredBy={c.wateredBy || []}
+                      burnedBy={c.burnedBy || []}
+                      confessionId={confession._id}
+                      targetType="comment"
+                      targetId={c._id}
+                      userId={user?._id}
+                      theme={theme}
+                      small
+                      onReact={(type) => reactToComment(i, type)}
+                    />
                   </article>
                 );
               })()}
@@ -2775,6 +2921,19 @@ const activeCommentPinPosition = isPhoneLayout
                               />
                             )}
                             {(reply?.isEdited || reply?.editedAt) && <span className="cw-edited-mark">edited</span>}
+                            <ReactionBar
+                              wateredBy={reply.wateredBy || []}
+                              burnedBy={reply.burnedBy || []}
+                              confessionId={confession._id}
+                              targetType="reply"
+                              targetId={reply._id}
+                              userId={user?._id}
+                              theme={theme}
+                              small
+                              onReact={(type) =>
+                                reactToReply(selectedComment._id, reply._id, type)
+                              }
+                            />
                           </div>
                         </div>
                       );
@@ -3073,53 +3232,13 @@ const activeCommentPinPosition = isPhoneLayout
                           <ReactionBar
                             wateredBy={c.wateredBy || []}
                             burnedBy={c.burnedBy || []}
+                            confessionId={confession._id}
+                            targetType="comment"
+                            targetId={c._id}
                             userId={user?._id}
                             theme={theme}
                             small
-                            onReact={async (type) => {
-                              if (!token) {
-                                window.cwToast?.(
-                                  "You must be logged in to react.",
-                                  "warning"
-                                ) || alert("You must be logged in to react.");
-                                return;
-                              }
-
-                              const res = await fetch(
-                                `${API_URL}/${id}/comments/${i}/react`,
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    Authorization: `Bearer ${token}`,
-                                    "Content-Type": "application/json",
-                                  },
-                                  body: JSON.stringify({ type }),
-                                }
-                              );
-
-                              const data = await res.json();
-
-                              if (!res.ok) {
-                                window.cwToast?.(
-                                  data.message || data.error || "Could not react.",
-                                  "error"
-                                ) ||
-                                  alert(
-                                    data.message || data.error || "Could not react."
-                                  );
-                                return;
-                              }
-
-                              setConfession((prev) => {
-                                const updated = [...prev.comments];
-                                updated[i] = {
-                                  ...updated[i],
-                                  wateredBy: data.wateredBy,
-                                  burnedBy: data.burnedBy,
-                                };
-                                return { ...prev, comments: updated };
-                              });
-                            }}
+                            onReact={(type) => reactToComment(i, type)}
                           />
                         </div>
                       </div>

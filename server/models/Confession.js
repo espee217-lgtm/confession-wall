@@ -155,6 +155,8 @@ const commentReplySchema = new mongoose.Schema({
   text: { type: String, required: true, trim: true },
   isEdited: { type: Boolean, default: false },
   editedAt: { type: Date, default: null },
+  wateredBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  burnedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   createdAt: { type: Date, default: Date.now },
 });
 

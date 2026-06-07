@@ -11,6 +11,7 @@ const API_BASE =
     : "https://confession-wall-hn63.onrender.com");
 
 const SEED_ICON = "\uD83C\uDF31";
+const SUPPORT_EMAIL = "confession.wall.origins@gmail.com";
 const PAYMENT_UNAVAILABLE_MESSAGE =
   "Payments are not available yet. Please try again later.";
 const RAZORPAY_CHECKOUT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -85,6 +86,15 @@ function ensureRazorpayCheckoutScript() {
   return window.__cwRazorpayScriptPromise;
 }
 
+function getFrontendRegionOverride() {
+  try {
+    const override = localStorage.getItem("cwRegionOverride");
+    return String(override || "").trim().toUpperCase();
+  } catch {
+    return "";
+  }
+}
+
 function BuySeeds() {
   const navigate = useNavigate();
   const { user, token, refreshUser, updateUser } = useAuth();
@@ -95,6 +105,9 @@ function BuySeeds() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [localSeeds, setLocalSeeds] = useState(user?.seeds || 0);
+  const [isGcashModalOpen, setIsGcashModalOpen] = useState(false);
+  const [gcashRequestPack, setGcashRequestPack] = useState(null);
+  const [gcashCopyStatus, setGcashCopyStatus] = useState("");
   const [paymentMeta, setPaymentMeta] = useState({
     location: {
       countryCode: "",
@@ -327,6 +340,65 @@ function BuySeeds() {
   const showAutoDetectedNote = Boolean(location.source && location.source !== "default");
   const disabledPaymentMessage = paymentMeta.unavailableReason ||
     "Seed purchases are not available in your country yet.";
+  const countryCode = String(location.countryCode || "").toUpperCase();
+  const currencyCode = String(location.currency || "").toUpperCase();
+  const frontendRegionOverride = getFrontendRegionOverride();
+  const isPhilippinesUser =
+    countryCode === "PH" ||
+    currencyCode === "PHP" ||
+    frontendRegionOverride === "PH";
+  const gcashSelectedPackPrice = gcashRequestPack
+    ? formatCurrencyMinor(
+        gcashRequestPack.amountMinor,
+        gcashRequestPack.currency,
+        gcashRequestPack.currencyExponent
+      )
+    : "";
+  const gcashRequestDetails = [
+    "GCash Seed purchase request",
+    `Pack: ${gcashRequestPack?.name || "Not selected"}`,
+    `Pack ID: ${gcashRequestPack?.id || "not-selected"}`,
+    `Price shown: ${gcashSelectedPackPrice || "Not available"}`,
+    `Base Seeds: ${gcashRequestPack?.baseSeeds || "Not available"}`,
+    `Total Seeds preview: ${gcashRequestPack?.totalSeedsPreview || gcashRequestPack?.baseSeeds || "Not available"}`,
+    "Country: Philippines (PH)",
+    `Account email: ${user?.email || ""}`,
+    `Username: ${user?.username || ""}`,
+    "",
+    "I understand Seeds should only be credited after official payment verification.",
+  ].join("\n");
+  const gcashMailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+    "GCash Seed purchase request"
+  )}&body=${encodeURIComponent(gcashRequestDetails)}`;
+
+  const openGcashRequestModal = (pack) => {
+    if (!isLoggedIn) {
+      setError("");
+      setMessage("Log in or create an account to request GCash payment support.");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setGcashCopyStatus("");
+    setGcashRequestPack(pack || null);
+    setIsGcashModalOpen(true);
+  };
+
+  const closeGcashRequestModal = () => {
+    setIsGcashModalOpen(false);
+    setGcashRequestPack(null);
+    setGcashCopyStatus("");
+  };
+
+  const copyGcashRequestDetails = async () => {
+    try {
+      await navigator.clipboard.writeText(gcashRequestDetails);
+      setGcashCopyStatus("Request details copied.");
+    } catch {
+      setGcashCopyStatus("Could not copy automatically. You can email support from this modal.");
+    }
+  };
 
   return (
     <main className="buy-seeds-page">
@@ -458,6 +530,72 @@ function BuySeeds() {
             })}
           </div>
         )}
+
+        {isPhilippinesUser && (
+          <section className="ph-wallet-payment-card" aria-label="Philippines GCash wallet payment option">
+            <div className="gcash-payment-card-head">
+              <div>
+                <p className="buy-seeds-kicker">Philippines Wallet Option</p>
+                <h3>GCash Wallet</h3>
+                <p>
+                  Pay locally with GCash. Best for Philippines users who prefer
+                  wallet payments over card checkout.
+                </p>
+              </div>
+              <span className="gcash-payment-badge">Manual request</span>
+            </div>
+
+            <div className="gcash-safety-note">
+              GCash support is request/manual-verification only for now. Seeds
+              are not credited instantly and will only be added after official
+              payment verification.
+              {frontendRegionOverride === "PH" && (
+                <span className="gcash-qa-note">
+                  QA preview active from cwRegionOverride. This only displays
+                  the GCash UI and is not used for payment verification.
+                </span>
+              )}
+            </div>
+
+            {seedPacks.length > 0 ? (
+              <div className="gcash-pack-choice-list" aria-label="Choose a Seed pack for GCash request">
+                {seedPacks.map((pack) => (
+                  <button
+                    key={`gcash-${pack.id}`}
+                    type="button"
+                    className="gcash-pack-choice-btn"
+                    onClick={() => openGcashRequestModal(pack)}
+                    disabled={Boolean(seedPackBusyId)}
+                    aria-label={`Request GCash payment for ${pack.name}`}
+                  >
+                    <span>{pack.name}</span>
+                    <strong>
+                      {formatCurrencyMinor(
+                        pack.amountMinor,
+                        pack.currency,
+                        pack.currencyExponent
+                      )}
+                    </strong>
+                    <em>Request GCash Payment</em>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="gcash-request-standalone-btn"
+                onClick={() => openGcashRequestModal(null)}
+              >
+                Request GCash Payment
+              </button>
+            )}
+
+            <p className="gcash-card-footer">
+              Other payment option: Pay with international card remains
+              available through the regular checkout above.
+            </p>
+          </section>
+        )}
       </section>
 
       <section className="buy-seeds-legal-links" aria-label="Payment and support links">
@@ -466,6 +604,68 @@ function BuySeeds() {
         <Link to="/privacy">Privacy</Link>
         <Link to="/contact-support">Contact Support</Link>
       </section>
+
+      {isGcashModalOpen && (
+        <div className="gcash-request-modal-backdrop" role="presentation" onClick={closeGcashRequestModal}>
+          <section
+            className="gcash-request-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gcash-request-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="gcash-request-modal-head">
+              <div>
+                <p className="buy-seeds-kicker">Manual Verification</p>
+                <h2 id="gcash-request-title">Request GCash Payment</h2>
+              </div>
+              <button type="button" className="gcash-modal-close" onClick={closeGcashRequestModal} aria-label="Close GCash request modal">
+                ×
+              </button>
+            </div>
+
+            <div className="gcash-selected-pack">
+              <span>Selected pack</span>
+              <strong>{gcashRequestPack?.name || "Seed pack request"}</strong>
+              {gcashRequestPack && (
+                <p>
+                  {gcashSelectedPackPrice} · {gcashRequestPack.baseSeeds} base Seeds
+                  {gcashRequestPack.totalSeedsPreview
+                    ? ` · ${gcashRequestPack.totalSeedsPreview} Seeds preview`
+                    : ""}
+                </p>
+              )}
+            </div>
+
+            <p>
+              GCash wallet payments are being prepared for Philippines users.
+              For now, you can request GCash support and Confession Wall will
+              use verified manual confirmation before any Seeds are credited.
+            </p>
+
+            <ul className="gcash-verification-list">
+              <li>Seeds will only be credited after payment verification.</li>
+              <li>Do not send payment unless official Confession Wall payment instructions are shown.</li>
+              <li>Never send payment to random accounts claiming to be Confession Wall.</li>
+              <li>This request does not create a payment order or add Seeds automatically.</li>
+            </ul>
+
+            <div className="gcash-request-actions">
+              <a className="gcash-request-primary" href={gcashMailtoHref}>
+                Email Support
+              </a>
+              <button type="button" onClick={copyGcashRequestDetails}>
+                Copy request details
+              </button>
+              <Link to="/contact-support" onClick={closeGcashRequestModal}>
+                Contact Support
+              </Link>
+            </div>
+
+            {gcashCopyStatus && <p className="gcash-copy-status">{gcashCopyStatus}</p>}
+          </section>
+        </div>
+      )}
 
       <MobileBottomNav />
     </main>

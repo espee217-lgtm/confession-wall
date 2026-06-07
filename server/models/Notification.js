@@ -46,6 +46,45 @@ const notificationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    confessionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Confession",
+      default: null,
+    },
+
+    targetType: {
+      type: String,
+      enum: ["confession", "comment", "reply"],
+      default: null,
+    },
+
+    targetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+
+    commentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+
+    replyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+
+    action: {
+      type: String,
+      enum: ["water", "burn"],
+      default: null,
+    },
+
     read: {
       type: Boolean,
       default: false,

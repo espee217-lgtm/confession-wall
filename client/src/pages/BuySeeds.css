@@ -335,6 +335,293 @@
   text-decoration: underline;
 }
 
+/* Philippines wallet payment option */
+.ph-wallet-payment-card {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(102, 214, 255, 0.24);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(77, 182, 255, 0.13), transparent 36%),
+    radial-gradient(circle at 92% 20%, rgba(161, 255, 158, 0.1), transparent 34%),
+    linear-gradient(145deg, rgba(5, 34, 30, 0.88), rgba(3, 15, 10, 0.94));
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.gcash-payment-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.gcash-payment-card-head h3 {
+  margin: 0;
+  color: #f5ffe8;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 25px;
+  letter-spacing: 0.04em;
+}
+
+.gcash-payment-card-head p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: rgba(235, 255, 232, 0.74);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.gcash-payment-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(116, 214, 255, 0.34);
+  background: rgba(22, 95, 112, 0.24);
+  color: rgba(216, 248, 255, 0.92);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.gcash-safety-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 218, 112, 0.22);
+  background: rgba(255, 222, 120, 0.07);
+  color: rgba(255, 245, 207, 0.88);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.gcash-qa-note {
+  display: block;
+  margin-top: 8px;
+  color: rgba(190, 235, 255, 0.82);
+  font-size: 12px;
+}
+
+.gcash-pack-choice-list {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gcash-pack-choice-btn,
+.gcash-request-standalone-btn {
+  display: grid;
+  gap: 4px;
+  min-height: 74px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(132, 224, 255, 0.24);
+  background:
+    linear-gradient(145deg, rgba(12, 65, 62, 0.72), rgba(4, 22, 14, 0.84));
+  color: #efffde;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.gcash-pack-choice-btn:hover:not(:disabled),
+.gcash-request-standalone-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(156, 234, 255, 0.42);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.26),
+    0 0 22px rgba(96, 204, 255, 0.1);
+}
+
+.gcash-pack-choice-btn:disabled,
+.gcash-request-standalone-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.gcash-pack-choice-btn span {
+  color: rgba(241, 255, 233, 0.9);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 15px;
+}
+
+.gcash-pack-choice-btn strong {
+  color: #bcefff;
+  font-size: 16px;
+}
+
+.gcash-pack-choice-btn em {
+  color: rgba(225, 255, 223, 0.66);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gcash-request-standalone-btn {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 900;
+}
+
+.gcash-card-footer {
+  margin: 13px 0 0;
+  color: rgba(235, 255, 225, 0.62);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.gcash-request-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 8, 5, 0.74);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.gcash-request-modal {
+  width: min(560px, calc(100vw - 28px));
+  max-height: min(86vh, 720px);
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(126, 224, 255, 0.32);
+  background:
+    radial-gradient(circle at top left, rgba(89, 200, 255, 0.14), transparent 36%),
+    linear-gradient(145deg, rgba(7, 35, 30, 0.96), rgba(3, 13, 8, 0.98));
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.56),
+    0 0 34px rgba(91, 209, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #efffde;
+}
+
+.gcash-request-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.gcash-request-modal h2 {
+  margin: 0;
+  color: #f5ffe8;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(24px, 5vw, 34px);
+}
+
+.gcash-modal-close {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(215, 255, 225, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(245, 255, 238, 0.92);
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.gcash-selected-pack {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 17px;
+  border: 1px solid rgba(158, 231, 255, 0.2);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.gcash-selected-pack span {
+  display: block;
+  color: rgba(226, 255, 220, 0.58);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gcash-selected-pack strong {
+  display: block;
+  margin-top: 4px;
+  color: #f4ffe7;
+  font-size: 18px;
+}
+
+.gcash-selected-pack p,
+.gcash-request-modal > p {
+  margin: 9px 0 0;
+  color: rgba(235, 255, 225, 0.74);
+  line-height: 1.65;
+  font-size: 14px;
+}
+
+.gcash-verification-list {
+  margin: 14px 0 0;
+  padding-left: 1.15rem;
+  color: rgba(255, 245, 207, 0.86);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.gcash-verification-list li + li {
+  margin-top: 6px;
+}
+
+.gcash-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.gcash-request-actions a,
+.gcash-request-actions button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(157, 231, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(240, 255, 235, 0.92);
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.gcash-request-actions .gcash-request-primary {
+  border-color: rgba(178, 238, 255, 0.44);
+  background: linear-gradient(135deg, rgba(68, 175, 213, 0.84), rgba(32, 112, 77, 0.9));
+  box-shadow: 0 0 22px rgba(88, 212, 255, 0.14);
+}
+
+.gcash-copy-status {
+  margin: 12px 0 0;
+  color: rgba(215, 255, 211, 0.82);
+  font-size: 13px;
+}
+
 @media (max-width: 980px) {
   .buy-seeds-hero,
   .buy-seeds-grid {
@@ -348,6 +635,10 @@
 
   .buy-seeds-header {
     flex-direction: column;
+  }
+
+  .gcash-pack-choice-list {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -402,6 +693,25 @@
     align-items: stretch;
     flex-direction: column;
     text-align: center;
+  }
+
+  .gcash-payment-card-head,
+  .gcash-request-modal-head {
+    flex-direction: column;
+  }
+
+  .gcash-payment-badge {
+    align-self: flex-start;
+  }
+
+  .gcash-request-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .gcash-request-actions a,
+  .gcash-request-actions button {
+    width: 100%;
   }
 }
 

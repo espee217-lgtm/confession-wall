@@ -22,6 +22,7 @@ import {
 import { getConfessionImages } from "../utils/confessionImages";
 import TranslatableText from "./TranslatableText";
 import CardActionMenu from "./CardActionMenu";
+import ReactionCountButton from "./ReactionUserList";
 import { copyConfessionLink, shareConfession } from "../utils/shareConfession";
 import { getAdminToken, isAdminMainSiteMode } from "../utils/adminMode";
 
@@ -725,13 +726,29 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
             : "1px solid rgba(120,255,180,0.12)",
         }}
       >
-        <span style={{ fontSize: "11px", color: hasCustomPostTheme ? "#a9ffc8" : "#3b8a5a", fontWeight: 700, textShadow: softTextShadow }}>
+        <ReactionCountButton
+          confessionId={localPost._id}
+          targetType="confession"
+          targetId={localPost._id}
+          reaction="water"
+          count={localPost.wateredBy?.length || 0}
+          className="cw-post-card-reaction-count"
+          style={{ color: hasCustomPostTheme ? "#a9ffc8" : "#3b8a5a", textShadow: softTextShadow }}
+        >
           🌱 {localPost.wateredBy?.length || 0}
-        </span>
+        </ReactionCountButton>
 
-        <span style={{ fontSize: "11px", color: hasCustomPostTheme ? "#ffb39b" : "#D85A30", fontWeight: 700, textShadow: softTextShadow }}>
+        <ReactionCountButton
+          confessionId={localPost._id}
+          targetType="confession"
+          targetId={localPost._id}
+          reaction="burn"
+          count={localPost.burnedBy?.length || 0}
+          className="cw-post-card-reaction-count"
+          style={{ color: hasCustomPostTheme ? "#ffb39b" : "#D85A30", textShadow: softTextShadow }}
+        >
           🔥 {localPost.burnedBy?.length || 0}
-        </span>
+        </ReactionCountButton>
 
       </div>
     </div>
