@@ -103,11 +103,11 @@ function ReactionUserModal({
             onClick={onClose}
             aria-label="Close reaction list"
           >
-            ×
+            <span aria-hidden="true">×</span>
           </button>
         </header>
 
-        <div className="cw-reaction-users-list">
+        <div className="cw-reaction-users-list cw-reaction-users-scroll">
           {loading ? (
             <div className="cw-reaction-users-state">Loading reactions...</div>
           ) : error ? (

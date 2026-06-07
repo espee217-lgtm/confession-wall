@@ -199,8 +199,10 @@ function ReactionBar({
     return (
       <span
         className={[
-          "confession-detail-reaction-control",
-          small ? "confession-detail-reaction-control--small" : "",
+          "cw-reaction-pill",
+          isWater ? "cw-water-pill" : "cw-burn-pill",
+          active ? "is-active" : "",
+          small ? "cw-reaction-pill--small" : "",
         ]
           .filter(Boolean)
           .join(" ")}
@@ -216,11 +218,8 @@ function ReactionBar({
           onClick={() => onReact(type)}
           aria-label={`${isWater ? "Water" : "Burn"} ${targetType}`}
           className={[
-            "confession-detail-reaction-btn",
-            "confession-detail-reaction-toggle",
-            isWater ? "is-water" : "is-burn",
-            active ? "is-active" : "",
-            small ? "confession-detail-reaction-btn--small" : "",
+            "cw-reaction-action",
+            small ? "cw-reaction-action--small" : "",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -234,9 +233,8 @@ function ReactionBar({
           reaction={type}
           count={count}
           className={[
-            "confession-detail-reaction-count",
-            active ? "is-active" : "",
-            small ? "confession-detail-reaction-count--small" : "",
+            "cw-reaction-count-button",
+            small ? "cw-reaction-count-button--small" : "",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -247,6 +245,7 @@ function ReactionBar({
 
   return (
     <div
+      className="cw-reaction-cluster"
       style={{
         display: "flex",
         alignItems: "center",

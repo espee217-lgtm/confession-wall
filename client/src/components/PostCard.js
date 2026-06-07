@@ -88,6 +88,19 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
   const comfortCards = getComfortCardSummary(localPost.comfortCards);
   const savedConfessionIds = useMemo(() => getSavedConfessionIdSet(user), [user]);
   const isSaved = savedConfessionIds.has(String(localPost._id));
+  const viewerId = String(user?._id || "");
+  const userWatered = Boolean(
+    viewerId &&
+      localPost.wateredBy?.some(
+        (reactionUserId) => String(reactionUserId?._id || reactionUserId || "") === viewerId
+      )
+  );
+  const userBurned = Boolean(
+    viewerId &&
+      localPost.burnedBy?.some(
+        (reactionUserId) => String(reactionUserId?._id || reactionUserId || "") === viewerId
+      )
+  );
   const pollTotalVotes = getPollTotalVotes(localPost.poll);
   const contentWarning = normalizeContentWarning(localPost.contentWarning);
   const hasContentWarning = contentWarning.enabled;
@@ -713,6 +726,7 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
       )}
 
       <div
+        className="cw-reaction-cluster cw-post-card-reaction-cluster"
         style={{
           display: "flex",
           alignItems: "center",
@@ -732,10 +746,13 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
           targetId={localPost._id}
           reaction="water"
           count={localPost.wateredBy?.length || 0}
-          className="cw-post-card-reaction-count"
+          className={`cw-reaction-pill cw-post-card-reaction-pill cw-water-pill${
+            userWatered ? " is-active" : ""
+          }`}
           style={{ color: hasCustomPostTheme ? "#a9ffc8" : "#3b8a5a", textShadow: softTextShadow }}
         >
-          🌱 {localPost.wateredBy?.length || 0}
+          <span className="cw-post-card-reaction-icon" aria-hidden="true">🌱</span>
+          <span className="cw-post-card-reaction-value">{localPost.wateredBy?.length || 0}</span>
         </ReactionCountButton>
 
         <ReactionCountButton
@@ -744,10 +761,13 @@ export default function PostCard({ post, realm, highlighted, onOpen }) {
           targetId={localPost._id}
           reaction="burn"
           count={localPost.burnedBy?.length || 0}
-          className="cw-post-card-reaction-count"
+          className={`cw-reaction-pill cw-post-card-reaction-pill cw-burn-pill${
+            userBurned ? " is-active" : ""
+          }`}
           style={{ color: hasCustomPostTheme ? "#ffb39b" : "#D85A30", textShadow: softTextShadow }}
         >
-          🔥 {localPost.burnedBy?.length || 0}
+          <span className="cw-post-card-reaction-icon" aria-hidden="true">🔥</span>
+          <span className="cw-post-card-reaction-value">{localPost.burnedBy?.length || 0}</span>
         </ReactionCountButton>
 
       </div>
